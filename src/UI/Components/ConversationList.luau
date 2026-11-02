@@ -21,6 +21,7 @@ local Preferences = require(script.Parent.Parent.Preferences)
 local Constants = require(script.Parent.Parent.Parent.Config.Constants)
 local Icons = require(script.Parent.Parent.Parent.Config.Icons)
 local Language = require(script.Parent.Parent.Parent.Core.Language)
+local TimeFormat = require(script.Parent.Parent.Parent.Util.TimeFormat)
 
 local FONTS = Theme.FONTS
 
@@ -52,6 +53,29 @@ local function initials(name: string): string
 	return if letters ~= "" then letters else "?"
 end
 
+-- When a DM's last message was sent, short: the time today (in the clock
+-- format from Settings), else the day ("02/11"), with the year when older
+local function shortTime(timestamp: number?): string
+	if not timestamp or timestamp <= 0 then
+		return ""
+	end
+	local now = os.date("*t")
+	local date = os.date("*t", timestamp)
+	if date.year == now.year and date.yday == now.yday then
+		if TimeFormat.getClockFormat() == "12h" then
+			local hour = date.hour % 12
+			return string.format(
+				"%d:%02d %s",
+				if hour == 0 then 12 else hour,
+				date.min,
+				if date.hour >= 12 then "PM" else "AM"
+			)
+		end
+		return string.format("%02d:%02d", date.hour, date.min)
+	end
+	return os.date(if date.year == now.year then "%d/%m" else "%d/%m/%y", timestamp)
+end
+
 local function corner(parent: Instance, radius: UDim)
 	local c = Instance.new("UICorner")
 	c.CornerRadius = radius
@@ -78,7 +102,8 @@ end
 -- @param parent Instance - where the sidebar frame goes (the widget)
 -- @param onSelect (id: string) -> () - called when a conversation is clicked
 -- @param onToggle (expanded: boolean) -> () - called when the toggle is clicked
--- @param onNewMessage () -> () - called when the + (new message) is clicked
+-- @param onNewMessage (query: string?) -> () - called when the + (new message) is clicked,
+--   with the search text when searching (to look for that friend)
 -- @param onClose (id: string) -> () - called when a DM's × is clicked
 --!
 function ConversationList.create(
@@ -86,7 +111,7 @@ function ConversationList.create(
 	parent: Instance,
 	onSelect: (string) -> (),
 	onToggle: (boolean) -> (),
-	onNewMessage: () -> (),
+	onNewMessage: (query: string?) -> (),
 	onClose: (string) -> ()
 )
 	local self = { expanded = false, rows = {}, activeId = nil, entries = {} }
@@ -155,6 +180,38 @@ function ConversationList.create(
 	listLayout.SortOrder = Enum.SortOrder.LayoutOrder
 	listLayout.Padding = UDim.new(0, 4)
 	listLayout.Parent = list
+
+	-- Search (expanded only): filters the DMs; searching also turns "New
+	-- message" into "Search friends for …"
+	local searchHolder = Instance.new("Frame")
+	searchHolder.Name = "SearchHolder"
+	searchHolder.BackgroundTransparency = 1
+	searchHolder.Size = UDim2.new(1, 0, 0, 34)
+	searchHolder.LayoutOrder = -1
+	searchHolder.Visible = false
+	searchHolder.Parent = list
+	local search = Instance.new("TextBox")
+	search.Name = "Search"
+	search.Position = UDim2.fromOffset(12, 3)
+	search.Size = UDim2.new(1, -24, 0, 28)
+	search.BackgroundColor3 = colors.inputBox
+	search.BorderSizePixel = 0
+	search.ClearTextOnFocus = false
+	search.FontFace = FONTS.body
+	search.TextSize = 13
+	search.TextColor3 = colors.messageText
+	search.PlaceholderColor3 = colors.placeholder
+	search.TextXAlignment = Enum.TextXAlignment.Left
+	search.TextTruncate = Enum.TextTruncate.AtEnd
+	search.Text = ""
+	search.Parent = searchHolder
+	corner(search, UDim.new(0, 8))
+	local searchPadding = Instance.new("UIPadding")
+	searchPadding.PaddingLeft = UDim.new(0, 10)
+	searchPadding.PaddingRight = UDim.new(0, 10)
+	searchPadding.Parent = search
+	Language.bind(search, "PlaceholderText", "sidebar.search")
+	self.search = search
 
 	-- New message: a round + while collapsed, a "New message" row when expanded
 	local newMessage = Instance.new("TextButton")
@@ -399,7 +456,7 @@ function ConversationList.create(
 	end)
 	newMessage.MouseButton1Click:Connect(function()
 		hideTooltip()
-		onNewMessage()
+		onNewMessage(if search.Text ~= "" and self.expanded then search.Text else nil)
 	end)
 
 	local function paintRow(row: TextButton)
@@ -430,6 +487,10 @@ function ConversationList.create(
 			close.BackgroundColor3 = colors.menuBack
 			close.TextColor3 = colors.timestamp
 		end
+		-- The time makes way for the close button on hover
+		local time = row:FindFirstChild("TimeLabel") :: TextLabel
+		time.Visible = self.expanded and time.Text ~= "" and not (hovered and close ~= nil)
+		time.TextColor3 = if unread then colors.messageText else colors.timestamp
 	end
 
 	local function layoutRow(row: TextButton)
@@ -437,6 +498,8 @@ function ConversationList.create(
 		row.Size = UDim2.new(1, -12, 0, ROW_HEIGHT)
 		row:FindFirstChild("NameLabel").Visible = expanded
 		row:FindFirstChild("SubLabel").Visible = expanded
+		local time = row:FindFirstChild("TimeLabel") :: TextLabel
+		time.Visible = expanded and time.Text ~= ""
 		local close = row:FindFirstChild("CloseButton") :: TextButton?
 		if close then
 			-- Right side of the row when expanded; the avatar's corner on the rail
@@ -541,9 +604,20 @@ function ConversationList.create(
 
 		newLabel("NameLabel", row, {
 			Position = UDim2.fromOffset(AVATAR_SIZE + 16, 7),
-			Size = UDim2.new(1, -(AVATAR_SIZE + 22), 0, 18),
+			-- DMs leave room on the right for the time of the last message
+			Size = UDim2.new(1, -(AVATAR_SIZE + 22 + (if entry.kind == "dm" then 50 else 0)), 0, 18),
 			FontFace = FONTS.semibold,
 			TextSize = 14,
+			Visible = false,
+		})
+		newLabel("TimeLabel", row, {
+			AnchorPoint = Vector2.new(1, 0),
+			Position = UDim2.new(1, -8, 0, 9),
+			Size = UDim2.fromOffset(48, 14),
+			FontFace = FONTS.body,
+			TextSize = 11,
+			TextColor3 = colors.timestamp,
+			TextXAlignment = Enum.TextXAlignment.Right,
 			Visible = false,
 		})
 		newLabel("SubLabel", row, {
@@ -648,6 +722,13 @@ function ConversationList.create(
 		local name = row:FindFirstChild("NameLabel") :: TextLabel
 		name.RichText = true
 		name.Text = richName
+		local time = row:FindFirstChild("TimeLabel") :: TextLabel
+		time.Text = if entry.kind == "dm" then shortTime(entry.lastTimestamp) else ""
+		-- What search matches: the display name and the username
+		row:SetAttribute(
+			"SearchText",
+			string.lower(shownName .. " " .. (entry.name or "") .. " " .. ((profile and profile.displayName) or ""))
+		)
 		local sub = row:FindFirstChild("SubLabel") :: TextLabel
 		if entry.kind == "place" then
 			sub.Text = Language.t("sidebar.teamChatOnline", { count = entry.onlineCount or 0 })
@@ -660,6 +741,23 @@ function ConversationList.create(
 		end
 		paintRow(row)
 	end
+
+	-- Hides the DMs that don't match the search
+	local function applyFilter()
+		local query = if self.expanded then string.lower(search.Text) else ""
+		for _, row in pairs(self.rows) do
+			local holder = row.Parent :: Frame?
+			if holder and holder.Parent == list then
+				holder.Visible = query == "" or string.find(row:GetAttribute("SearchText") or "", query, 1, true) ~= nil
+			end
+		end
+		if query ~= "" then
+			newMessageLabel.Text = Language.t("sidebar.searchFriends", { query = search.Text })
+		else
+			newMessageLabel.Text = Language.t("sidebar.newMessage")
+		end
+	end
+	search:GetPropertyChangedSignal("Text"):Connect(applyFilter)
 
 	--!
 	-- Shows the given entries (from Conversations.list) with activeId selected.
@@ -693,6 +791,7 @@ function ConversationList.create(
 			end
 		end
 		emptyHint.Visible = dmCount == 0 and self.expanded
+		applyFilter()
 	end
 
 	--!
@@ -722,6 +821,11 @@ function ConversationList.create(
 		sectionTitle.Visible = expanded
 		layoutFooter()
 		newMessageLabel.Visible = expanded
+		searchHolder.Visible = expanded
+		if not expanded then
+			search.Text = ""
+		end
+		applyFilter()
 		hideTooltip()
 		for _, row in pairs(self.rows) do
 			layoutRow(row)
@@ -791,6 +895,9 @@ function ConversationList.create(
 		separator.BackgroundColor3 = colors.divider
 		sectionTitle.TextColor3 = colors.timestamp
 		emptyHint.TextColor3 = colors.timestamp
+		search.BackgroundColor3 = colors.inputBox
+		search.TextColor3 = colors.messageText
+		search.PlaceholderColor3 = colors.placeholder
 		footerDivider.BackgroundColor3 = colors.divider
 		for _, button in ipairs(footerButtons) do
 			button.BackgroundColor3 = colors.menuItemHover

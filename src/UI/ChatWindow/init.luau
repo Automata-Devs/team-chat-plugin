@@ -184,9 +184,9 @@ function ChatUI.create(pluginInstance)
 		end, function(expanded)
 			manualExpanded = expanded
 			setExpanded(expanded)
-		end, function()
+		end, function(query)
 			if conversationSidebar.newMessageDialog then
-				conversationSidebar.newMessageDialog.open()
+				conversationSidebar.newMessageDialog.open(query)
 			end
 		end, function(id)
 			if conversationSidebar.closeCallback then

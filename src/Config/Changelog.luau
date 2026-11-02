@@ -36,7 +36,13 @@
 -- tweaks), newest first, tagged with the version it went into. Not shown in
 -- What's New. When something big ships, move these lines into a new entry at
 -- the top of the list below and empty this list.
-local unreleased = {}
+local unreleased = {
+	{
+		version = "1.21.1",
+		type = "added",
+		text = "The DM list shows when each conversation's last message was sent and has a search box; searching also lets you look for a friend to message.",
+	},
+}
 local _ = unreleased
 
 return {

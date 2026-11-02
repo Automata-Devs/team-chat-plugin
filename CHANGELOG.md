@@ -3,6 +3,21 @@
 Developer-facing history of the codebase. User-facing notes ("What's New")
 are in `src/Config/Changelog.luau`. Format: [Keep a Changelog](https://keepachangelog.com).
 
+## [1.21.1] - 2026-11-02
+
+### Added
+- Sidebar DMs: a `TimeLabel` with the last message's time today (clock
+  format from Settings) or its date (`DD/MM`, `DD/MM/YY` when older), hidden
+  while hovering (the close button takes its place).
+- Sidebar search (expanded): filters DMs by display name and username
+  (`SearchText` attribute); while searching, "New message" reads
+  "Search friends for …" (`sidebar.searchFriends`) and opens the friend
+  picker with the search filled in (`NewMessageDialog.open(query)`).
+- Sidebar spec: 6 more checks.
+
+Roblox doesn't offer an API for its own chat or friends list (Open Cloud
+included), so DMs still reach friends inside the place only.
+
 ## [1.21.0] - 2026-11-02
 
 ### Added

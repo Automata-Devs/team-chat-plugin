@@ -44,9 +44,9 @@ return function(t)
 		t.check("focusing selects the object", Selection:Get()[1] == door)
 		t.check(
 			"…and moves the camera to look at it",
-			moved and (camera.CFrame.Position - door.Position).Magnitude < 40 and camera.CFrame.LookVector:Dot(
-				(door.Position - camera.CFrame.Position).Unit
-			) > 0.99
+			moved
+				and (camera.CFrame.Position - door.Position).Magnitude < 40
+				and camera.CFrame.LookVector:Dot((door.Position - camera.CFrame.Position).Unit) > 0.99
 		)
 		local folder = Instance.new("Folder")
 		folder.Name = "TagTestFolder"
@@ -99,10 +99,7 @@ return function(t)
 		local before = #gui:FindFirstChild("MessageList", true):GetChildren()
 		MessageText.onTag("Workspace.Gone")
 		Harness.settle()
-		t.check(
-			"a tag whose object is gone says so",
-			#gui:FindFirstChild("MessageList", true):GetChildren() > before
-		)
+		t.check("a tag whose object is gone says so", #gui:FindFirstChild("MessageList", true):GetChildren() > before)
 	end)
 	model:Destroy()
 	camera.CFrame = savedCamera

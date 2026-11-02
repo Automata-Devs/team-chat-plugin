@@ -81,6 +81,61 @@ return function(t)
 		local container = gui:FindFirstChild("Container") :: Frame
 		t.equal("wide panel: the chat moves over", container.Position.X.Offset, EXPANDED)
 		t.check("wide panel: no dimming", not (gui:FindFirstChild("SidebarScrim") :: TextButton).Visible)
+
+		-- DMs show when their last message was, and can be searched. The list is
+		-- set right before each check: the real conversation list refreshes it
+		-- whenever the chat changes.
+		local now = os.time()
+		local function showTestList()
+			wide.ui.setConversations({
+				{ id = "main", kind = "place", name = "Place", onlineCount = 1, unread = 0 },
+				{ id = "dm_1_156", kind = "dm", userId = 156, name = "builderman", unread = 0, lastTimestamp = now },
+				{
+					id = "dm_1_261",
+					kind = "dm",
+					userId = 261,
+					name = "shedletsky",
+					unread = 0,
+					lastTimestamp = now - 86400 * 40,
+				},
+			}, "main")
+		end
+		local sidebar = gui:FindFirstChild("Sidebar") :: Frame
+		local function rowOf(name: string): TextButton?
+			for _, label in ipairs(sidebar:GetDescendants()) do
+				if label.Name == "NameLabel" and label:IsA("TextLabel") and string.find(label.Text, name, 1, true) then
+					return label.Parent :: TextButton
+				end
+			end
+			return nil
+		end
+		showTestList()
+		local recent, older = rowOf("builderman"), rowOf("shedletsky")
+		local recentTime = recent and (recent:FindFirstChild("TimeLabel") :: TextLabel)
+		local olderTime = older and (older:FindFirstChild("TimeLabel") :: TextLabel)
+		t.check(
+			"today's DM shows the time: " .. (if recentTime then recentTime.Text else "?"),
+			recentTime ~= nil and recentTime.Visible and string.find(recentTime.Text, "%d+:%d%d") ~= nil
+		)
+		t.check(
+			"an older DM shows the date: " .. (if olderTime then olderTime.Text else "?"),
+			olderTime ~= nil and string.find(olderTime.Text, "^%d%d/%d%d") ~= nil
+		)
+		local search = sidebar:FindFirstChild("Search", true) :: TextBox
+		t.check("the expanded sidebar has a search box", search ~= nil and (search.Parent :: Frame).Visible)
+		search.Text = "shed"
+		showTestList()
+		recent, older = rowOf("builderman"), rowOf("shedletsky")
+		t.check(
+			"search hides DMs that don't match",
+			recent ~= nil and older ~= nil and not (recent.Parent :: Frame).Visible and (older.Parent :: Frame).Visible
+		)
+		local newMessageLabel = sidebar:FindFirstChild("NewMessage", true):FindFirstChild("NameLabel") :: TextLabel
+		t.equal("…and offers to search friends", newMessageLabel.Text, 'Search friends for "shed"')
+		search.Text = ""
+		showTestList()
+		recent = rowOf("builderman")
+		t.check("clearing it shows them all again", recent ~= nil and (recent.Parent :: Frame).Visible)
 	end)
 	wide.stop()
 	if not ok2 then

@@ -433,5 +433,7 @@ return {
 		["links.copied"] = "No se pudo abrir el enlace en tu navegador, así que se copió al portapapeles: {url}",
 		["autocomplete.object"] = "Objetos",
 		["tag.notFound"] = "No se encontró {name}. Puede que se haya renombrado, movido o eliminado.",
+		["sidebar.search"] = "Buscar conversaciones",
+		["sidebar.searchFriends"] = 'Buscar amigos: "{query}"',
 	},
 }

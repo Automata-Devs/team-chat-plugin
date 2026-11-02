@@ -354,8 +354,9 @@ function NewMessageDialog.create(kit, opts)
 
 	local dialog = {}
 
-	function dialog.open()
-		search.Text = ""
+	-- `query`: start with this in the search box (searching from the sidebar)
+	function dialog.open(query: string?)
+		search.Text = query or ""
 		render()
 		modal.open()
 		local handlers = opts.getHandlers()

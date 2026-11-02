@@ -433,5 +433,7 @@ return {
 		["links.copied"] = "De link kon niet in je browser worden geopend, dus hij is naar je klembord gekopieerd: {url}",
 		["autocomplete.object"] = "Objecten",
 		["tag.notFound"] = "{name} niet gevonden. Misschien is het hernoemd, verplaatst of verwijderd.",
+		["sidebar.search"] = "Gesprekken zoeken",
+		["sidebar.searchFriends"] = 'Vrienden zoeken naar "{query}"',
 	},
 }

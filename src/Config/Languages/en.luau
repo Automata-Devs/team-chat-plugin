@@ -441,5 +441,7 @@ return {
 		["links.copied"] = "Couldn't open the link in your browser, so it was copied to your clipboard: {url}",
 		["autocomplete.object"] = "Objects",
 		["tag.notFound"] = "Couldn't find {name}. It may have been renamed, moved or deleted.",
+		["sidebar.search"] = "Search conversations",
+		["sidebar.searchFriends"] = 'Search friends for "{query}"',
 	},
 }

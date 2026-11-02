@@ -433,5 +433,7 @@ return {
 		["links.copied"] = "Der Link konnte nicht im Browser geöffnet werden und wurde in die Zwischenablage kopiert: {url}",
 		["autocomplete.object"] = "Objekte",
 		["tag.notFound"] = "{name} wurde nicht gefunden. Vielleicht wurde es umbenannt, verschoben oder gelöscht.",
+		["sidebar.search"] = "Unterhaltungen suchen",
+		["sidebar.searchFriends"] = 'Freunde nach "{query}" durchsuchen',
 	},
 }

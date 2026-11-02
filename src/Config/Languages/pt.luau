@@ -433,5 +433,7 @@ return {
 		["links.copied"] = "Não foi possível abrir o link no navegador, então ele foi copiado para a área de transferência: {url}",
 		["autocomplete.object"] = "Objetos",
 		["tag.notFound"] = "Não foi possível encontrar {name}. Talvez tenha sido renomeado, movido ou excluído.",
+		["sidebar.search"] = "Procurar conversas",
+		["sidebar.searchFriends"] = 'Procurar amigos: "{query}"',
 	},
 }
