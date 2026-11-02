@@ -3,6 +3,35 @@
 Developer-facing history of the codebase. User-facing notes ("What's New")
 are in `src/Config/Changelog.luau`. Format: [Keep a Changelog](https://keepachangelog.com).
 
+## [1.23.0] - 2026-11-02
+
+### Added
+- Web bots (`Kind = "web"` manifests with `Url` and `Token`): the requester's
+  plugin POSTs JSON (`ping`, `command`, `button`, `followup`) with an
+  `X-TeamChat-Token` header; answers are `pong`, `message`, `update`,
+  `deferred` (then `followup` polled every 2 s for 60 s) or `none`.
+  `Bots.createWeb`, `updateWeb`, `regenerateToken`, `tokenOf`, `syncWeb`.
+  URLs must be https (http only to localhost/127.0.0.1).
+- Typed command options (`string`, `integer`, `number`, `boolean`, `user`,
+  `choices`), checked on the requester's side by `Bots.parseOptions`; choices
+  show in autocomplete (mode `choice`). Old `args` still work.
+- Message components: buttons in rows (`Bots.cleanComponents`,
+  `UI/Embeds/Components`), saved as the `Components` attribute; clicks go to
+  `bot.onButton(ctx, customId)` or a web bot's `button` interaction.
+- Ephemeral answers (`VisibleTo`, skipped by other people's chats, unread
+  counts and notifications) and deferred answers (`Thinking`, then edited in
+  place with a `Revision` bump that re-renders the row). `ctx.defer`,
+  `ctx.update`, `ctx.options`, `ctx.customId`, `ctx.message`.
+- Settings > Developer (`UI/Dialogs/DeveloperDialog`) and Settings > Admin
+  (`UI/Dialogs/AdminDialog`), built from `UI/Dialogs/PanelKit`.
+  `AdminNetwork.getRankedUsers`. Bots can be turned off (`Disabled`).
+- `tests/Specs/BotInteractions.spec.luau`; the harness records PanelKit
+  button clicks and fakes `plugin:OpenScript`.
+
+### Changed
+- docs/BOTS.md covers web bots, options, buttons, ephemeral and deferred
+  answers, and the token's threat model.
+
 ## [1.22.0] - 2026-11-02
 
 ### Added

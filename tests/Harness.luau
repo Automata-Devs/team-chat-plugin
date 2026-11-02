@@ -136,6 +136,13 @@ function Harness.boot(options: { settings: { [string]: any }?, keepData: boolean
 		"_G.__TeamChatTest.onClick(continueButton, ",
 		1
 	)
+	-- Panel buttons (the admin dashboard, the developer portal)
+	patch(
+		copy.UI.Dialogs.PanelKit,
+		"button%.MouseButton1Click:Connect%(onClick%)",
+		"_G.__TeamChatTest.onClick(button, onClick)",
+		1
+	)
 	-- The sidebar overlay: expose its toggle and scrim, and fake a narrow panel
 	patch(
 		window,
@@ -179,6 +186,9 @@ function Harness.boot(options: { settings: { [string]: any }?, keepData: boolean
 			}
 		end,
 		StartDrag = function() end,
+		OpenScript = function(_, opened)
+			hooks.openedScript = opened
+		end,
 		Unloading = Instance.new("BindableEvent").Event,
 	}
 

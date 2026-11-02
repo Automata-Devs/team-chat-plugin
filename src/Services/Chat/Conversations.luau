@@ -208,6 +208,7 @@ function Conversations.firstUnread(id: string): number?
 			timestamp > since
 			and child:GetAttribute("SenderId") ~= myId()
 			and child:GetAttribute("Sender") ~= "System"
+			and (child:GetAttribute("VisibleTo") == nil or child:GetAttribute("VisibleTo") == myId())
 			and (first == nil or timestamp < first)
 		then
 			first = timestamp
@@ -232,6 +233,7 @@ function Conversations.unreadCount(id: string): number
 			(child:GetAttribute("Timestamp") or 0) > since
 			and senderId ~= myId()
 			and child:GetAttribute("Sender") ~= "System"
+			and (child:GetAttribute("VisibleTo") == nil or child:GetAttribute("VisibleTo") == myId())
 		then
 			count += 1
 		end

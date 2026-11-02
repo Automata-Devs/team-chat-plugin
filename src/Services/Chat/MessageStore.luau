@@ -35,6 +35,9 @@ function MessageStore.readEntry(child: Instance): table
 	entry.botId = child:GetAttribute("BotId")
 	entry.botOwner = child:GetAttribute("BotOwner")
 	entry.botAvatar = child:GetAttribute("BotAvatar")
+	entry.componentsJson = child:GetAttribute("Components")
+	entry.visibleTo = child:GetAttribute("VisibleTo") -- an ephemeral bot answer: only this person
+	entry.thinking = child:GetAttribute("Thinking") == true
 	local replyToTimestamp = child:GetAttribute("ReplyToTimestamp")
 	if replyToTimestamp then
 		entry.replyToTimestamp = replyToTimestamp

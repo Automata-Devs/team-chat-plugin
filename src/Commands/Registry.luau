@@ -353,7 +353,18 @@ function CommandHandler.getCommandList()
 				rank = 0,
 				aliases = {},
 				uses = UsageTracker.getCount("command", botCommand.name),
-				args = botCommand.args,
+				args = (function()
+					-- Say what kind of value each option takes ("number", "user", ...)
+					local args = {}
+					for _, arg in ipairs(botCommand.args) do
+						local copy = table.clone(arg)
+						if arg.type and arg.type ~= "string" then
+							copy.description = (arg.description or "") .. "  \u{00B7}  " .. arg.type
+						end
+						table.insert(args, copy)
+					end
+					return args
+				end)(),
 				usage = usage,
 			})
 		end

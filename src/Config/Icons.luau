@@ -51,6 +51,8 @@ Icons.NAMES = {
 	chevronDown = "chevron-small-down",
 	search = "magnifying-glass",
 	whatsNew = "book-open",
+	admin = "crown", -- Settings > Admin (the dashboard)
+	developer = "code", -- Settings > Developer (your bots)
 
 	-- Composer, menus and dialogs
 	add = "plus-large",

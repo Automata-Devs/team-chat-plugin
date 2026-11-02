@@ -5,7 +5,7 @@ place over Team Create: a team chat pinned to the game, direct messages,
 replies, @mentions, polls, images, animated GIFs, audio, file cards, link
 previews, Discord-style markdown, #tags for objects in the place, slash
 commands with Team Chat's own bot replies (`/help` lists them), and bots you
-can make yourself ([docs/BOTS.md](docs/BOTS.md)). Available in English,
+can make yourself, in Studio or on your own server ([docs/BOTS.md](docs/BOTS.md)), plus an admin dashboard and a developer portal in Settings. Available in English,
 Nederlands, Deutsch, Español, Français and Português.
 
 Messages are stored in `ServerStorage.TeamChatData` inside the place, so Team

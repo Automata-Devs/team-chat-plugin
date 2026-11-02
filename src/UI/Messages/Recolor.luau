@@ -9,6 +9,7 @@ local Announcement = require(script.Parent.Announcement)
 local Author = require(script.Parent.Author)
 local AttachmentCards = require(script.Parent.Parent.Components.AttachmentCards)
 local EmbedManager = require(script.Parent.Parent.Embeds.EmbedManager)
+local Components = require(script.Parent.Parent.Embeds.Components)
 local MentionPills = require(script.Parent.Parent.MentionPills)
 local MessageText = require(script.Parent.Parent.MessageText)
 local RichText = require(script.Parent.Parent.Parent.Util.RichText)
@@ -39,6 +40,10 @@ function Recolor.apply(container, themeColors)
 		container.BackgroundColor3 = themeColors.menuItemHover
 	end
 	Shared.recolorOnlyYouNote(container, themeColors)
+	local buttons = container:FindFirstChild("Components")
+	if buttons then
+		Components.recolor(buttons, themeColors)
+	end
 	if container:GetAttribute("HoverHighlight") then
 		-- Re-checked every time: your display name may have loaded since
 		Shared.applyMention(container, themeColors, content)

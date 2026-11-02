@@ -19,6 +19,9 @@ local MessageText = require(script.Parent.MessageText)
 local ObjectTags = require(script.Parent.Parent.Services.ObjectTags)
 local Markdown = require(script.Parent.Parent.Util.Markdown)
 local CommandEmbed = require(script.Parent.Embeds.Providers.CommandEmbed)
+local Components = require(script.Parent.Embeds.Components)
+local Bots = require(script.Parent.Parent.Services.Bots)
+local Browser = require(script.Parent.Parent.Core.Browser)
 local ContextMenu = require(script.ContextMenu)
 local Pointer = require(script.Pointer)
 local TypingBar = require(script.TypingBar)
@@ -42,6 +45,8 @@ local EmojiData = require(script.Parent.Parent.Util.EmojiData)
 local Mentions = require(script.Parent.Parent.Util.Mentions)
 local Settings = require(script.Parent.Parent.Core.Settings)
 local AboutDialog = require(script.Parent.Dialogs.AboutDialog)
+local AdminDialog = require(script.Parent.Dialogs.AdminDialog)
+local DeveloperDialog = require(script.Parent.Dialogs.DeveloperDialog)
 local Author = require(script.Parent.Messages.Author)
 local BadgesDialog = require(script.Parent.Dialogs.BadgesDialog)
 local PurchaseDialog = require(script.Parent.Dialogs.PurchaseDialog)
@@ -722,6 +727,7 @@ function ChatUI.create(pluginInstance)
 	local emojiMatchStart = nil -- 1-based index of the ":" currently being typed
 	local mentionMatchStart = nil -- 1-based index of the "@" currently being typed
 	local tagMatchStart = nil -- 1-based index of the "#" currently being typed
+	local choiceMatchStart = nil -- where the bot option value being typed starts
 
 	--!
 	-- A "#name" being typed at the end of the text (not a "# " header, not in
@@ -816,6 +822,8 @@ function ChatUI.create(pluginInstance)
 			textBox.Text = string.sub(textBox.Text, 1, emojiMatchStart - 1) .. item.emoji .. " "
 		elseif item.type == "member" and mentionMatchStart then
 			textBox.Text = string.sub(textBox.Text, 1, mentionMatchStart - 1) .. "@" .. item.member.username .. " "
+		elseif item.type == "choice" and choiceMatchStart then
+			textBox.Text = string.sub(textBox.Text, 1, choiceMatchStart - 1) .. item.choice.name .. " "
 		elseif item.type == "object" and tagMatchStart then
 			-- Saved as #[full path] (shown as #Name), so it still finds the right one
 			textBox.Text = string.sub(textBox.Text, 1, tagMatchStart - 1)
@@ -850,6 +858,7 @@ function ChatUI.create(pluginInstance)
 		emojiMatchStart = nil
 		mentionMatchStart = nil
 		tagMatchStart = nil
+		choiceMatchStart = nil
 
 		local text = textBox.Text
 
@@ -957,6 +966,22 @@ function ChatUI.create(pluginInstance)
 			end
 		end
 
+		-- A bot option with choices: list the choices that match what's typed
+		local currentArg = argCommand and argCommand.args[argIndex]
+		if currentArg and type(currentArg.choices) == "table" and #currentArg.choices > 0 then
+			local partial = if string.match(text, "%s$") then "" else (string.match(text, "(%S+)$") or "")
+			choiceMatchStart = #text - #partial + 1
+			for _, choice in ipairs(currentArg.choices) do
+				if string.sub(string.lower(choice.name), 1, #partial) == string.lower(partial) then
+					table.insert(autocompleteItems, { type = "choice", choice = choice })
+				end
+			end
+			if #autocompleteItems > 0 then
+				autocompleteMode = "choice"
+				argCommand = nil
+			end
+		end
+
 		if argCommand then
 			autocompleteMode = "args"
 			for i, arg in ipairs(argCommand.args) do
@@ -990,6 +1015,11 @@ function ChatUI.create(pluginInstance)
 					btn = Autocomplete.createMemberItem(i, item.member, themeColors)
 				elseif item.type == "object" then
 					btn = Autocomplete.createObjectItem(i, item.instance, themeColors)
+				elseif item.type == "choice" then
+					btn = Autocomplete.createEmojiItem(i, { emoji = "\u{2022}", name = item.choice.name }, themeColors)
+					local label = btn:FindFirstChild("CmdName") :: TextLabel
+					label.Text = item.choice.name
+					label.FontFace = Theme.FONTS.semibold
 				else
 					btn = Autocomplete.createEmojiItem(i, item, themeColors)
 				end
@@ -1399,6 +1429,19 @@ function ChatUI.create(pluginInstance)
 	-- About: plugin info, the not-affiliated-with-Roblox disclaimer and terms
 	local aboutDialog = AboutDialog.create(modalKit, {
 		getThemeColors = getThemeColors,
+	})
+
+	-- Admin: the dashboard for moderators and up
+	local adminDialog = AdminDialog.create(modalKit, {
+		getThemeColors = getThemeColors,
+	})
+
+	-- Developer: make and manage your bots
+	local developerDialog = DeveloperDialog.create(modalKit, {
+		getThemeColors = getThemeColors,
+		openScript = function(module)
+			pluginInstance:OpenScript(module)
+		end,
 	})
 
 	-- "New message": pick a friend or type a username to start a DM
@@ -2231,7 +2274,12 @@ function ChatUI.create(pluginInstance)
 				content = Language.t("bot.used", { command = entry.command or "" }),
 			}
 			else nil
-		local msgContainer = addMessage(entry.botName or "System", entry.timestamp, entry.content or "", nil, usedBy, 0)
+		-- A deferred answer that hasn't arrived: "<bot> is thinking…"
+		local content = if entry.thinking
+			then "*" .. Language.t("bot.thinking", { bot = entry.botName or PluginConfig.PLUGIN_TITLE }) .. "*"
+			else entry.content or ""
+		local msgContainer = addMessage(entry.botName or "System", entry.timestamp, content, nil, usedBy, 0)
+		msgContainer:SetAttribute("Thinking", entry.thinking == true)
 		msgContainer:SetAttribute("SaidBy", entry.saidBy or 0)
 		msgContainer:SetAttribute("BotMessage", true)
 		if entry.botId then
@@ -2244,6 +2292,35 @@ function ChatUI.create(pluginInstance)
 			local embed = CommandEmbed.fromSpec(entry.embed, themeColors)
 			embed.LayoutOrder = 2
 			embed.Parent = msgContainer
+		end
+		-- Buttons: links open, the others send an interaction to the bot
+		if entry.components and entry.botId then
+			local buttons = Components.build(entry.components, themeColors, function(button)
+				if button.url then
+					if not Browser.open(button.url) then
+						addSystemMessage(Language.t("links.copied", { url = button.url }))
+					end
+					return
+				end
+				Bots.clickButton({
+					botId = entry.botId,
+					customId = button.customId,
+					message = entry.instance or msgContainer,
+				})
+			end)
+			buttons.LayoutOrder = 3
+			buttons.Parent = msgContainer
+		end
+		-- Ephemeral: only you see it (saved for you only, or never saved)
+		if entry.ephemeralLocal or entry.visibleTo then
+			msgContainer:SetAttribute("Ephemeral", true)
+			Messages.addOnlyYouNote(msgContainer, themeColors, function()
+				if entry.onDismiss then
+					entry.onDismiss()
+				else
+					msgContainer:Destroy()
+				end
+			end)
 		end
 		return msgContainer
 	end
@@ -2499,7 +2576,7 @@ function ChatUI.create(pluginInstance)
 	settingsDialog.restore()
 	applyTheme(settingsDialog.resolveTheme())
 
-	-- The Settings window: General, Badges, What's New and About as tabs
+	-- The Settings window: General, Badges, What's New, Admin, Developer and About as tabs
 	local settingsTabs = SettingsTabs.create({
 		{
 			name = "General",
@@ -2515,6 +2592,14 @@ function ChatUI.create(pluginInstance)
 			labelKey = "tab.whatsNew",
 			titleKey = "title.whatsNew",
 			dialog = changelog,
+		},
+		{ name = "Admin", icon = "admin", labelKey = "tab.admin", titleKey = "title.admin", dialog = adminDialog },
+		{
+			name = "Developer",
+			icon = "developer",
+			labelKey = "tab.developer",
+			titleKey = "title.developer",
+			dialog = developerDialog,
 		},
 		{ name = "About", icon = "about", labelKey = "tab.about", titleKey = "title.about", dialog = aboutDialog },
 	}, getThemeColors)
@@ -2685,8 +2770,8 @@ function ChatUI.create(pluginInstance)
 		setVisible = setVisible,
 		onVisibilityChanged = onVisibilityChanged,
 		-- The tabbed Settings window
-		openSettings = function()
-			settingsTabs.open("General")
+		openSettings = function(tab: string?)
+			settingsTabs.open(tab or "General")
 		end,
 		closeSettings = settingsTabs.close,
 		-- Change or read a setting by its key (as if picked on the page)

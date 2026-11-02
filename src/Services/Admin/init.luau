@@ -70,6 +70,22 @@ AdminNetwork.getUserId = RankManager.getUserId
 AdminNetwork.getUsername = RankManager.getUsername
 AdminNetwork.getUsernameByUserId = RankManager.getUsernameByUserId
 
+--[=[
+	Everyone with a rank above User: { { userId, rank } }, highest rank first.
+]=]
+function AdminNetwork.getRankedUsers(): { { userId: number, rank: number } }
+	local list = {}
+	for userId, rank in pairs(AdminState.userRanks) do
+		if rank > 0 then
+			table.insert(list, { userId = userId, rank = rank })
+		end
+	end
+	table.sort(list, function(a, b)
+		return if a.rank ~= b.rank then a.rank > b.rank else a.userId < b.userId
+	end)
+	return list
+end
+
 -- ── Moderation (ModerationManager) ──
 
 AdminNetwork.canUserSend = ModerationManager.canUserSend

@@ -40,10 +40,14 @@ covers what Roblox does with information.
 
 ## Bots people make
 
-Team Chat lets people make their own bots ([docs/BOTS.md](docs/BOTS.md)). A bot
-runs in its **owner's** Studio, and its owner decides what it does. When you use
-a bot's command, or a bot reads the team chat, what you typed goes to that bot,
-and its owner's code could send it to Roblox's Open Cloud or other websites.
+Team Chat lets people make their own bots ([docs/BOTS.md](docs/BOTS.md)). A
+Studio bot runs in its **owner's** Studio; a web bot runs on its owner's own
+server. Either way, its owner decides what it does. When you use a bot's
+command, or a bot reads the team chat, what you typed goes to that bot, and its
+owner's code could send it to Roblox's Open Cloud or other websites. When you
+use a **web bot's** command or button, your Studio sends it straight to the
+bot's server, with your Roblox user ID and username, the place ID and the
+conversation.
 D3veloperHac doesn't make, check or control bots other people make. Only use
 bots from people you trust, and ask a bot's owner what it does with messages.
 

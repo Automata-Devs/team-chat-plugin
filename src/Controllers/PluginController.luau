@@ -8,6 +8,7 @@
 local HttpService = game:GetService("HttpService")
 
 local Badges = require(script.Parent.Parent.Services.Badges)
+local Bots = require(script.Parent.Parent.Services.Bots)
 local Language = require(script.Parent.Parent.Core.Language)
 local Identity = require(script.Parent.Parent.Core.Identity)
 local Mentions = require(script.Parent.Parent.Util.Mentions)
@@ -124,6 +125,25 @@ function PluginController.init(pluginRef, ui, chatNetwork, commandHandler)
 	Lifetime.add(Badges.changed:Connect(ui.refreshBadges))
 
 	-- Shows one message entry (from chatNetwork.readEntry) in the chat.
+	local function decodeJson(json: string): any
+		local ok, value = pcall(HttpService.JSONDecode, HttpService, json)
+		return if ok then value else nil
+	end
+
+	-- Bots show answers that are never saved (a web bot's ephemeral ones)
+	-- and short notes straight in this chat
+	Bots.ui = {
+		showLocal = function(entry)
+			return ui.addBotMessage(entry)
+		end,
+		removeLocal = function(message: Instance)
+			message:Destroy()
+		end,
+		say = function(text: string)
+			ui.addSystemMessage(text)
+		end,
+	}
+
 	local function renderEntry(msg)
 		local replyRef
 
@@ -161,6 +181,13 @@ function PluginController.init(pluginRef, ui, chatNetwork, commandHandler)
 				botName = if msg.botId then msg.sender else nil,
 				botOwner = msg.botOwner,
 				botAvatar = msg.botAvatar,
+				components = if msg.componentsJson then decodeJson(msg.componentsJson) else nil,
+				visibleTo = msg.visibleTo,
+				thinking = msg.thinking,
+				instance = msg.instance,
+				onDismiss = function()
+					chatNetwork.deleteMessage(msg.timestamp)
+				end,
 			})
 		elseif msg.messageType == "Poll" and msg.pollData then
 			ui.addPollMessage(msg.sender, msg.timestamp, msg.pollData, replyRef)
@@ -204,7 +231,25 @@ function PluginController.init(pluginRef, ui, chatNetwork, commandHandler)
 		end
 		shown[child] = true
 		local entry = chatNetwork.readEntry(child)
+		entry.instance = child
+		local me = chatNetwork.getUserId()
+		if entry.visibleTo and entry.visibleTo ~= me then
+			return -- someone else's ephemeral bot answer
+		end
 		renderEntry(entry)
+		if entry.botId then
+			-- A bot changed the message (a deferred answer, a button's update):
+			-- draw it again where it was
+			table.insert(
+				bindings,
+				Lifetime.connect(child:GetAttributeChangedSignal("Revision"), function()
+					ui.removeMessage(child:GetAttribute("Timestamp"))
+					local updated = chatNetwork.readEntry(child)
+					updated.instance = child
+					renderEntry(updated)
+				end)
+			)
+		end
 		if entry.editedAt then
 			ui.updateMessage(entry.timestamp, entry.content, true)
 		end
@@ -332,6 +377,7 @@ function PluginController.init(pluginRef, ui, chatNetwork, commandHandler)
 			or os.time() - timestamp > NOTIFY_MAX_AGE
 			or type(sender) ~= "string"
 			or sender == "System"
+			or (message:GetAttribute("VisibleTo") ~= nil and message:GetAttribute("VisibleTo") ~= me)
 			or (me > 0 and (senderId == me or message:GetAttribute("SaidBy") == me))
 			or (ui.widget.Enabled and id == Conversations.getActiveId())
 		then

@@ -46,6 +46,53 @@ return {
 		title = "Team Chat 1",
 		updates = {
 			{
+				version = "1.23.0",
+				date = "02/11/2026",
+				title = {
+					en = "Bot platform & dashboard",
+					nl = "Botplatform & dashboard",
+					de = "Bot-Plattform & Dashboard",
+					es = "Plataforma de bots y panel",
+					fr = "Plateforme de bots & tableau de bord",
+					pt = "Plataforma de bots e painel",
+				},
+				changes = {
+					{
+						type = "added",
+						text = {
+							en = "Settings > Developer: a developer portal for your bots. Make Studio bots or web bots (they run on your own server, so they work while you're offline), see their status and commands, and manage a web bot's URL and token.",
+							nl = "Instellingen > Ontwikkelaar: een ontwikkelaarsportaal voor je bots. Maak Studio-bots of webbots (die draaien op je eigen server, dus ze werken als je offline bent), zie hun status en commando's, en beheer de URL en token van een webbot.",
+							de = "Einstellungen > Entwickler: ein Entwicklerportal für deine Bots. Erstelle Studio-Bots oder Web-Bots (sie laufen auf deinem eigenen Server und funktionieren auch, wenn du offline bist), sieh ihren Status und ihre Befehle und verwalte URL und Token eines Web-Bots.",
+							es = "Ajustes > Desarrollador: un portal de desarrolladores para tus bots. Crea bots de Studio o bots web (se ejecutan en tu propio servidor, así que funcionan cuando no estás conectado), mira su estado y comandos, y gestiona la URL y el token de un bot web.",
+							fr = "Réglages > Développeur : un portail développeur pour tes bots. Crée des bots Studio ou des bots web (ils tournent sur ton propre serveur et marchent quand tu es hors ligne), vois leur état et leurs commandes, et gère l'URL et le jeton d'un bot web.",
+							pt = "Configurações > Desenvolvedor: um portal do desenvolvedor para seus bots. Crie bots do Studio ou bots web (rodam no seu próprio servidor, então funcionam quando você está offline), veja o status e os comandos deles, e gerencie a URL e o token de um bot web.",
+						},
+					},
+					{
+						type = "added",
+						text = {
+							en = 'Bots work like on Discord: commands with typed options and choices in autocomplete, buttons under their messages, answers only you can see, and "is thinking…" while a bot works on its answer.',
+							nl = 'Bots werken zoals op Discord: commando\'s met getypeerde opties en keuzes in de autocomplete, knoppen onder hun berichten, antwoorden die alleen jij ziet, en "denkt na…" terwijl een bot aan zijn antwoord werkt.',
+							de = 'Bots funktionieren wie auf Discord: Befehle mit typisierten Optionen und Auswahl in der Autovervollständigung, Buttons unter ihren Nachrichten, Antworten, die nur du siehst, und "denkt nach…", während ein Bot an seiner Antwort arbeitet.',
+							es = 'Los bots funcionan como en Discord: comandos con opciones tipadas y elecciones en el autocompletado, botones bajo sus mensajes, respuestas que solo tú ves y "está pensando…" mientras un bot prepara su respuesta.',
+							fr = "Les bots marchent comme sur Discord : des commandes avec des options typées et des choix dans l'autocomplétion, des boutons sous leurs messages, des réponses que toi seul vois, et « réfléchit… » pendant qu'un bot prépare sa réponse.",
+							pt = 'Os bots funcionam como no Discord: comandos com opções tipadas e escolhas no autocompletar, botões sob as mensagens, respostas que só você vê e "está pensando…" enquanto um bot prepara a resposta.',
+						},
+					},
+					{
+						type = "added",
+						text = {
+							en = "Settings > Admin: a dashboard for moderators and up, with an overview of the chat, slowmode and whitelist mode, members with rank and moderation buttons, the ban, mute, blacklist and whitelist lists, the place's bots and chat backups.",
+							nl = "Instellingen > Beheer: een dashboard voor moderators en hoger, met een overzicht van de chat, slowmode en whitelistmodus, leden met rang- en moderatieknoppen, de lijsten van bans, dempingen, blacklist en whitelist, de bots van de place en chatback-ups.",
+							de = "Einstellungen > Admin: ein Dashboard für Moderatoren und höher, mit einer Übersicht des Chats, Slowmode und Whitelist-Modus, Mitgliedern mit Rang- und Moderationsbuttons, den Listen für Banns, Stummschaltungen, Blacklist und Whitelist, den Bots des Places und Chat-Backups.",
+							es = "Ajustes > Admin: un panel para moderadores y superiores, con un resumen del chat, modo lento y modo lista blanca, miembros con botones de rango y moderación, las listas de baneados, silenciados, lista negra y lista blanca, los bots del lugar y las copias de seguridad del chat.",
+							fr = "Réglages > Admin : un tableau de bord pour les modérateurs et plus, avec un aperçu du chat, le mode lent et le mode liste blanche, les membres avec des boutons de rang et de modération, les listes de bannis, muets, liste noire et liste blanche, les bots de la place et les sauvegardes du chat.",
+							pt = "Configurações > Admin: um painel para moderadores e acima, com uma visão geral do chat, modo lento e modo lista branca, membros com botões de patente e moderação, as listas de banidos, silenciados, lista negra e lista branca, os bots do lugar e os backups do chat.",
+						},
+					},
+				},
+			},
+			{
 				version = "1.22.0",
 				date = "02/11/2026",
 				title = { en = "Bots", nl = "Bots", de = "Bots", es = "Bots", fr = "Bots", pt = "Bots" },
