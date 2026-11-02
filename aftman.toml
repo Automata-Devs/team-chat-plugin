@@ -1,0 +1,5 @@
+# Toolchain for this project (install with: aftman install)
+[tools]
+rojo = "rojo-rbx/rojo@7.7.1"
+stylua = "JohnnyMorganz/StyLua@2.0.2"
+selene = "Kampfkarren/selene@0.28.0"

@@ -1,0 +1,18 @@
+# Build output
+*.rbxm
+*.rbxmx
+/build/
+
+# Studio export scratch (tools/import_export.py input)
+/.export/
+
+# Tooling caches
+roblox.yml
+roblox.toml
+sourcemap.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

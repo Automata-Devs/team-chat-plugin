@@ -1,0 +1,20 @@
+{
+  "name": "TeamChatDev",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "$ignoreUnknownInstances": true,
+      "TeamChatPlugin": {
+        "$path": "src"
+      }
+    },
+    "ServerStorage": {
+      "$className": "ServerStorage",
+      "$ignoreUnknownInstances": true,
+      "TeamChatTests": {
+        "$path": "tests"
+      }
+    }
+  }
+}

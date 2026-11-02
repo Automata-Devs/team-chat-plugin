@@ -1,0 +1,6 @@
+{
+  "name": "TeamChatPlugin",
+  "tree": {
+    "$path": "src"
+  }
+}

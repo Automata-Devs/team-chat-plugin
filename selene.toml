@@ -1,0 +1,8 @@
+# Selene lint config (https://kampfkarren.github.io/selene)
+std = "roblox"
+
+[lints]
+# Plugin code legitimately uses the `plugin` global in the entry script only.
+global_usage = "deny"
+shadowing = "warn"
+unused_variable = "warn"
