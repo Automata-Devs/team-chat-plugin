@@ -11,6 +11,7 @@ local Badges = require(script.Parent.Parent.Services.Badges)
 local Language = require(script.Parent.Parent.Core.Language)
 local Identity = require(script.Parent.Parent.Core.Identity)
 local Mentions = require(script.Parent.Parent.Util.Mentions)
+local Markdown = require(script.Parent.Parent.Util.Markdown)
 local Profiles = require(script.Parent.Parent.Services.Profiles)
 local Preferences = require(script.Parent.Parent.UI.Preferences)
 
@@ -350,7 +351,7 @@ function PluginController.init(pluginRef, ui, chatNetwork, commandHandler)
 				elseif repliedToMe then Language.t("notify.repliedToYou", { name = name })
 				elseif id == Conversations.MAIN then name .. "  ·  " .. Language.t("notify.teamChat")
 				else name,
-			text = (string.gsub(text, "%s+", " ")),
+			text = (string.gsub(Markdown.strip(text), "%s+", " ")),
 			userId = if type(senderId) == "number" then senderId else nil,
 			onClick = function()
 				ui.widget.Enabled = true

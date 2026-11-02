@@ -430,5 +430,6 @@ return {
 		["commandGroup.studio"] = "Studio",
 		["commandGroup.utility"] = "Hulpmiddelen",
 		["notify.repliedToYou"] = "{name} heeft je beantwoord",
+		["links.copied"] = "De link kon niet in je browser worden geopend, dus hij is naar je klembord gekopieerd: {url}",
 	},
 }

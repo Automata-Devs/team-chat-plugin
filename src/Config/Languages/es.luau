@@ -430,5 +430,6 @@ return {
 		["commandGroup.studio"] = "Studio",
 		["commandGroup.utility"] = "Utilidades",
 		["notify.repliedToYou"] = "{name} te respondió",
+		["links.copied"] = "No se pudo abrir el enlace en tu navegador, así que se copió al portapapeles: {url}",
 	},
 }

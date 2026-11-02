@@ -3,6 +3,34 @@
 Developer-facing history of the codebase. User-facing notes ("What's New")
 are in `src/Config/Changelog.luau`. Format: [Keep a Changelog](https://keepachangelog.com).
 
+## [1.20.0] - 2026-11-02
+
+### Added
+- `Util/Markdown`: Discord-style markdown parsed into RichText runs (plain
+  text + tags + plain byte range): bold, italic, underline, strikethrough,
+  inline code, code blocks, spoilers, headers (`#`, `##`, `###`), `-#`
+  subtext, quotes, lists, masked links, `\` escapes; links, @mentions and
+  `#[object]` tags become runs too. `slice`, `runAt`, `urls`, `strip`,
+  `plainDoc`, `append`.
+- `UI/TextLayout`: measures (rich) text the way Roblox lays it out, by prefix
+  heights (lines can differ in height) and word ends (words wrap whole):
+  `rect(label, doc, from, to)` and `hitTest(label, x, y)`.
+- `UI/MessageText`: `set(label, content, palette, { edited })` renders a
+  message's markdown and registers its doc; `attachClicks` opens links,
+  reveals spoilers and calls `MessageText.onTag` for #tags.
+- Markdown spec (29 checks).
+
+### Changed
+- Message text, file captions, edits and recolors render through
+  MessageText; link previews take their URLs from the doc (masked links
+  included). Notifications, reply previews and sidebar previews strip
+  markdown. `MentionPills` places pills with TextLayout (and pills #tags).
+- The "couldn't open the link" message is translated (`links.copied`).
+
+### Removed
+- `UI/LinkHelper` (replaced by TextLayout); its test now covers TextLayout
+  after bold text.
+
 ## [1.19.1] - 2026-11-02
 
 ### Fixed

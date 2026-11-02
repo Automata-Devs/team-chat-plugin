@@ -11,7 +11,7 @@ local AssetService = game:GetService("AssetService")
 local Author = require(script.Parent.Author)
 local GifPlayer = require(script.Parent.Parent.Components.GifPlayer)
 local MentionPills = require(script.Parent.Parent.MentionPills)
-local RichText = require(script.Parent.Parent.Parent.Util.RichText)
+local MessageText = require(script.Parent.Parent.MessageText)
 local Shared = require(script.Parent.Shared)
 local Theme = require(script.Parent.Parent.Parent.Config.Theme)
 
@@ -103,7 +103,8 @@ function TextMessage.create(sender, timestamp, content, imageUrl, themeColors, r
 	textLabel.LayoutOrder = 1
 	textLabel.BorderSizePixel = 0
 	textLabel.Parent = container
-	textLabel.Text = RichText.styleContent(content, themeColors)
+	-- Markdown, links, @mentions and #tags (UI/MessageText)
+	MessageText.set(textLabel, content, themeColors)
 	textLabel.Visible = content ~= "" -- image-only messages show just the image
 	MentionPills.attach(textLabel, themeColors)
 
@@ -155,7 +156,7 @@ function TextMessage.setBody(container, palette)
 	end
 	local content = container:GetAttribute("Content") or ""
 	local edited = container:GetAttribute("Edited") == true
-	label.Text = RichText.buildBody(content, edited, palette)
+	MessageText.set(label, content, palette, { edited = edited })
 	label.Visible = content ~= "" or edited
 	Shared.applyMention(container, palette, content)
 end

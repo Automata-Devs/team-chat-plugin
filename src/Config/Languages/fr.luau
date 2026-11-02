@@ -430,5 +430,6 @@ return {
 		["commandGroup.studio"] = "Studio",
 		["commandGroup.utility"] = "Outils",
 		["notify.repliedToYou"] = "{name} t'a répondu",
+		["links.copied"] = "Impossible d'ouvrir le lien dans ton navigateur, il a donc été copié dans le presse-papiers : {url}",
 	},
 }

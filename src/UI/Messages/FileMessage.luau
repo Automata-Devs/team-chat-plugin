@@ -11,7 +11,7 @@ local AttachmentCards = require(script.Parent.Parent.Components.AttachmentCards)
 local AudioPlayback = require(script.Parent.Parent.Components.AudioPlayback)
 local Icons = require(script.Parent.Parent.Parent.Config.Icons)
 local MentionPills = require(script.Parent.Parent.MentionPills)
-local RichText = require(script.Parent.Parent.Parent.Util.RichText)
+local MessageText = require(script.Parent.Parent.MessageText)
 local Shared = require(script.Parent.Shared)
 local Theme = require(script.Parent.Parent.Parent.Config.Theme)
 
@@ -79,7 +79,7 @@ function FileMessage.create(sender, timestamp, content, fileName, fileUrl, fileT
 	textLabel.LayoutOrder = 1
 	textLabel.BorderSizePixel = 0
 	textLabel.Parent = container
-	textLabel.Text = RichText.styleContent(content or "", themeColors)
+	MessageText.set(textLabel, content or "", themeColors)
 	textLabel.Visible = (content or "") ~= ""
 	MentionPills.attach(textLabel, themeColors)
 

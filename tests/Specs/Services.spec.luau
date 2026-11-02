@@ -66,26 +66,32 @@ return function(t)
 		StudioCollab.unclaim(target)
 		t.check("unclaim frees it", (StudioCollab.claim(target, 2, nil)) == true)
 
-		-- Clicking a link inside message text finds it (UI/LinkHelper hit-test)
-		local LinkHelper = require(copy.UI.LinkHelper) :: any
+		-- Clicking a link inside message text finds it (UI/TextLayout hit-test),
+		-- also after bold text, which is wider
+		local MessageText = require(copy.UI.MessageText) :: any
+		local TextLayout = require(copy.UI.TextLayout) :: any
+		local Theme = require(copy.Config.Theme) :: any
 		local TextService = game:GetService("TextService")
 		local label = Instance.new("TextLabel")
 		label.FontFace = Font.new("rbxasset://fonts/families/BuilderSans.json")
 		label.TextSize = 14
 		label.Size = UDim2.fromOffset(600, 20)
-		label.Text = ""
+		label.TextXAlignment = Enum.TextXAlignment.Left
+		label.TextYAlignment = Enum.TextYAlignment.Top
 		label.Parent = app.gui
-		local clickMeta = Links.buildMeta("Bob", "open www.roblox.com please", os.time())
-		local before = string.sub(clickMeta.plainText, 1, clickMeta.contentOffset + #"open ")
+		MessageText.set(label, "**open** www.roblox.com please", Theme.PALETTES.Dark)
 		local params = Instance.new("GetTextBoundsParams")
-		params.Text = before
+		params.Text = "<b>open</b> "
+		params.RichText = true
 		params.Font = label.FontFace
 		params.Size = 14
 		params.Width = 600
 		local x = TextService:GetTextBoundsAsync(params).X
-		local hit = LinkHelper.hitTest(label, clickMeta, x + 8, 5)
-		t.check("clicking inside the link finds it", hit ~= nil and hit.url == "https://www.roblox.com")
-		t.check("clicking before the link finds nothing", LinkHelper.hitTest(label, clickMeta, 2, 5) == nil)
+		local hit = TextLayout.hitTest(label, x + 8, 5)
+		t.check("clicking inside the link finds it", hit ~= nil and hit.style.url == "https://www.roblox.com")
+		local before = TextLayout.hitTest(label, 2, 5)
+		t.check("clicking before the link finds no link", before == nil or before.style.url == nil)
+		label:Destroy()
 
 		-- Timers started through Lifetime (like /timer) are cancelled on unload
 		local Lifetime = require(copy.Core.Lifetime) :: any

@@ -10,6 +10,7 @@ local Author = require(script.Parent.Author)
 local AttachmentCards = require(script.Parent.Parent.Components.AttachmentCards)
 local EmbedManager = require(script.Parent.Parent.Embeds.EmbedManager)
 local MentionPills = require(script.Parent.Parent.MentionPills)
+local MessageText = require(script.Parent.Parent.MessageText)
 local RichText = require(script.Parent.Parent.Parent.Util.RichText)
 local Shared = require(script.Parent.Shared)
 
@@ -80,7 +81,7 @@ function Recolor.apply(container, themeColors)
 		MentionPills.recolor(textLabel, themeColors)
 		textLabel.TextColor3 = themeColors.messageText
 		if container:FindFirstChild("Author") then
-			textLabel.Text = RichText.buildBody(content, container:GetAttribute("Edited") == true, themeColors)
+			MessageText.set(textLabel, content, themeColors, { edited = container:GetAttribute("Edited") == true })
 		else
 			textLabel.Text = RichText.buildMessage(sender, content, timestamp, themeColors)
 		end

@@ -14,10 +14,9 @@ local TweenService = game:GetService("TweenService")
 
 local UsernameColors = require(script.Parent.Parent.Util.UsernameColors)
 local Theme = require(script.Parent.Parent.Config.Theme)
-local LinkHelper = require(script.Parent.LinkHelper)
 local MentionPills = require(script.Parent.MentionPills)
+local MessageText = require(script.Parent.MessageText)
 local CommandEmbed = require(script.Parent.Embeds.Providers.CommandEmbed)
-local Links = require(script.Parent.Parent.Util.Links)
 local ContextMenu = require(script.ContextMenu)
 local Pointer = require(script.Pointer)
 local TypingBar = require(script.TypingBar)
@@ -1384,7 +1383,6 @@ function ChatUI.create(pluginInstance)
 	local editing = {
 		timestamp = nil :: number?,
 		myUserId = 0,
-		linkMetas = setmetatable({}, { __mode = "k" }) :: any, -- TextContent label -> link hit-test data
 	}
 
 	--!
@@ -1930,20 +1928,14 @@ function ChatUI.create(pluginInstance)
 		-- add embed cards (handled by EmbedManager) for URLs in the message.
 		local textLabel = msgContainer:FindFirstChild("TextContent")
 		if textLabel and textLabel:IsA("TextLabel") then
-			local linkMeta = Links.buildMeta(sender, content, timestamp)
-			editing.linkMetas[textLabel] = linkMeta
-			LinkHelper.attach(textLabel, linkMeta, function(url)
+			-- Links, spoilers and #tags are clickable (UI/MessageText)
+			MessageText.attachClicks(textLabel, function(url)
 				if addSystemMessageRef then
-					addSystemMessageRef(
-						"Couldn't open the link in your browser, so it was copied to your clipboard: " .. url
-					)
+					addSystemMessageRef(Language.t("links.copied", { url = url }))
 				end
 			end)
-			if #linkMeta.links > 0 then
-				local urls = {}
-				for _, link in ipairs(linkMeta.links) do
-					table.insert(urls, link.url)
-				end
+			local urls = MessageText.urls(textLabel)
+			if #urls > 0 then
 				if Preferences.values.linkPreviews then
 					EmbedManager.attach(msgContainer, urls, themeColors, { plugin = pluginInstance })
 				end
@@ -1997,21 +1989,12 @@ function ChatUI.create(pluginInstance)
 				child:SetAttribute("Content", content)
 				child:SetAttribute("Edited", edited)
 				Messages.setBody(child, themeColors)
-				local meta = editing.linkMetas[label]
-				if meta then
-					meta.content = content
-					meta.links = Links.find(content)
-					Links.relayout(meta)
-				end
 				for _, embed in ipairs(child:GetChildren()) do
 					if embed.Name == "Embed" then
 						embed:Destroy()
 					end
 				end
-				local urls = {}
-				for _, link in ipairs(Links.find(content)) do
-					table.insert(urls, link.url)
-				end
+				local urls = MessageText.urls(label)
 				if #urls > 0 then
 					if Preferences.values.linkPreviews then
 						EmbedManager.attach(child, urls, themeColors, { plugin = pluginInstance })

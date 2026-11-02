@@ -114,8 +114,8 @@ Theme.FONT_FAMILIES = {
 
 --!
 -- Font roles, applied with label.FontFace = Theme.FONTS.<role>.
--- Message lines stay on Theme.FONT: LinkHelper hit-tests links by
--- measuring them in a single font.
+-- Message lines stay on Theme.FONT: UI/TextLayout measures them (links,
+-- @mentions, markdown) in the label's own font.
 --!
 Theme.FONTS = {
 	body = Font.new(Theme.FONT_FAMILIES.sans, Enum.FontWeight.Regular),

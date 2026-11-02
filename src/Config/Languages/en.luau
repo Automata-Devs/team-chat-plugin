@@ -438,5 +438,6 @@ return {
 		["commandGroup.studio"] = "Studio",
 		["commandGroup.utility"] = "Utility",
 		["notify.repliedToYou"] = "{name} replied to you",
+		["links.copied"] = "Couldn't open the link in your browser, so it was copied to your clipboard: {url}",
 	},
 }

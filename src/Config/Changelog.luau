@@ -36,13 +36,7 @@
 -- tweaks), newest first, tagged with the version it went into. Not shown in
 -- What's New. When something big ships, move these lines into a new entry at
 -- the top of the list below and empty this list.
-local unreleased = {
-	{
-		version = "1.19.1",
-		type = "fixed",
-		text = "Mentions of your display name count as mentions, a reply to your message glows gold and notifies you like a mention, and @mentions show in blue in reply lines.",
-	},
-}
+local unreleased = {}
 local _ = unreleased
 
 return {
@@ -51,6 +45,42 @@ return {
 		date = "31/10/2026",
 		title = "Team Chat 1",
 		updates = {
+			{
+				version = "1.20.0",
+				date = "02/11/2026",
+				title = {
+					en = "Formatting",
+					nl = "Opmaak",
+					de = "Formatierung",
+					es = "Formato",
+					fr = "Mise en forme",
+					pt = "Formatação",
+				},
+				changes = {
+					{
+						type = "added",
+						text = {
+							en = "Markdown like Discord: **bold**, *italic*, __underline__, ~~strikethrough~~, `code`, ```code blocks```, ||spoilers||, # headers, -# subtext, > quotes, - lists and [masked links](https://…).",
+							nl = "Markdown zoals Discord: **vet**, *cursief*, __onderstreept__, ~~doorgestreept~~, `code`, ```codeblokken```, ||spoilers||, # koppen, -# kleine tekst, > citaten, - lijsten en [verborgen links](https://…).",
+							de = "Markdown wie bei Discord: **fett**, *kursiv*, __unterstrichen__, ~~durchgestrichen~~, `Code`, ```Codeblöcke```, ||Spoiler||, # Überschriften, -# kleiner Text, > Zitate, - Listen und [maskierte Links](https://…).",
+							es = "Markdown como en Discord: **negrita**, *cursiva*, __subrayado__, ~~tachado~~, `código`, ```bloques de código```, ||spoilers||, # títulos, -# texto pequeño, > citas, - listas y [enlaces con texto](https://…).",
+							fr = "Markdown comme sur Discord : **gras**, *italique*, __souligné__, ~~barré~~, `code`, ```blocs de code```, ||spoilers||, # titres, -# petit texte, > citations, - listes et [liens masqués](https://…).",
+							pt = "Markdown como no Discord: **negrito**, *itálico*, __sublinhado__, ~~tachado~~, `código`, ```blocos de código```, ||spoilers||, # títulos, -# texto pequeno, > citações, - listas e [links com texto](https://…).",
+						},
+					},
+					{
+						type = "fixed",
+						text = {
+							en = "Mentions of your display name count, a reply to your message glows gold and notifies you like a mention, and @mentions show in blue in reply lines.",
+							nl = "Vermeldingen van je weergavenaam tellen mee, een antwoord op je bericht licht goud op en geeft een melding zoals een vermelding, en @vermeldingen zijn blauw in antwoordregels.",
+							de = "Erwähnungen deines Anzeigenamens zählen, eine Antwort auf deine Nachricht leuchtet golden und benachrichtigt dich wie eine Erwähnung, und @Erwähnungen sind in Antwortzeilen blau.",
+							es = "Las menciones de tu nombre visible cuentan, una respuesta a tu mensaje brilla en dorado y te avisa como una mención, y las @menciones se ven en azul en las líneas de respuesta.",
+							fr = "Les mentions de ton nom d'affichage comptent, une réponse à ton message brille en doré et te notifie comme une mention, et les @mentions sont en bleu dans les lignes de réponse.",
+							pt = "Menções ao seu nome de exibição contam, uma resposta à sua mensagem brilha em dourado e notifica você como uma menção, e as @menções aparecem em azul nas linhas de resposta.",
+						},
+					},
+				},
+			},
 			{
 				version = "1.19.0",
 				date = "02/11/2026",

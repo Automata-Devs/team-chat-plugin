@@ -430,5 +430,6 @@ return {
 		["commandGroup.studio"] = "Studio",
 		["commandGroup.utility"] = "Werkzeuge",
 		["notify.repliedToYou"] = "{name} hat dir geantwortet",
+		["links.copied"] = "Der Link konnte nicht im Browser geöffnet werden und wurde in die Zwischenablage kopiert: {url}",
 	},
 }

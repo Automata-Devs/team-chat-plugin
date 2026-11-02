@@ -22,6 +22,7 @@ local Players = game:GetService("Players")
 local MarketplaceService = game:GetService("MarketplaceService")
 
 local Constants = require(script.Parent.Parent.Parent.Config.Constants)
+local Markdown = require(script.Parent.Parent.Parent.Util.Markdown)
 local ChatState = require(script.Parent.ChatState)
 local Identity = require(script.Parent.Parent.Parent.Core.Identity)
 local PlaceStorage = require(script.Parent.Parent.Parent.Core.PlaceStorage)
@@ -248,7 +249,7 @@ local function previewOf(message: Instance): string
 	elseif text == "" and message:GetAttribute("ImageUrl") then
 		text = "Image"
 	end
-	text = string.gsub(text, "%s+", " ")
+	text = string.gsub(Markdown.strip(text), "%s+", " ")
 	if message:GetAttribute("SenderId") == myId() then
 		text = "You: " .. text
 	end

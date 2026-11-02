@@ -430,5 +430,6 @@ return {
 		["commandGroup.studio"] = "Studio",
 		["commandGroup.utility"] = "Utilidades",
 		["notify.repliedToYou"] = "{name} respondeu você",
+		["links.copied"] = "Não foi possível abrir o link no navegador, então ele foi copiado para a área de transferência: {url}",
 	},
 }

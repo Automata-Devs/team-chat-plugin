@@ -3,7 +3,7 @@
 	Links
 
 	Finds web links in message text and describes where they sit in the
-	rendered line, so UI/LinkHelper can tell which link was clicked.
+	rendered line (Util/Markdown turns them into clickable runs).
 
 	Usage:
 		Links.find("see www.roblox.com")   -- { { start = 5, finish = 18, url = "https://www.roblox.com", display = "www.roblox.com" } }

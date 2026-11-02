@@ -11,6 +11,7 @@ local BadgeIcons = require(script.Parent.Parent.Components.BadgeIcons)
 local Icons = require(script.Parent.Parent.Parent.Config.Icons)
 local Language = require(script.Parent.Parent.Parent.Core.Language)
 local Identity = require(script.Parent.Parent.Parent.Core.Identity)
+local Markdown = require(script.Parent.Parent.Parent.Util.Markdown)
 local Mentions = require(script.Parent.Parent.Parent.Util.Mentions)
 local RichText = require(script.Parent.Parent.Parent.Util.RichText)
 local Theme = require(script.Parent.Parent.Parent.Config.Theme)
@@ -205,7 +206,7 @@ function Shared.createReplyReference(replyRef, themeColors, withSpine: boolean?)
 	x += MINI_AVATAR_SIZE + 6
 
 	-- Name in the author's color (half opacity) + muted single-line preview
-	local preview = string.gsub(replyRef.content or "", "%s+", " ")
+	local preview = string.gsub(Markdown.strip(replyRef.content), "%s+", " ")
 	local previewLength = utf8.len(preview)
 	if previewLength and previewLength > REPLY_PREVIEW_MAX_LENGTH then
 		preview = string.sub(preview, 1, utf8.offset(preview, REPLY_PREVIEW_MAX_LENGTH + 1) - 1) .. "\u{2026}"
