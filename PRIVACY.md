@@ -58,4 +58,4 @@ this file, with the date it was last updated.
 ## Contact
 
 Privacy questions: open an issue in this repository (don't post personal
-information in it) or message @D3veloperHac on Roblox.
+information in it) or message [d3v_c](https://discord.com/user/1140557619208130641) on Discord.

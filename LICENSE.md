@@ -99,4 +99,4 @@ already made stay licensed as described in section 3.
 ## Contact
 
 Questions about this license, or requests for permission: open an issue in
-this repository or message @D3veloperHac on Roblox.
+this repository or message [d3v_c](https://discord.com/user/1140557619208130641) on Discord.
