@@ -36,7 +36,13 @@
 -- tweaks), newest first, tagged with the version it went into. Not shown in
 -- What's New. When something big ships, move these lines into a new entry at
 -- the top of the list below and empty this list.
-local unreleased = {}
+local unreleased = {
+	{
+		version = "1.19.1",
+		type = "fixed",
+		text = "Mentions of your display name count as mentions, a reply to your message glows gold and notifies you like a mention, and @mentions show in blue in reply lines.",
+	},
+}
 local _ = unreleased
 
 return {

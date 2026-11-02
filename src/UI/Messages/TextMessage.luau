@@ -74,7 +74,8 @@ function TextMessage.create(sender, timestamp, content, imageUrl, themeColors, r
 	containerLayout.Parent = container
 
 	Shared.addMessageSurface(container, themeColors)
-	Shared.applyMention(container, themeColors, content)
+	-- Real replies point at a message; the bot's "<name> used /command" line doesn't
+	container:SetAttribute("ReplyToSenderId", if replyRef and replyRef.timestamp then replyRef.senderId else nil)
 
 	-- Reply reference (reply arrow + name + preview)
 	if replyRef and replyRef.sender then
@@ -84,6 +85,8 @@ function TextMessage.create(sender, timestamp, content, imageUrl, themeColors, r
 	end
 
 	Author.attach(container, sender, senderId, timestamp, themeColors)
+	-- Mentions you, or replies to you: the gold look (needs SenderId from Author)
+	Shared.applyMention(container, themeColors, content)
 
 	local textLabel = Instance.new("TextLabel")
 	textLabel.Name = "TextContent"

@@ -305,9 +305,15 @@ function PluginController.init(pluginRef, ui, chatNetwork, commandHandler)
 	local loadedAt = os.clock()
 	Conversations.onMessage(function(id, message)
 		local mode = Preferences.values.notifications
-		-- An @mention of you (or @everyone) gets through "DMs only"
-		local mentioned = Identity.userId > 0 and Mentions.mentions(message:GetAttribute("Content"), Identity.username)
-		if mode == "Off" or (mode == "DMs only" and id == Conversations.MAIN and not mentioned) then
+		-- An @mention of you (username, display name or @everyone), or a reply to
+		-- one of your messages, gets through "DMs only"
+		local myNames = { Identity.username }
+		if Identity.userId > 0 then
+			table.insert(myNames, Profiles.get(Identity.userId).displayName)
+		end
+		local mentioned = Identity.userId > 0 and Mentions.mentions(message:GetAttribute("Content"), myNames)
+		local repliedToMe = Identity.userId > 0 and message:GetAttribute("ReplyToSenderId") == Identity.userId
+		if mode == "Off" or (mode == "DMs only" and id == Conversations.MAIN and not mentioned and not repliedToMe) then
 			return
 		end
 		local timestamp = message:GetAttribute("Timestamp")
@@ -341,6 +347,7 @@ function PluginController.init(pluginRef, ui, chatNetwork, commandHandler)
 		ui.notify({
 			title = if mentioned
 				then Language.t("notify.mentioned", { name = name })
+				elseif repliedToMe then Language.t("notify.repliedToYou", { name = name })
 				elseif id == Conversations.MAIN then name .. "  ·  " .. Language.t("notify.teamChat")
 				else name,
 			text = (string.gsub(text, "%s+", " ")),

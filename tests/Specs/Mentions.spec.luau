@@ -109,6 +109,63 @@ return function(t)
 			mentionRow:GetAttribute("Mentioned") == false and mentionRow:FindFirstChild("MentionGradient") == nil
 		)
 
+		-- Display names count, and so do replies to your messages
+		t.check(
+			"a display name counts as a mention",
+			Mentions.mentions("hey @Builder", { "builderman", "Builder" })
+				and not Mentions.mentions("hey @Builder", "builderman")
+		)
+		local Shared = require(app.copy.UI.Messages.Shared) :: any
+		local myNames = Shared.myNames()
+		if #myNames > 1 then
+			local byDisplay = addOther(stamp + 20, "hi @" .. myNames[2])
+			Harness.settle()
+			t.check(
+				"a message mentioning your display name (@" .. myNames[2] .. ") is marked",
+				(rowFor(stamp + 20) :: Frame):GetAttribute("Mentioned") == true
+			)
+			byDisplay:Destroy()
+		end
+		local myMessage = Instance.new("Folder")
+		myMessage.Name = "msg_mine"
+		myMessage:SetAttribute("Sender", me)
+		myMessage:SetAttribute("SenderId", Identity.userId)
+		myMessage:SetAttribute("Timestamp", stamp + 30)
+		myMessage:SetAttribute("Content", "my message")
+		myMessage:SetAttribute("MessageType", "Text")
+		myMessage.Parent = folder
+		local reply = Instance.new("Folder")
+		reply.Name = "msg_reply"
+		reply:SetAttribute("Sender", "builderman")
+		reply:SetAttribute("SenderId", 156)
+		reply:SetAttribute("Timestamp", stamp + 31)
+		reply:SetAttribute("Content", "replying to @someoneelse and you")
+		reply:SetAttribute("MessageType", "Text")
+		reply:SetAttribute("ReplyToTimestamp", stamp + 30)
+		reply:SetAttribute("ReplyToSender", me)
+		reply:SetAttribute("ReplyToSenderId", Identity.userId)
+		reply:SetAttribute("ReplyToContent", "my message, @" .. me)
+		reply.Parent = folder
+		Harness.settle()
+		local replyRow = rowFor(stamp + 31) :: Frame
+		t.check("a reply to your message gets the gold look", replyRow and replyRow:GetAttribute("Mentioned") == true)
+		local replyLine = replyRow and replyRow:FindFirstChild("ReplyLabel", true) :: TextLabel
+		t.check(
+			"…and mentions in its reply line are coloured",
+			replyLine ~= nil and string.find(replyLine.Text, "#5865F2", 1, true) ~= nil
+		)
+		local botReply = ui.addBotMessage({
+			timestamp = stamp + 32,
+			content = "bot says hi",
+			saidBy = Identity.userId,
+			saidByName = me,
+			command = "/test",
+		})
+		t.check("a bot's \"you used /command\" line isn't a reply ping", botReply:GetAttribute("Mentioned") ~= true)
+		botReply:Destroy()
+		reply:Destroy()
+		myMessage:Destroy()
+
 		-- The Members picker
 		local box = ui.textBox
 		local menu = gui:FindFirstChild("Autocomplete", true) :: Frame

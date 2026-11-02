@@ -3,6 +3,20 @@
 Developer-facing history of the codebase. User-facing notes ("What's New")
 are in `src/Config/Changelog.luau`. Format: [Keep a Changelog](https://keepachangelog.com).
 
+## [1.19.1] - 2026-11-02
+
+### Fixed
+- Mentions: `Mentions.mentions(text, names)` takes a list; `Shared.myNames()`
+  is your username and display name, so "@<display name>" mentions you.
+  `Shared.mentionsMe(content, container)` also counts a reply to one of
+  your messages (`ReplyToSenderId`, set only for real replies, not a bot's
+  "used /command" line). The gold look is decided after `Author.attach` and
+  re-checked on every recolor (your profile may load later).
+- Notifications: display-name mentions and replies to you get through
+  "DMs only"; replies say "{name} replied to you" (`notify.repliedToYou`).
+- Reply lines colour @mentions (`RichText.colorMentions`).
+- Mentions spec: 4 more checks.
+
 ## [1.19.0] - 2026-11-02
 
 ### Added

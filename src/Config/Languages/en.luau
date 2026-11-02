@@ -437,5 +437,6 @@ return {
 		["commandGroup.roles"] = "Roles",
 		["commandGroup.studio"] = "Studio",
 		["commandGroup.utility"] = "Utility",
+		["notify.repliedToYou"] = "{name} replied to you",
 	},
 }

@@ -429,5 +429,6 @@ return {
 		["commandGroup.roles"] = "Rangos",
 		["commandGroup.studio"] = "Studio",
 		["commandGroup.utility"] = "Utilidades",
+		["notify.repliedToYou"] = "{name} te respondió",
 	},
 }

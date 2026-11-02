@@ -77,6 +77,29 @@ local function styleMentions(text: string, palette: Palette?): string
 end
 
 --[=[
+	Escaped text with each @mention in `color` (one-line previews such as a
+	reply line, where there's no room for the highlight).
+]=]
+function RichText.colorMentions(text: string, color: Color3): string
+	local parts = {}
+	local position = 1
+	for _, mention in ipairs(Mentions.find(text)) do
+		table.insert(parts, RichText.escape(string.sub(text, position, mention.start - 1)))
+		table.insert(
+			parts,
+			string.format(
+				'<font color="%s">%s</font>',
+				RichText.toHex(color),
+				RichText.escape(string.sub(text, mention.start, mention.finish))
+			)
+		)
+		position = mention.finish + 1
+	end
+	table.insert(parts, RichText.escape(string.sub(text, position)))
+	return table.concat(parts)
+end
+
+--[=[
 	Escaped content with every link underlined and colored, and @mentions
 	highlighted (in `palette`'s colours; dark by default).
 ]=]

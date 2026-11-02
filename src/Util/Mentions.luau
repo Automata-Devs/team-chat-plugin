@@ -9,6 +9,7 @@
 	Usage:
 		Mentions.find("hi @builderman")          -- { { start = 4, finish = 14, name = "builderman" } }
 		Mentions.mentions(text, "builderman")    -- true: it mentions them (or @everyone)
+		Mentions.mentions(text, { "builderman", "Builder" })  -- by username or display name
 		Mentions.typing("hello @bu")             -- 7, "bu": an @mention being typed at the end
 ]]
 
@@ -47,16 +48,22 @@ function Mentions.find(text: string): { Mention }
 end
 
 --[=[
-	Whether `text` mentions `username` (any case) or @everyone.
+	Whether `text` mentions someone (any case) or @everyone. `names` is their
+	username, or a list of names they go by (username and display name).
 ]=]
-function Mentions.mentions(text: string?, username: string?): boolean
+function Mentions.mentions(text: string?, names: (string | { string })?): boolean
 	if not text or text == "" then
 		return false
 	end
-	local lowered = if username then string.lower(username) else nil
+	local wanted = {}
+	for _, name in ipairs(if type(names) == "table" then names elseif names then { names } else {}) do
+		if name ~= "" then
+			wanted[string.lower(name)] = true
+		end
+	end
 	for _, mention in ipairs(Mentions.find(text)) do
 		local name = string.lower(mention.name)
-		if name == Mentions.EVERYONE or name == lowered then
+		if name == Mentions.EVERYONE or wanted[name] then
 			return true
 		end
 	end

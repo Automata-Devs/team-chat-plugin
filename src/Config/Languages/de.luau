@@ -429,5 +429,6 @@ return {
 		["commandGroup.roles"] = "Ränge",
 		["commandGroup.studio"] = "Studio",
 		["commandGroup.utility"] = "Werkzeuge",
+		["notify.repliedToYou"] = "{name} hat dir geantwortet",
 	},
 }

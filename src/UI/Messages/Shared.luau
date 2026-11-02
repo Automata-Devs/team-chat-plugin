@@ -37,6 +37,7 @@ local MINI_AVATAR_TRANSPARENCY = 0.2 -- the reply's mini avatar is a little see-
 local SPINE_RADIUS = 6 -- the reply line's rounded corner
 local SPINE_END_GAP = 4 -- between the line and the mini avatar
 local SPINE_AVATAR_GAP = 3 -- between the line and the message's avatar
+local MENTION_BLUE = Color3.fromRGB(88, 101, 242) -- @mentions in reply previews
 local MENTION_BAR_WIDTH = 2 -- the gold bar on the left of a message that mentions you
 
 --[=[
@@ -209,7 +210,8 @@ function Shared.createReplyReference(replyRef, themeColors, withSpine: boolean?)
 	if previewLength and previewLength > REPLY_PREVIEW_MAX_LENGTH then
 		preview = string.sub(preview, 1, utf8.offset(preview, REPLY_PREVIEW_MAX_LENGTH + 1) - 1) .. "\u{2026}"
 	end
-	local previewText = if preview == "" then "<i>Attachment</i>" else Icons.escape(preview)
+	-- @mentions in the preview show in the mention blue
+	local previewText = if preview == "" then "<i>Attachment</i>" else RichText.colorMentions(preview, MENTION_BLUE)
 	row:SetAttribute("ReplySender", replyRef.sender or "")
 	row:SetAttribute("ReplySenderId", replyRef.senderId or 0)
 	row:SetAttribute("ReplyPreview", previewText)
@@ -349,11 +351,35 @@ function Shared.recolorOnlyYouNote(container: Instance, palette)
 end
 
 --[=[
-	Whether a message's text mentions the person using the plugin (by their
-	username, or @everyone).
+	The names the person using the plugin goes by: their username and, once
+	their profile has loaded, their display name.
 ]=]
-function Shared.mentionsMe(content: string?): boolean
-	return Identity.userId > 0 and Mentions.mentions(content, Identity.username)
+function Shared.myNames(): { string }
+	local names = { Identity.username }
+	local profile = if Author.getProfile and Identity.userId > 0 then Author.getProfile(Identity.userId) else nil
+	if profile and profile.displayName and profile.displayName ~= "" then
+		table.insert(names, profile.displayName)
+	end
+	return names
+end
+
+--[=[
+	Whether a message is for the person using the plugin: it mentions them
+	(by username or display name, or @everyone) or, given its `container`, it
+	replies to one of their messages (like a Discord reply ping).
+]=]
+function Shared.mentionsMe(content: string?, container: Instance?): boolean
+	if Identity.userId <= 0 then
+		return false
+	end
+	if container then
+		local replyTo = container:GetAttribute("ReplyToSenderId")
+		local sender = container:GetAttribute("SenderId")
+		if replyTo == Identity.userId and sender ~= Identity.userId then
+			return true
+		end
+	end
+	return Mentions.mentions(content, Shared.myNames())
 end
 
 -- The mention look's background: solid for the bar's width on the left,
@@ -376,7 +402,7 @@ end
 	when it doesn't (e.g. after an edit). Sets the Mentioned attribute.
 ]=]
 function Shared.applyMention(container: GuiObject, palette, content: string?)
-	local mentioned = Shared.mentionsMe(content)
+	local mentioned = Shared.mentionsMe(content, container)
 	container:SetAttribute("Mentioned", mentioned)
 	local gradient = container:FindFirstChild("MentionGradient") :: UIGradient?
 	if not mentioned then

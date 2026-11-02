@@ -38,7 +38,8 @@ function Recolor.apply(container, themeColors)
 		container.BackgroundColor3 = themeColors.menuItemHover
 	end
 	Shared.recolorOnlyYouNote(container, themeColors)
-	if container:GetAttribute("Mentioned") then
+	if container:GetAttribute("HoverHighlight") then
+		-- Re-checked every time: your display name may have loaded since
 		Shared.applyMention(container, themeColors, content)
 	end
 
