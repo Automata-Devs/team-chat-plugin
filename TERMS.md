@@ -66,5 +66,5 @@ them.
 
 ## Contact
 
-Questions: open an issue in this repository or message [d3v_c](https://discord.com/user/1140557619208130641) on
+Questions: open an issue in this repository or message [d3v_c](https://discord.com/users/1140557619208130641) on
 Discord.
