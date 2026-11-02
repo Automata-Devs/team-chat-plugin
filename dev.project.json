@@ -1,5 +1,8 @@
 {
   "name": "TeamChatDev",
+  "globIgnorePaths": [
+    "src/build/**"
+  ],
   "tree": {
     "$className": "DataModel",
     "ReplicatedStorage": {
