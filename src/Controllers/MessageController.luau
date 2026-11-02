@@ -56,6 +56,7 @@ local function buildCommandContext(ui, chatNetwork)
 		clearChat = ui.clearChat,
 		openAbout = ui.openAbout,
 		openBadges = ui.openBadges,
+		openScript = ui.openScript,
 		sendMessage = function(msg)
 			chatNetwork.sendMessage(msg)
 		end,

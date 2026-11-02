@@ -124,6 +124,9 @@ local function populateFolder(folder, messages)
 		message:SetAttribute("SaidByName", entry.saidByName)
 		message:SetAttribute("Command", entry.command)
 		message:SetAttribute("Embed", entry.embed)
+		message:SetAttribute("BotId", entry.botId)
+		message:SetAttribute("BotOwner", entry.botOwner)
+		message:SetAttribute("BotAvatar", entry.botAvatar)
 		if entry.imageUrl then
 			message:SetAttribute("ImageUrl", entry.imageUrl)
 		end
@@ -167,6 +170,9 @@ function ChatState.serializeMessages(): string?
 			saidByName = child:GetAttribute("SaidByName"),
 			command = child:GetAttribute("Command"),
 			embed = child:GetAttribute("Embed"),
+			botId = child:GetAttribute("BotId"),
+			botOwner = child:GetAttribute("BotOwner"),
+			botAvatar = child:GetAttribute("BotAvatar"),
 		}
 		-- Persist reply reference attributes so replies keep their context
 		local replyToTimestamp = child:GetAttribute("ReplyToTimestamp")
@@ -298,10 +304,9 @@ function ChatState.deleteMessage(timestamp: number): boolean
 		local mine = ChatState.currentUserId > 0
 			and (
 				child:GetAttribute("SenderId") == ChatState.currentUserId
-				or (
-					child:GetAttribute("Sender") == "System"
-					and child:GetAttribute("SaidBy") == ChatState.currentUserId
-				)
+				or (child:GetAttribute("Sender") == "System" and child:GetAttribute("SaidBy") == ChatState.currentUserId)
+				-- A message from a bot you made
+				or (child:GetAttribute("BotId") ~= nil and child:GetAttribute("BotOwner") == ChatState.currentUserId)
 			)
 		if childTimestamp and childTimestamp == timestamp and mine then
 			child.Parent = nil

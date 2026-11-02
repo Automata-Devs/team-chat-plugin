@@ -2011,8 +2011,11 @@ function ChatUI.create(pluginInstance)
 				-- be deleted by whoever ran its command
 				local isMine = editing.myUserId > 0 and senderId == editing.myUserId and sender ~= "System"
 				local ranIt = editing.myUserId > 0
-					and sender == "System"
-					and msgContainer:GetAttribute("SaidBy") == editing.myUserId
+					and msgContainer:GetAttribute("BotMessage") == true
+					and (
+						msgContainer:GetAttribute("SaidBy") == editing.myUserId
+						or msgContainer:GetAttribute("BotOwner") == editing.myUserId
+					)
 				contextMenu.show(timestamp, { canEdit = isMine, canDelete = isMine or ranIt })
 			end
 		end)
@@ -2228,9 +2231,14 @@ function ChatUI.create(pluginInstance)
 				content = Language.t("bot.used", { command = entry.command or "" }),
 			}
 			else nil
-		local msgContainer = addMessage("System", entry.timestamp, entry.content or "", nil, usedBy, 0)
+		local msgContainer = addMessage(entry.botName or "System", entry.timestamp, entry.content or "", nil, usedBy, 0)
 		msgContainer:SetAttribute("SaidBy", entry.saidBy or 0)
 		msgContainer:SetAttribute("BotMessage", true)
+		if entry.botId then
+			-- A user-made bot: its own avatar and an (unverified) BOT tag
+			msgContainer:SetAttribute("BotOwner", entry.botOwner or 0)
+			Messages.markBot(msgContainer, entry.botAvatar, themeColors)
+		end
 		if entry.embed then
 			msgContainer:SetAttribute("HasCommandEmbed", true)
 			local embed = CommandEmbed.fromSpec(entry.embed, themeColors)
@@ -2648,6 +2656,10 @@ function ChatUI.create(pluginInstance)
 		addSystemMessage = addSystemMessage,
 		addSystemEmbed = addSystemEmbed,
 		addBotMessage = addBotMessage,
+		-- Opens a script in Studio's editor (/bot create)
+		openScript = function(script: LuaSourceContainer)
+			pluginInstance:OpenScript(script)
+		end,
 		updatePollMessage = updatePollMessage,
 		setReplyReference = setReplyReference,
 		getReplyReference = getReplyReference,

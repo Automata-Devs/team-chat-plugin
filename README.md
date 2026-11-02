@@ -3,9 +3,10 @@
 A Roblox Studio plugin that adds a chat panel for people working on the same
 place over Team Create: a team chat pinned to the game, direct messages,
 replies, @mentions, polls, images, animated GIFs, audio, file cards, link
-previews, and slash commands with Team Chat's own bot replies (`/help` lists
-them). Available in English, Nederlands, Deutsch, Español, Français and
-Português.
+previews, Discord-style markdown, #tags for objects in the place, slash
+commands with Team Chat's own bot replies (`/help` lists them), and bots you
+can make yourself ([docs/BOTS.md](docs/BOTS.md)). Available in English,
+Nederlands, Deutsch, Español, Français and Português.
 
 Messages are stored in `ServerStorage.TeamChatData` inside the place, so Team
 Create syncs them to every collaborator and they are saved with the place.
@@ -106,7 +107,7 @@ history.
 | `tests/` | Studio test harness, runner and specs. |
 | `tools/` | Python helpers for checks and conversions. |
 | `legacy/` | The v1.5.1 code exactly as it was exported from Studio. |
-| `docs/` | `AUDIT.md` (findings) and `ARCHITECTURE.md` (design, rules, how to extend). |
+| `docs/` | `ARCHITECTURE.md` (design, rules, how to extend), `BOTS.md` (making bots) and `AUDIT.md` (findings). |
 
 Adding a command: copy `src/Commands/_Template.luau` into a category folder and
 fill it in. See `docs/ARCHITECTURE.md` for everything else.

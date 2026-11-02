@@ -3,6 +3,28 @@
 Developer-facing history of the codebase. User-facing notes ("What's New")
 are in `src/Config/Changelog.luau`. Format: [Keep a Changelog](https://keepachangelog.com).
 
+## [1.22.0] - 2026-11-02
+
+### Added
+- `Services/Bots`: user-made bots. A bot is a ModuleScript in
+  `ServerStorage.TeamChatBots` with an `OwnerId`; it runs only in its owner's
+  Studio. The owner's plugin publishes a manifest (name, description, avatar,
+  commands; plain data) to `TeamChatData.Bots` with a `LastSeen` heartbeat,
+  and answers requests other plugins leave in `TeamChatData.BotRequests`.
+  Bot replies are saved messages with `BotId`, `BotOwner`, `BotAvatar` (kept
+  through history save/restore), shown under "<name> used /command".
+  `ctx`: `user`, `args`, `text`, `command`, `reply`, `send`, `http`,
+  `openCloud` (apis.roblox.com with the owner's API key from plugin settings,
+  never the place), `json`.
+- `/bot create | list | reload | remove | key` (`Commands/Utility/Bot.luau`);
+  the registry hands unknown commands to bots and lists bot commands in
+  `/help` (a Bots group) and autocomplete. `Author.addBotTag(line, verified)`
+  and `Author.markBot`: user-made bots get a plain BOT tag and their avatar.
+- `docs/BOTS.md`; PRIVACY.md covers bots; Bots spec (17 checks).
+
+### Fixed
+- German `bot.offline` used `{owner}` twice.
+
 ## [1.21.1] - 2026-11-02
 
 ### Added

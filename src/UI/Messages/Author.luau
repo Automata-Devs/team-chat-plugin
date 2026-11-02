@@ -193,34 +193,7 @@ function Author.attach(container: Frame, sender: string, senderId: number?, time
 	-- The plugin's own messages get a verified BOT tag (a check, then BOT)
 	-- after the name, like a verified Discord bot
 	if sender == SYSTEM_SENDER then
-		local tag = Instance.new("TextLabel")
-		tag.Name = "BotTag"
-		tag.Size = UDim2.fromOffset(0, 15)
-		tag.AutomaticSize = Enum.AutomaticSize.X
-		tag.BorderSizePixel = 0
-		tag.FontFace = Theme.FONTS.bold
-		tag.TextSize = 10
-		tag.RichText = true
-		tag.Text = Icons.inline("botCheck", true, 10) .. " " .. Language.t("system.tag")
-		tag.LayoutOrder = 3
-		tag.Parent = line
-		tag.MouseEnter:Connect(function()
-			if Author.tooltip then
-				Author.tooltip.show(tag, Language.t("system.verified"))
-			end
-		end)
-		tag.MouseLeave:Connect(function()
-			if Author.tooltip then
-				Author.tooltip.hide(tag)
-			end
-		end)
-		local tagCorner = Instance.new("UICorner")
-		tagCorner.CornerRadius = UDim.new(0, 4)
-		tagCorner.Parent = tag
-		local tagPadding = Instance.new("UIPadding")
-		tagPadding.PaddingLeft = UDim.new(0, 4)
-		tagPadding.PaddingRight = UDim.new(0, 4)
-		tagPadding.Parent = tag
+		Author.addBotTag(line, true)
 	end
 	local timePadding = Instance.new("UIPadding")
 	timePadding.PaddingLeft = UDim.new(0, 2)
@@ -286,6 +259,65 @@ local function renderBadges(frame: Frame, badges: { RichText.Badge }, palette: P
 			end
 		end)
 	end
+end
+
+--[=[
+	Adds a BOT tag after the name in a header's line: with a check for Team
+	Chat itself (verified), plain for bots people made.
+]=]
+function Author.addBotTag(line: Instance, verified: boolean)
+	if line:FindFirstChild("BotTag") then
+		return
+	end
+	local tag = Instance.new("TextLabel")
+	tag.Name = "BotTag"
+	tag.Size = UDim2.fromOffset(0, 15)
+	tag.AutomaticSize = Enum.AutomaticSize.X
+	tag.BorderSizePixel = 0
+	tag.FontFace = Theme.FONTS.bold
+	tag.TextSize = 10
+	tag.RichText = true
+	tag.Text = (if verified then Icons.inline("botCheck", true, 10) .. " " else "") .. Language.t("system.tag")
+	tag.LayoutOrder = 3
+	tag.Parent = line
+	local tagCorner = Instance.new("UICorner")
+	tagCorner.CornerRadius = UDim.new(0, 4)
+	tagCorner.Parent = tag
+	local tagPadding = Instance.new("UIPadding")
+	tagPadding.PaddingLeft = UDim.new(0, 4)
+	tagPadding.PaddingRight = UDim.new(0, 4)
+	tagPadding.Parent = tag
+	tag.MouseEnter:Connect(function()
+		if Author.tooltip then
+			Author.tooltip.show(tag, Language.t(if verified then "system.verified" else "bot.userBot"))
+		end
+	end)
+	tag.MouseLeave:Connect(function()
+		if Author.tooltip then
+			Author.tooltip.hide(tag)
+		end
+	end)
+end
+
+--[=[
+	Marks a message as from a bot someone made: a plain BOT tag and, when the
+	bot has one, its own avatar picture.
+]=]
+function Author.markBot(container: Instance, avatarImage: string?, palette: Palette)
+	local header = container:FindFirstChild("Author")
+	if not header then
+		return
+	end
+	Author.addBotTag(header:FindFirstChild("Line") :: Frame, false)
+	local avatar = header:FindFirstChild("Avatar") :: ImageLabel
+	if avatarImage and string.match(avatarImage, "^rbxassetid://%d+$") then
+		avatar.Image = avatarImage
+		local badge = avatar:FindFirstChild("Badge")
+		if badge then
+			badge:Destroy()
+		end
+	end
+	Author.render(container, palette)
 end
 
 --[=[

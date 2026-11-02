@@ -31,6 +31,10 @@ function MessageStore.readEntry(child: Instance): table
 	entry.saidByName = child:GetAttribute("SaidByName")
 	entry.command = child:GetAttribute("Command")
 	entry.embedJson = child:GetAttribute("Embed")
+	-- Messages from user-made bots (Services/Bots)
+	entry.botId = child:GetAttribute("BotId")
+	entry.botOwner = child:GetAttribute("BotOwner")
+	entry.botAvatar = child:GetAttribute("BotAvatar")
 	local replyToTimestamp = child:GetAttribute("ReplyToTimestamp")
 	if replyToTimestamp then
 		entry.replyToTimestamp = replyToTimestamp

@@ -17,6 +17,8 @@ nothing to D3veloperHac or to any server other than Roblox's.**
 | Your settings (theme, language, text size, notifications, read status, command usage counts) | Roblox Studio's plugin settings on **your computer** | Only you |
 | A local backup of each place's chat | Roblox Studio's plugin settings on **your computer** | Only you |
 | Images you attach | Uploaded to Roblox as assets on **your** Roblox account | Anyone the asset is visible to on Roblox |
+| Bots people made: their scripts, names and commands, and commands waiting for them | Inside the place (`ServerStorage.TeamChatBots`, `TeamChatData`) | Everyone who can edit the place |
+| Your Open Cloud API key for your bots (if you save one with `/bot key`) | Roblox Studio's plugin settings on **your computer** | Only you |
 
 Private bot replies ("Only you can see this") are never saved anywhere.
 
@@ -35,6 +37,15 @@ cannot read your chats unless they can edit your place.
 
 Roblox's own [Privacy and Cookie Policy](https://en.help.roblox.com/hc/articles/115004630823)
 covers what Roblox does with information.
+
+## Bots people make
+
+Team Chat lets people make their own bots ([docs/BOTS.md](docs/BOTS.md)). A bot
+runs in its **owner's** Studio, and its owner decides what it does. When you use
+a bot's command, or a bot reads the team chat, what you typed goes to that bot,
+and its owner's code could send it to Roblox's Open Cloud or other websites.
+D3veloperHac doesn't make, check or control bots other people make. Only use
+bots from people you trust, and ask a bot's owner what it does with messages.
 
 ## Deleting your information
 

@@ -136,7 +136,7 @@ function PluginController.init(pluginRef, ui, chatNetwork, commandHandler)
 			}
 		end
 
-		if msg.sender == "System" and ui.addBotMessage then
+		if (msg.sender == "System" or msg.botId) and ui.addBotMessage then
 			-- A bot message everyone sees; its card is saved as JSON
 			local embed = nil
 			if msg.embedJson then
@@ -156,6 +156,11 @@ function PluginController.init(pluginRef, ui, chatNetwork, commandHandler)
 				saidByName = msg.saidByName,
 				command = msg.command,
 				embed = embed,
+				-- A user-made bot: its name, owner and avatar
+				botId = msg.botId,
+				botName = if msg.botId then msg.sender else nil,
+				botOwner = msg.botOwner,
+				botAvatar = msg.botAvatar,
 			})
 		elseif msg.messageType == "Poll" and msg.pollData then
 			ui.addPollMessage(msg.sender, msg.timestamp, msg.pollData, replyRef)

@@ -11,6 +11,7 @@
 local AdminNetwork = require(script.Parent.Parent.Services.Admin)
 local Language = require(script.Parent.Parent.Core.Language)
 local UsageTracker = require(script.Parent.Parent.Services.Usage)
+local Bots = require(script.Parent.Parent.Services.Bots)
 
 local CommandHandler = {}
 
@@ -191,6 +192,16 @@ function CommandHandler.init()
 				end
 				table.insert(groups[tag], "/" .. cmd.Name)
 			end
+			for _, botCommand in ipairs(Bots.commands()) do
+				if not commands[botCommand.name] then
+					local tag = "Bots"
+					if not groups[tag] then
+						groups[tag] = {}
+						table.insert(groupOrder, tag)
+					end
+					table.insert(groups[tag], "/" .. botCommand.name)
+				end
+			end
 			local fields = {}
 			for _, tag in ipairs(groupOrder) do
 				table.insert(fields, {
@@ -240,6 +251,9 @@ function CommandHandler.tryParse(text, context)
 	end
 
 	local cmd = commands[cmdName]
+	if not cmd and context and context.addSystemMessage and Bots.tryCommand(cmdName, args, context) then
+		return true -- a user-made bot offers it (Services/Bots)
+	end
 	if not cmd then
 		if context and context.addSystemMessage then
 			local disabled = disabledCommands[cmdName]
@@ -321,6 +335,26 @@ function CommandHandler.getCommandList()
 				uses = UsageTracker.getCount("command", cmd.Name:lower()),
 				args = normalizeArgs(cmd),
 				usage = usageOf(cmd),
+			})
+		end
+	end
+
+	-- Commands from user-made bots (built-in names win)
+	for _, botCommand in ipairs(Bots.commands()) do
+		if not seen[botCommand.name] and not commands[botCommand.name] then
+			seen[botCommand.name] = true
+			local usage = "/" .. botCommand.name
+			for _, arg in ipairs(botCommand.args) do
+				usage ..= if arg.optional then " [" .. arg.name .. "]" else " <" .. arg.name .. ">"
+			end
+			table.insert(list, {
+				name = botCommand.name,
+				description = botCommand.description .. "  \u{00B7}  " .. botCommand.botName,
+				rank = 0,
+				aliases = {},
+				uses = UsageTracker.getCount("command", botCommand.name),
+				args = botCommand.args,
+				usage = usage,
 			})
 		end
 	end

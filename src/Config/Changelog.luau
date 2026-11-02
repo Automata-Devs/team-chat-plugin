@@ -36,13 +36,7 @@
 -- tweaks), newest first, tagged with the version it went into. Not shown in
 -- What's New. When something big ships, move these lines into a new entry at
 -- the top of the list below and empty this list.
-local unreleased = {
-	{
-		version = "1.21.1",
-		type = "added",
-		text = "The DM list shows when each conversation's last message was sent and has a search box; searching also lets you look for a friend to message.",
-	},
-}
+local unreleased = {}
 local _ = unreleased
 
 return {
@@ -51,6 +45,35 @@ return {
 		date = "31/10/2026",
 		title = "Team Chat 1",
 		updates = {
+			{
+				version = "1.22.0",
+				date = "02/11/2026",
+				title = { en = "Bots", nl = "Bots", de = "Bots", es = "Bots", fr = "Bots", pt = "Bots" },
+				changes = {
+					{
+						type = "added",
+						text = {
+							en = "Make your own bots with /bot create: a script with commands everyone can use. A bot runs in your Studio only and can use Roblox Open Cloud with your API key (/bot key). /bot list shows the place's bots.",
+							nl = "Maak je eigen bots met /bot create: een script met commando's die iedereen kan gebruiken. Een bot draait alleen in jouw Studio en kan Roblox Open Cloud gebruiken met je API-sleutel (/bot key). /bot list toont de bots van de place.",
+							de = "Baue eigene Bots mit /bot create: ein Skript mit Befehlen, die alle nutzen können. Ein Bot läuft nur in deinem Studio und kann Roblox Open Cloud mit deinem API-Schlüssel nutzen (/bot key). /bot list zeigt die Bots des Orts.",
+							es = "Crea tus propios bots con /bot create: un script con comandos que todos pueden usar. Un bot funciona solo en tu Studio y puede usar Roblox Open Cloud con tu clave de API (/bot key). /bot list muestra los bots del lugar.",
+							fr = "Crée tes propres bots avec /bot create : un script avec des commandes que tout le monde peut utiliser. Un bot tourne uniquement dans ton Studio et peut utiliser Roblox Open Cloud avec ta clé d'API (/bot key). /bot list montre les bots de l'emplacement.",
+							pt = "Crie seus próprios bots com /bot create: um script com comandos que todos podem usar. Um bot roda só no seu Studio e pode usar o Roblox Open Cloud com sua chave de API (/bot key). /bot list mostra os bots do lugar.",
+						},
+					},
+					{
+						type = "added",
+						text = {
+							en = "The DM list shows when each conversation's last message was sent and has a search box; searching also lets you look for a friend to message.",
+							nl = "De DM-lijst toont wanneer het laatste bericht van elk gesprek is verstuurd en heeft een zoekvak; zoeken laat je ook een vriend vinden om te berichten.",
+							de = "Die DM-Liste zeigt, wann die letzte Nachricht jedes Gesprächs kam, und hat ein Suchfeld; beim Suchen kannst du auch einen Freund zum Anschreiben finden.",
+							es = "La lista de MD muestra cuándo se envió el último mensaje de cada conversación y tiene un buscador; al buscar también puedes encontrar a un amigo para escribirle.",
+							fr = "La liste des MP montre quand le dernier message de chaque conversation a été envoyé et a une barre de recherche ; chercher permet aussi de trouver un ami à qui écrire.",
+							pt = "A lista de DMs mostra quando a última mensagem de cada conversa foi enviada e tem uma busca; buscar também permite achar um amigo para mandar mensagem.",
+						},
+					},
+				},
+			},
 			{
 				version = "1.21.0",
 				date = "02/11/2026",

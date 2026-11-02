@@ -13,6 +13,7 @@
 ]]
 
 local Announcement = require(script.Announcement)
+local Author = require(script.Author)
 local FileMessage = require(script.FileMessage)
 local PollMessage = require(script.PollMessage)
 local Recolor = require(script.Recolor)
@@ -31,6 +32,7 @@ Messages.recolor = Recolor.apply
 Messages.setReplyAvatar = Shared.setReplyAvatar
 Messages.applyMention = Shared.applyMention
 Messages.addOnlyYouNote = Shared.addOnlyYouNote
+Messages.markBot = Author.markBot
 Messages.mentionsMe = Shared.mentionsMe
 
 --[=[
