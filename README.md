@@ -24,7 +24,7 @@ Corporation.
 ## Install
 
 Install **Team Chat** from its
-[Roblox Creator Store listing](https://create.roblox.com/store/asset/78044069343761), or go to Releases. 
+[Roblox Creator Store listing](https://create.roblox.com/store/asset/78044069343761), or go to [Releases](https://github.com/Automata-Devs/team-chat-plugin/releases). 
 That is the only official version.
 
 ## Legal
