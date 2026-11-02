@@ -46,17 +46,28 @@ return {
 		title = "Team Chat 1",
 		updates = {
 			{
-				version = "1.20.0",
+				version = "1.21.0",
 				date = "02/11/2026",
 				title = {
-					en = "Formatting",
-					nl = "Opmaak",
-					de = "Formatierung",
-					es = "Formato",
-					fr = "Mise en forme",
-					pt = "Formatação",
+					en = "Formatting & tags",
+					nl = "Opmaak & tags",
+					de = "Formatierung & Tags",
+					es = "Formato y etiquetas",
+					fr = "Mise en forme & tags",
+					pt = "Formatação e tags",
 				},
 				changes = {
+					{
+						type = "added",
+						text = {
+							en = "#tags: type # to pick an object in the place (your selection first). It shows as a pill like a mention; clicking it selects the object and glides your camera to it.",
+							nl = "#tags: typ # om een object in de place te kiezen (je selectie eerst). Het verschijnt als label zoals een vermelding; klikken selecteert het object en beweegt je camera ernaartoe.",
+							de = "#Tags: Tippe #, um ein Objekt im Ort zu wählen (deine Auswahl zuerst). Es erscheint wie eine Erwähnung; ein Klick wählt das Objekt aus und schwenkt deine Kamera dorthin.",
+							es = "#etiquetas: escribe # para elegir un objeto del lugar (tu selección primero). Se ve como una mención; al hacer clic se selecciona el objeto y tu cámara se desliza hasta él.",
+							fr = "#tags : tape # pour choisir un objet de l'emplacement (ta sélection d'abord). Il s'affiche comme une mention ; cliquer dessus sélectionne l'objet et fait glisser ta caméra jusqu'à lui.",
+							pt = "#tags: digite # para escolher um objeto do lugar (sua seleção primeiro). Ele aparece como uma menção; clicar seleciona o objeto e leva sua câmera até ele.",
+						},
+					},
 					{
 						type = "added",
 						text = {

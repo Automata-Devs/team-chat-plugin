@@ -431,5 +431,7 @@ return {
 		["commandGroup.utility"] = "Utilidades",
 		["notify.repliedToYou"] = "{name} te respondió",
 		["links.copied"] = "No se pudo abrir el enlace en tu navegador, así que se copió al portapapeles: {url}",
+		["autocomplete.object"] = "Objetos",
+		["tag.notFound"] = "No se encontró {name}. Puede que se haya renombrado, movido o eliminado.",
 	},
 }

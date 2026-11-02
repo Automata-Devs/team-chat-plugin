@@ -3,6 +3,22 @@
 Developer-facing history of the codebase. User-facing notes ("What's New")
 are in `src/Config/Changelog.luau`. Format: [Keep a Changelog](https://keepachangelog.com).
 
+## [1.21.0] - 2026-11-02
+
+### Added
+- `Services/ObjectTags`: #tags point at objects in the place, saved as
+  `#[<GetFullName()>]` and shown as `#Name` with a mention pill. `search`
+  (selection first, then names in the main services, capped scan),
+  `resolve` (names with dots work), `pathOf`, `focus` (selects the object;
+  parts, models and attachments get a camera glide, or a jump with
+  animations off).
+- Composer: typing `#name` opens an Objects list (`Autocomplete.createObjectItem`
+  with Studio's class icons); Tab or click inserts the tag. A `# ` header or
+  `##` doesn't open it. Clicking a tag in a message calls
+  `MessageText.onTag`; a missing object says so (`tag.notFound`).
+- ObjectTags spec (17 checks). The 1.20.0 What's New entry is now
+  "Formatting & tags".
+
 ## [1.20.0] - 2026-11-02
 
 ### Added

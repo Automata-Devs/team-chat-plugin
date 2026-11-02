@@ -439,6 +439,61 @@ function Autocomplete.createMemberItem(index, member, themeColors)
 end
 
 --!
+-- Creates an object row for #tags: Studio's icon for its class, its name,
+-- and where it is on the right (e.g. "Workspace.Map").
+--!
+function Autocomplete.createObjectItem(index, instance: Instance, themeColors)
+	local item = createRow(index, themeColors)
+
+	local icon = Instance.new("ImageLabel")
+	icon.Name = "ClassIcon"
+	icon.Size = UDim2.fromOffset(16, 16)
+	icon.BackgroundTransparency = 1
+	icon.ZIndex = Z + 2
+	icon.LayoutOrder = 1
+	icon.Parent = item
+	local ok, classIcon = pcall(function()
+		return game:GetService("StudioService"):GetClassIcon(instance.ClassName)
+	end)
+	if ok and type(classIcon) == "table" then
+		icon.Image = classIcon.Image
+		icon.ImageRectOffset = classIcon.ImageRectOffset
+		icon.ImageRectSize = classIcon.ImageRectSize
+	end
+
+	local name = textLabel({
+		Name = "CmdName",
+		Size = UDim2.fromScale(0, 1),
+		Text = instance.Name,
+		FontFace = FONTS.semibold,
+		TextSize = 14,
+		TextColor3 = themeColors.messageText,
+		TextTruncate = Enum.TextTruncate.AtEnd,
+		LayoutOrder = 2,
+		Parent = item,
+	})
+	local fill = Instance.new("UIFlexItem")
+	fill.FlexMode = Enum.UIFlexMode.Fill
+	fill.Parent = name
+
+	textLabel({
+		Name = "CmdDesc",
+		Size = UDim2.fromScale(0, 1),
+		AutomaticSize = Enum.AutomaticSize.X,
+		Text = if instance.Parent and instance.Parent ~= game then instance.Parent:GetFullName() else "",
+		FontFace = FONTS.body,
+		TextSize = 12,
+		TextColor3 = themeColors.timestamp,
+		TextXAlignment = Enum.TextXAlignment.Right,
+		LayoutOrder = 3,
+		Parent = item,
+	})
+	item:SetAttribute("Object", true)
+
+	return item
+end
+
+--!
 -- Highlights row number index (the others are transparent).
 --!
 function Autocomplete.setSelected(frame, index: number?)
@@ -468,7 +523,9 @@ function Autocomplete.recolor(frame, themeColors)
 	for _, item in ipairs(frame:GetChildren()) do
 		if item:IsA("TextButton") and item.Name:match("^Item_%d+$") then
 			item.BackgroundColor3 = themeColors.menuItemHover
-			local plainName = item:FindFirstChild("EmojiChar") ~= nil or item:GetAttribute("Member") == true
+			local plainName = item:FindFirstChild("EmojiChar") ~= nil
+				or item:GetAttribute("Member") == true
+				or item:GetAttribute("Object") == true
 			local name = item:FindFirstChild("CmdName")
 			if name then
 				name.TextColor3 = if plainName then themeColors.messageText else themeColors.sendButton

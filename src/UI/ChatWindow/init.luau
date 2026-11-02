@@ -16,6 +16,8 @@ local UsernameColors = require(script.Parent.Parent.Util.UsernameColors)
 local Theme = require(script.Parent.Parent.Config.Theme)
 local MentionPills = require(script.Parent.MentionPills)
 local MessageText = require(script.Parent.MessageText)
+local ObjectTags = require(script.Parent.Parent.Services.ObjectTags)
+local Markdown = require(script.Parent.Parent.Util.Markdown)
 local CommandEmbed = require(script.Parent.Embeds.Providers.CommandEmbed)
 local ContextMenu = require(script.ContextMenu)
 local Pointer = require(script.Pointer)
@@ -719,6 +721,23 @@ function ChatUI.create(pluginInstance)
 	local autocompleteMode = nil -- "command" | "emoji" | "args" | "member"
 	local emojiMatchStart = nil -- 1-based index of the ":" currently being typed
 	local mentionMatchStart = nil -- 1-based index of the "@" currently being typed
+	local tagMatchStart = nil -- 1-based index of the "#" currently being typed
+
+	--!
+	-- A "#name" being typed at the end of the text (not a "# " header, not in
+	-- the middle of a word): where its "#" is and the name so far.
+	--!
+	local function typingTag(text: string): (number?, string?)
+		local hashPos, partial = string.match(text, "()#([%w_%-]*)$")
+		if not hashPos then
+			return nil, nil
+		end
+		local before = if hashPos > 1 then string.sub(text, hashPos - 1, hashPos - 1) else ""
+		if before ~= "" and string.match(before, "[%w_#%[]") then
+			return nil, nil
+		end
+		return hashPos, partial
+	end
 
 	--!
 	-- People to @mention whose username or display name starts with `partial`:
@@ -797,6 +816,12 @@ function ChatUI.create(pluginInstance)
 			textBox.Text = string.sub(textBox.Text, 1, emojiMatchStart - 1) .. item.emoji .. " "
 		elseif item.type == "member" and mentionMatchStart then
 			textBox.Text = string.sub(textBox.Text, 1, mentionMatchStart - 1) .. "@" .. item.member.username .. " "
+		elseif item.type == "object" and tagMatchStart then
+			-- Saved as #[full path] (shown as #Name), so it still finds the right one
+			textBox.Text = string.sub(textBox.Text, 1, tagMatchStart - 1)
+				.. "#["
+				.. ObjectTags.pathOf(item.instance)
+				.. "] "
 		end
 		textBox.CursorPosition = #textBox.Text + 1 -- keep typing after the suggestion
 
@@ -824,6 +849,7 @@ function ChatUI.create(pluginInstance)
 		autocompleteMode = nil
 		emojiMatchStart = nil
 		mentionMatchStart = nil
+		tagMatchStart = nil
 
 		local text = textBox.Text
 
@@ -870,8 +896,21 @@ function ChatUI.create(pluginInstance)
 				mentionMatchStart = atPos
 			end
 
+			-- Object suggestions: a trailing "#name" still being typed
+			local hashPos, tagPartial = nil, nil
+			if not atPos then
+				hashPos, tagPartial = typingTag(text)
+				if hashPos and tagPartial then
+					for _, instance in ipairs(ObjectTags.search(tagPartial, Autocomplete.MAX_ITEMS)) do
+						table.insert(autocompleteItems, { type = "object", instance = instance })
+					end
+					autocompleteMode = "object"
+					tagMatchStart = hashPos
+				end
+			end
+
 			-- Emoji suggestions: a trailing ":shortcode" still being typed.
-			local colonPos = if atPos then nil else text:match(".*():")
+			local colonPos = if atPos or hashPos then nil else text:match(".*():")
 
 			if colonPos then
 				local typed = text:sub(colonPos + 1)
@@ -949,6 +988,8 @@ function ChatUI.create(pluginInstance)
 					end)
 				elseif item.type == "member" then
 					btn = Autocomplete.createMemberItem(i, item.member, themeColors)
+				elseif item.type == "object" then
+					btn = Autocomplete.createObjectItem(i, item.instance, themeColors)
 				else
 					btn = Autocomplete.createEmojiItem(i, item, themeColors)
 				end
@@ -2149,6 +2190,16 @@ function ChatUI.create(pluginInstance)
 		return msgContainer
 	end
 	addSystemMessageRef = addSystemMessage
+
+	-- Clicking a #tag: select the object and glide the camera to it
+	MessageText.onTag = function(path: string)
+		local instance = ObjectTags.resolve(path)
+		if instance then
+			ObjectTags.focus(instance, Animation.enabled())
+		else
+			addSystemMessage(Language.t("tag.notFound", { name = Markdown.tagName(path) }))
+		end
+	end
 
 	--!
 	-- A command's reply as a card (see Embeds/Providers/CommandEmbed for the

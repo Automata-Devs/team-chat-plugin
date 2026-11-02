@@ -431,5 +431,7 @@ return {
 		["commandGroup.utility"] = "Outils",
 		["notify.repliedToYou"] = "{name} t'a répondu",
 		["links.copied"] = "Impossible d'ouvrir le lien dans ton navigateur, il a donc été copié dans le presse-papiers : {url}",
+		["autocomplete.object"] = "Objets",
+		["tag.notFound"] = "Impossible de trouver {name}. Il a peut-être été renommé, déplacé ou supprimé.",
 	},
 }
