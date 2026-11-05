@@ -1,7 +1,9 @@
 {
-  "name": "TeamChatDev",
+  "name": "Team Chat Development",
   "globIgnorePaths": [
-    "src/build/**"
+    "src/build/**",
+    "src/Packages",
+    "src/Packages/**"
   ],
   "tree": {
     "$className": "DataModel",
@@ -9,7 +11,11 @@
       "$className": "ReplicatedStorage",
       "$ignoreUnknownInstances": true,
       "TeamChatPlugin": {
-        "$path": "src"
+        "$path": "src",
+        "Packages": {
+          "$className": "Folder",
+          "$ignoreUnknownInstances": true
+        }
       }
     },
     "ServerStorage": {
