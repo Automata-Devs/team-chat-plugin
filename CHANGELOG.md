@@ -3,6 +3,41 @@
 Developer-facing history of the codebase. User-facing notes ("What's New")
 are in `src/Config/Changelog.luau`. Format: [Keep a Changelog](https://keepachangelog.com).
 
+## [1.24.0] - 2026-11-05
+
+### Added
+- Pinned messages (`Services/Chat/Pins`): `Pinned`, `PinnedAt`, `PinnedBy`,
+  `PinnedByName` on the message folder, kept in history backups; at most 50
+  per conversation. Pinning posts a Team Chat notice
+  (`MessageStore.sendNotice`, attribute `Notice = "pin"`). The right-click
+  menu has Pin / Unpin Message; the header has a pin button that opens
+  `UI/ChatWindow/PinsPanel` (author, date, the message with markdown, Jump,
+  Unpin).
+- Spell check (`Util/SpellCheck`, `UI/SpellingMarks`): an English word list
+  in `Config/Dictionary` (152k words from cspell's en_US, front-coded, built
+  by `tools/make_dictionary.py`), loaded a module per frame the first time
+  you type. Red Path2D zigzags under misspelled words in the message box;
+  the word being typed is marked once you move on. Code, links, mentions,
+  tags, emoji, /commands and identifiers aren't checked; people's names and
+  words added with "Add to dictionary" (`TeamChatDictionary_v1`) count as
+  right. Putting the cursor in a marked word lists suggestions (swapped
+  letters and neighbouring keys first) in the autocomplete. Setting:
+  Settings > Chat > Spell Check (`TeamChatSpellCheck_v1`).
+- `THIRD_PARTY_NOTICES.md` for the word list.
+
+### Changed
+- Code blocks and quotes are drawn as parts of the message
+  (`Markdown.blocks`, `UI/MessageText`): a code block is a bordered, rounded,
+  padded box in BuilderMono, with ```lua/```luau coloured by
+  `Util/SyntaxHighlight` (light and dark colours, function calls); a quote
+  has a bar. `inline code` has a <mark> fill with a thin space each side
+  and a rounded outline (`UI/MentionPills`). Indented list items get a
+  hollow bullet. Fences follow Discord: a language word after ```, the
+  closing ``` can end a line, an unclosed ``` is text.
+- The markdown preview above the message box sits above the box (it was
+  under it, behind the buttons) and no longer errors while typing.
+- Language spec works with English only.
+
 ## [1.23.0] - 2026-11-02
 
 ### Added

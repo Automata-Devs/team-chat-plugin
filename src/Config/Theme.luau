@@ -54,6 +54,11 @@ Theme.PALETTES = {
 		mentionText = Color3.fromRGB(249, 250, 255),
 		mentionBack = Color3.fromRGB(88, 101, 242),
 		mentionRow = Color3.fromRGB(240, 178, 50), -- messages that mention you
+		-- Code blocks and `inline code`: a box a shade off the chat, with a border
+		codeBack = Color3.fromRGB(32, 34, 38),
+		codeBorder = Color3.fromRGB(55, 57, 63),
+		codeText = Color3.fromRGB(222, 223, 226),
+		quoteBar = Color3.fromRGB(78, 80, 88), -- the bar left of a > quote
 	},
 	Light = {
 		scrollBack = Color3.fromRGB(255, 255, 255), -- chat background
@@ -96,6 +101,10 @@ Theme.PALETTES = {
 		mentionText = Color3.fromRGB(54, 68, 235), -- @mentions, under the tint (UI/MentionPills)
 		mentionBack = Color3.fromRGB(88, 101, 242),
 		mentionRow = Color3.fromRGB(240, 178, 50), -- messages that mention you
+		codeBack = Color3.fromRGB(246, 247, 248),
+		codeBorder = Color3.fromRGB(222, 225, 227),
+		codeText = Color3.fromRGB(46, 48, 52),
+		quoteBar = Color3.fromRGB(199, 201, 205),
 	},
 }
 

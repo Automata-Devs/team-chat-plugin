@@ -4,7 +4,7 @@
 local Bots = require(script.Parent.Parent.Parent.Services.Bots)
 local Language = require(script.Parent.Parent.Parent.Core.Language)
 
-local USAGE = "/bot create <name> | list | reload | remove <name> | key <api key|clear>"
+local USAGE = "/bot create <name> | createweb <name> <url> | list | reload | remove <name> | key <api key|clear>"
 
 return {
 	Name = "bot",
@@ -18,12 +18,14 @@ return {
 	Description = "Make your own bots and see the bots in this place",
 	Contributors = { "D3veloperHac" },
 	Args = {
-		{ name = "action", description = "create, list, reload, remove or key" },
+		{ name = "action", description = "create, createweb, list, reload, remove or key" },
 		{ name = "name", description = "The bot's name (or your API key)", optional = true },
+		{ name = "url", description = "The web bot's URL (for createweb)", optional = true },
 	},
 	Function = function(_speaker, args, ctx)
 		local action = string.lower(args[1] or "list")
 		local name = args[2]
+		local url = args[3]
 
 		if action == "create" then
 			if not name or not string.match(name, "^[%w_]+$") then
@@ -45,6 +47,29 @@ return {
 				description = Language.t("bot.createdText"),
 				color = Color3.fromRGB(88, 101, 242),
 				footer = "ServerStorage." .. Bots.SCRIPTS_FOLDER .. "." .. name,
+			})
+		elseif action == "createweb" then
+			if not name or not string.match(name, "^[%w_]+$") then
+				ctx.addSystemMessage(Language.t("commands.usage", { usage = "/bot createweb <name> <url>" }))
+				return
+			end
+			if not url or not string.match(url, "^https?://") then
+				ctx.addSystemMessage(Language.t("commands.usage", { usage = "/bot createweb <name> <url>" }))
+				return
+			end
+			local id, problem = Bots.createWeb(name, url)
+			if not id then
+				ctx.addSystemMessage(Language.t("dev." .. tostring(problem)))
+				return
+			end
+			ctx.addEmbed({
+				title = Language.t("dev.createdWeb", { name = name }),
+				description = Language.t("dev.createdWebText", { url = url }),
+				color = Color3.fromRGB(88, 101, 242),
+				fields = {
+					{ name = Language.t("dev.botId"), value = id, inline = true },
+					{ name = Language.t("dev.token"), value = Bots.tokenOf(id) or "?", inline = true },
+				},
 			})
 		elseif action == "list" then
 			local bots = Bots.list()

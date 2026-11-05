@@ -15,6 +15,8 @@ local TweenService = game:GetService("TweenService")
 local UsernameColors = require(script.Parent.Parent.Util.UsernameColors)
 local Theme = require(script.Parent.Parent.Config.Theme)
 local MentionPills = require(script.Parent.MentionPills)
+local SpellingMarks = require(script.Parent.SpellingMarks)
+local SpellCheck = require(script.Parent.Parent.Util.SpellCheck)
 local MessageText = require(script.Parent.MessageText)
 local ObjectTags = require(script.Parent.Parent.Services.ObjectTags)
 local Markdown = require(script.Parent.Parent.Util.Markdown)
@@ -26,6 +28,7 @@ local ContextMenu = require(script.ContextMenu)
 local Pointer = require(script.Pointer)
 local TypingBar = require(script.TypingBar)
 local Header = require(script.Header)
+local PinsPanel = require(script.PinsPanel)
 local TeamCreateNotice = require(script.TeamCreateNotice)
 local Messages = require(script.Parent.Messages)
 local EmbedManager = require(script.Parent.Embeds.EmbedManager)
@@ -241,11 +244,15 @@ function ChatUI.create(pluginInstance)
 		Autocomplete.setSelected(autocompleteFrame, autocompleteSelectedIndex)
 	end
 
-	-- Header bar: the open conversation's title and the plugin version
+	-- Header bar: the open conversation's title and the pinned messages button
+	local pinsPanel
 	local header = Header.create({
 		container = container,
 		getThemeColors = function()
 			return themeColors
+		end,
+		onPins = function()
+			pinsPanel.toggle()
 		end,
 	})
 
@@ -427,7 +434,7 @@ function ChatUI.create(pluginInstance)
 		tween:Play()
 	end
 
-	Messages.setJumpHandler(function(timestamp)
+	local function jumpToMessage(timestamp: number)
 		local target
 		for _, child in ipairs(scrollFrame:GetChildren()) do
 			if child:IsA("GuiObject") and child:GetAttribute("Timestamp") == timestamp then
@@ -447,7 +454,28 @@ function ChatUI.create(pluginInstance)
 			{ CanvasPosition = Vector2.new(0, y) }
 		):Play()
 		flashMessage(target)
-	end)
+	end
+	Messages.setJumpHandler(jumpToMessage)
+
+	-- Pinned messages: the panel under the header's pin button, and which
+	-- messages are pinned (for the right-click menu)
+	local pinnedTimestamps: { [number]: boolean } = {}
+	local pinHandler: ((timestamp: number, pinned: boolean) -> ())? = nil
+	pinsPanel = PinsPanel.create({
+		container = container,
+		top = Header.HEIGHT,
+		getThemeColors = function()
+			return themeColors
+		end,
+		onJump = jumpToMessage,
+		onUnpin = function(timestamp: number)
+			if pinHandler then
+				pinHandler(timestamp, false)
+			end
+		end,
+		onVisibility = header.setPinsOpen,
+		ignoreClicksOn = { header.pinButton },
+	})
 
 	local function updateScrollState()
 		isScrollAtBottom = scrollFrame.CanvasPosition.Y >= getMaxScroll() - SCROLL_BOTTOM_THRESHOLD
@@ -698,6 +726,78 @@ function ChatUI.create(pluginInstance)
 	textBox.ClipsDescendants = false -- Let the box grow with wrapped text
 	textBox.Parent = inputFrame
 
+	-- Markdown preview bar (shown above input when markdown is detected) - Discord-style live preview
+	local markdownPreviewBar = Instance.new("Frame")
+	markdownPreviewBar.Name = "MarkdownPreviewBar"
+	markdownPreviewBar.Size = UDim2.new(1, 0, 0, 0)
+	markdownPreviewBar.AutomaticSize = Enum.AutomaticSize.Y
+	markdownPreviewBar.Position = UDim2.new(0, 0, 0, 0)
+	-- Slightly different background to distinguish preview from input (Discord-style)
+	markdownPreviewBar.BackgroundColor3 = themeColors.inputFrame
+	markdownPreviewBar.BackgroundTransparency = 0.1 -- subtle transparency for depth
+	markdownPreviewBar.BorderSizePixel = 0
+	markdownPreviewBar.Visible = false
+	markdownPreviewBar.ZIndex = 5
+	markdownPreviewBar.Parent = inputFrame
+
+	local markdownPreviewPadding = Instance.new("UIPadding")
+	markdownPreviewPadding.PaddingLeft = UDim.new(0, 12)
+	markdownPreviewPadding.PaddingRight = UDim.new(0, 12)
+	markdownPreviewPadding.PaddingTop = UDim.new(0, 6)
+	markdownPreviewPadding.PaddingBottom = UDim.new(0, 6)
+	markdownPreviewPadding.Parent = markdownPreviewBar
+
+	local markdownPreviewLayout = Instance.new("UIListLayout")
+	markdownPreviewLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	markdownPreviewLayout.Padding = UDim.new(0, 2)
+	markdownPreviewLayout.Parent = markdownPreviewBar
+
+	-- Subtle "Preview" badge (like Discord's markdown hint)
+	local previewBadge = Instance.new("TextLabel")
+	previewBadge.Name = "PreviewBadge"
+	previewBadge.Size = UDim2.new(0, 0, 0, 14)
+	previewBadge.AutomaticSize = Enum.AutomaticSize.X
+	previewBadge.BackgroundTransparency = 1
+	previewBadge.Text = "PREVIEW"
+	previewBadge.TextColor3 = themeColors.timestamp
+	previewBadge.FontFace = FONTS.mono
+	previewBadge.TextSize = 9
+	previewBadge.TextXAlignment = Enum.TextXAlignment.Left
+	previewBadge.TextYAlignment = Enum.TextYAlignment.Top
+	previewBadge.BorderSizePixel = 0
+	previewBadge.LayoutOrder = 1
+	previewBadge.Parent = markdownPreviewBar
+	previewBadge.ZIndex = 6
+
+	local markdownPreviewLabel = Instance.new("TextLabel")
+	markdownPreviewLabel.Name = "PreviewLabel"
+	markdownPreviewLabel.Size = UDim2.new(1, 0, 0, 0)
+	markdownPreviewLabel.AutomaticSize = Enum.AutomaticSize.Y
+	markdownPreviewLabel.BackgroundTransparency = 1
+	markdownPreviewLabel.RichText = true
+	markdownPreviewLabel.Text = ""
+	markdownPreviewLabel.TextColor3 = themeColors.messageText
+	markdownPreviewLabel.Font = FONT
+	markdownPreviewLabel.TextSize = 13
+	markdownPreviewLabel.TextXAlignment = Enum.TextXAlignment.Left
+	markdownPreviewLabel.TextYAlignment = Enum.TextYAlignment.Top
+	markdownPreviewLabel.TextWrapped = true
+	markdownPreviewLabel.BorderSizePixel = 0
+	markdownPreviewLabel.LayoutOrder = 2
+	markdownPreviewLabel.Parent = markdownPreviewBar
+
+	local markdownPreviewDivider = Instance.new("Frame")
+	markdownPreviewDivider.Name = "PreviewDivider"
+	markdownPreviewDivider.Size = UDim2.new(1, 0, 0, 1)
+	markdownPreviewDivider.Position = UDim2.new(0, 0, 1, 0)
+	markdownPreviewDivider.BackgroundColor3 = themeColors.divider
+	markdownPreviewDivider.BorderSizePixel = 0
+	markdownPreviewDivider.Parent = markdownPreviewBar
+	-- Its height follows the preview text (AutomaticSize): make room for it
+	markdownPreviewBar:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+		relayout()
+	end)
+
 	local textBoxCorner = Instance.new("UICorner")
 	textBoxCorner.CornerRadius = UDim.new(1, 0) -- Pill shape when single-line; made adaptive in updateComposerLayout
 	textBoxCorner.Parent = textBox
@@ -712,6 +812,37 @@ function ChatUI.create(pluginInstance)
 	-- colour its own text)
 	MentionPills.attach(textBox, themeColors)
 
+	-- Spell check: red wavy lines under misspelled words (Settings > Chat)
+	local spelling = SpellingMarks.attach(textBox, {
+		getPalette = function()
+			return themeColors
+		end,
+		isEnabled = function()
+			return Preferences.values.spellCheck
+		end,
+	})
+	-- Words added with "Add to dictionary", and the names of people here
+	SpellCheck.addWords(Settings.getJson(PluginConfig.SETTING_KEY_DICTIONARY, {}) or {})
+	local function addPlayerNames(player: Player)
+		SpellCheck.addWords({ player.Name, player.DisplayName })
+	end
+	for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
+		addPlayerNames(player)
+	end
+	Lifetime.connect(game:GetService("Players").PlayerAdded, addPlayerNames)
+	local function addToDictionary(word: string)
+		SpellCheck.addWords({ word })
+		local saved = Settings.getJson(PluginConfig.SETTING_KEY_DICTIONARY, {})
+		if type(saved) ~= "table" then
+			saved = {}
+		end
+		if not table.find(saved, string.lower(word)) then
+			table.insert(saved, string.lower(word))
+			Settings.setJson(PluginConfig.SETTING_KEY_DICTIONARY, saved)
+		end
+		spelling.refresh()
+	end
+
 	--!
 	-- Autocomplete suggestions: watches the input box and populates the
 	-- dropdown with matching commands (while typing "/name") or emojis
@@ -723,7 +854,7 @@ function ChatUI.create(pluginInstance)
 	-- setCommandProvider further below.
 	--!
 	local commandProviderFn
-	local autocompleteMode = nil -- "command" | "emoji" | "args" | "member"
+	local autocompleteMode = nil -- "command" | "emoji" | "args" | "member" | "object" | "choice" | "spelling"
 	local emojiMatchStart = nil -- 1-based index of the ":" currently being typed
 	local mentionMatchStart = nil -- 1-based index of the "@" currently being typed
 	local tagMatchStart = nil -- 1-based index of the "#" currently being typed
@@ -816,6 +947,22 @@ function ChatUI.create(pluginInstance)
 			return
 		end
 
+		-- Spelling: replace the misspelled word, or add it to the dictionary
+		if item.type == "spelling" or item.type == "addWord" then
+			local word = item.word
+			if item.type == "spelling" then
+				local text = textBox.Text
+				textBox.Text = string.sub(text, 1, word.start - 1)
+					.. item.suggestion
+					.. string.sub(text, word.finish + 1)
+				textBox.CursorPosition = word.start + #item.suggestion
+			else
+				addToDictionary(word.word)
+			end
+			hideAutocomplete()
+			return
+		end
+
 		if item.type == "command" then
 			textBox.Text = "/" .. item.name .. " "
 		elseif item.type == "emoji" and emojiMatchStart then
@@ -834,6 +981,66 @@ function ChatUI.create(pluginInstance)
 		textBox.CursorPosition = #textBox.Text + 1 -- keep typing after the suggestion
 
 		hideAutocomplete()
+	end
+
+	--!
+	-- Shows autocompleteItems in the dropdown (or hides it when there are none).
+	--!
+	local function renderAutocompleteItems()
+		Autocomplete.setHint(autocompleteFrame, Autocomplete.defaultHint())
+
+		if #autocompleteItems > 0 then
+			for i, item in ipairs(autocompleteItems) do
+				local btn
+				if item.type == "command" then
+					btn = Autocomplete.createItem(i, item.cmd, themeColors, function(rank)
+						return Language.tOr(
+							"rank." .. tostring(rank),
+							PluginConfig.RANK_NAMES[rank] or PluginConfig.RANK_NAMES[0]
+						)
+					end)
+				elseif item.type == "member" then
+					btn = Autocomplete.createMemberItem(i, item.member, themeColors)
+				elseif item.type == "object" then
+					btn = Autocomplete.createObjectItem(i, item.instance, themeColors)
+				elseif item.type == "choice" then
+					btn = Autocomplete.createEmojiItem(i, { emoji = "\u{2022}", name = item.choice.name }, themeColors)
+					local label = btn:FindFirstChild("CmdName") :: TextLabel
+					label.Text = item.choice.name
+					label.FontFace = Theme.FONTS.semibold
+				elseif item.type == "spelling" or item.type == "addWord" then
+					local adding = item.type == "addWord"
+					btn = Autocomplete.createEmojiItem(
+						i,
+						{ emoji = if adding then "+" else "\u{2022}", name = "" },
+						themeColors
+					)
+					local label = btn:FindFirstChild("CmdName") :: TextLabel
+					label.Text = if adding
+						then Language.t("spelling.add", { word = item.word.word })
+						else item.suggestion
+					label.FontFace = if adding then Theme.FONTS.body else Theme.FONTS.semibold
+				else
+					btn = Autocomplete.createEmojiItem(i, item, themeColors)
+				end
+
+				btn.MouseButton1Click:Connect(function()
+					applyAutocompleteItem(item)
+				end)
+				-- Hover highlights the suggestion (arrow keys never reach plugins)
+				btn.MouseEnter:Connect(function()
+					autocompleteSelectedIndex = i
+					updateAutocompleteSelection()
+				end)
+				btn.Parent = autocompleteFrame
+			end
+
+			Autocomplete.setTitle(autocompleteFrame, Language.t("autocomplete." .. autocompleteMode))
+			autocompleteFrame.Visible = true
+			updateAutocompleteSelection()
+		else
+			autocompleteFrame.Visible = false
+		end
 	end
 
 	--!
@@ -999,51 +1206,47 @@ function ChatUI.create(pluginInstance)
 			Autocomplete.setSelected(autocompleteFrame, argIndex)
 			return
 		end
-		Autocomplete.setHint(autocompleteFrame, Autocomplete.defaultHint())
-
-		if #autocompleteItems > 0 then
-			for i, item in ipairs(autocompleteItems) do
-				local btn
-				if item.type == "command" then
-					btn = Autocomplete.createItem(i, item.cmd, themeColors, function(rank)
-						return Language.tOr(
-							"rank." .. tostring(rank),
-							PluginConfig.RANK_NAMES[rank] or PluginConfig.RANK_NAMES[0]
-						)
-					end)
-				elseif item.type == "member" then
-					btn = Autocomplete.createMemberItem(i, item.member, themeColors)
-				elseif item.type == "object" then
-					btn = Autocomplete.createObjectItem(i, item.instance, themeColors)
-				elseif item.type == "choice" then
-					btn = Autocomplete.createEmojiItem(i, { emoji = "\u{2022}", name = item.choice.name }, themeColors)
-					local label = btn:FindFirstChild("CmdName") :: TextLabel
-					label.Text = item.choice.name
-					label.FontFace = Theme.FONTS.semibold
-				else
-					btn = Autocomplete.createEmojiItem(i, item, themeColors)
-				end
-
-				btn.MouseButton1Click:Connect(function()
-					applyAutocompleteItem(item)
-				end)
-				-- Hover highlights the suggestion (arrow keys never reach plugins)
-				btn.MouseEnter:Connect(function()
-					autocompleteSelectedIndex = i
-					updateAutocompleteSelection()
-				end)
-				btn.Parent = autocompleteFrame
-			end
-
-			Autocomplete.setTitle(autocompleteFrame, Language.t("autocomplete." .. autocompleteMode))
-			autocompleteFrame.Visible = true
-			updateAutocompleteSelection()
-		else
-			autocompleteFrame.Visible = false
-		end
+		renderAutocompleteItems()
 	end
 
 	textBox:GetPropertyChangedSignal("Text"):Connect(updateAutocomplete)
+
+	-- Spelling suggestions: clicking into (or moving the cursor onto) a word
+	-- with a red line lists what it might be, and "Add to dictionary"
+	local lastTextChange = 0
+	textBox:GetPropertyChangedSignal("Text"):Connect(function()
+		lastTextChange = os.clock()
+	end)
+	local function showSpellingSuggestions()
+		-- Only when the cursor moved on its own (not while typing), and never
+		-- over other suggestions
+		if not Preferences.values.spellCheck or os.clock() - lastTextChange < 0.1 then
+			return
+		end
+		if autocompleteFrame.Visible and autocompleteMode ~= "spelling" then
+			return
+		end
+		local word = spelling.wordAt(textBox.CursorPosition)
+		if not word then
+			if autocompleteMode == "spelling" then
+				autocompleteMode = nil
+				hideAutocomplete()
+			end
+			return
+		end
+		clearAutocompleteItems()
+		autocompleteItems = {}
+		autocompleteSelectedIndex = 1
+		autocompleteMode = "spelling"
+		for _, suggestion in ipairs(SpellCheck.suggest(word.word, Autocomplete.MAX_ITEMS - 1)) do
+			table.insert(autocompleteItems, { type = "spelling", word = word, suggestion = suggestion })
+		end
+		table.insert(autocompleteItems, { type = "addWord", word = word })
+		renderAutocompleteItems()
+	end
+	textBox:GetPropertyChangedSignal("CursorPosition"):Connect(function()
+		task.defer(showSpellingSuggestions)
+	end)
 
 	-- Send button
 	local sendButton = Instance.new("TextButton")
@@ -1172,7 +1375,46 @@ function ChatUI.create(pluginInstance)
 		end
 	end)
 
-	local function updateComposerLayout()
+	-- Markdown preview: the message rendered above the box while you type
+	-- something with markdown in it (the box itself can only show plain text)
+	local MARKDOWN_HINTS = {
+		"^%s*#+ ", -- headers
+		"^%s*%-# ", -- subtext
+		"^%s*>+ ", -- quotes
+		"^%s*[%-%*] ", -- lists
+		"%*.+%*", -- bold and italic
+		"__.+__", -- underline
+		"_[^_ ]+_", -- italic
+		"~~.+~~", -- strikethrough
+		"`[^`]+`", -- code
+		"```", -- code blocks
+		"||.+||", -- spoilers
+		"%[.+%]%(https?://[^%)]+%)", -- masked links
+		"#%[.+%]", -- object tags
+	}
+	local updateComposerLayout: () -> ()
+	local function updateMarkdownPreview()
+		local text = textBox.Text
+		local hasMarkdown = false
+		for _, hint in ipairs(MARKDOWN_HINTS) do
+			if string.find(text, hint) then
+				hasMarkdown = true
+				break
+			end
+		end
+		if hasMarkdown then
+			markdownPreviewLabel.Text = Markdown.parse(text, themeColors, { textSize = 13 }).markup
+		else
+			markdownPreviewLabel.Text = ""
+		end
+		markdownPreviewBar.Visible = hasMarkdown
+		previewBadge.Visible = hasMarkdown
+		updateComposerLayout()
+	end
+
+	textBox:GetPropertyChangedSignal("Text"):Connect(updateMarkdownPreview)
+
+	updateComposerLayout = function()
 		-- Measure the wrapped text at the box's inner width (inside its padding).
 		-- (TextBounds can't be used: it is clipped to the box's current height.)
 		local horizontalPadding = textBoxPadding.PaddingLeft.Offset + textBoxPadding.PaddingRight.Offset
@@ -1195,11 +1437,21 @@ function ChatUI.create(pluginInstance)
 		-- Box = text + its padding (so the last line is never cut off), at least 33px;
 		-- the composer adds 8px above and below the box
 		local wantedBoxHeight = math.max(33, math.ceil(measuredHeight) + verticalPadding)
-		composerHeight = math.clamp(wantedBoxHeight + 16, INPUT_HEIGHT, MAX_INPUT_HEIGHT)
+
+		-- Markdown preview bar uses AutomaticSize, so we need to measure its actual height
+		local markdownPreviewSpace = markdownPreviewBar.Visible and markdownPreviewBar.AbsoluteSize.Y or 0
+
+		-- composerHeight includes the text box area (wantedBoxHeight + 16 for padding above/below)
+		-- PLUS the markdown preview bar height when visible
+		local baseComposerHeight = math.clamp(wantedBoxHeight + 16, INPUT_HEIGHT, MAX_INPUT_HEIGHT)
+		composerHeight = baseComposerHeight + markdownPreviewSpace
 		inputFrame.Size = UDim2.new(1, 0, 0, composerHeight)
 		inputFrame.Position = UDim2.new(0, 0, 1, -composerHeight)
-		local textBoxHeight = composerHeight - 16
+
+		-- The text box sits under the markdown preview bar
+		local textBoxHeight = baseComposerHeight - 16
 		textBox.Size = UDim2.new(1, -98, 0, textBoxHeight)
+		textBox.Position = UDim2.new(0, 49, 0, 8 + markdownPreviewSpace)
 		-- Adaptive corner radius: pill shape (half the height) while single-line,
 		-- capped at 16px as the box grows with wrapped text so corners stay proportionally smaller
 		local cornerRadius = math.min(textBoxHeight / 2, 16)
@@ -1210,12 +1462,14 @@ function ChatUI.create(pluginInstance)
 
 		local previewSpace = previewBar.Visible and PREVIEW_HEIGHT or 0
 		local replySpace = replyBar.Visible and REPLY_BAR_HEIGHT or 0
-		local totalBarSpace = previewSpace + replySpace
+		local totalBarSpace = previewSpace + replySpace -- markdown preview is now INSIDE inputFrame
 		scrollFrame.Size = UDim2.new(1, 0, 1, -(composerHeight + totalBarSpace + topSpace()))
 		scrollFrame.Position = UDim2.new(0, 0, 0, topSpace())
 		emptyState.Size = UDim2.new(1, 0, 1, -(composerHeight + totalBarSpace + topSpace()))
 		emptyState.Position = UDim2.new(0, 0, 0, topSpace())
 		divider.Position = UDim2.new(0, 0, 1, -(composerHeight + totalBarSpace))
+		-- The markdown preview bar is the top of the composer, above the box
+		markdownPreviewBar.Position = UDim2.new(0, 0, 0, 0)
 		previewBar.Position = UDim2.new(0, 0, 1, -(composerHeight + PREVIEW_HEIGHT))
 		replyBar.Position = UDim2.new(0, 0, 1, -(composerHeight + previewSpace + REPLY_BAR_HEIGHT))
 		scrollButton.Position = UDim2.new(1, -14, 1, -(composerHeight + totalBarSpace + 14))
@@ -1924,6 +2178,7 @@ function ChatUI.create(pluginInstance)
 		divider.BackgroundColor3 = themeColors.divider
 		inputFrame.BackgroundColor3 = themeColors.inputFrame
 		header.recolor()
+		pinsPanel.recolor()
 		teamCreateNotice.recolor()
 		local unreadDivider = scrollFrame:FindFirstChild("UnreadDivider")
 		if unreadDivider then
@@ -1933,6 +2188,7 @@ function ChatUI.create(pluginInstance)
 		conversationSidebar.newMessageDialog.recolor()
 		textBox.BackgroundColor3 = themeColors.inputBox
 		MentionPills.recolor(textBox, themeColors)
+		spelling.recolor()
 		textBox.TextColor3 = themeColors.textBoxText
 		textBox.PlaceholderColor3 = themeColors.placeholder
 		sendButton.BackgroundColor3 = themeColors.sendButton
@@ -1947,6 +2203,11 @@ function ChatUI.create(pluginInstance)
 		previewLabel.TextColor3 = themeColors.messageText
 		previewRemove.BackgroundColor3 = themeColors.attachButton
 		previewRemove.TextColor3 = themeColors.attachIcon
+
+		markdownPreviewBar.BackgroundColor3 = themeColors.inputFrame
+		markdownPreviewLabel.TextColor3 = themeColors.messageText
+		markdownPreviewDivider.BackgroundColor3 = themeColors.divider
+		previewBadge.TextColor3 = themeColors.timestamp
 
 		dropOverlay.BackgroundTransparency = 0.85
 		dropOverlayStroke.Color = themeColors.sendButton
@@ -1986,6 +2247,11 @@ function ChatUI.create(pluginInstance)
 			if child:IsA("Frame") and child.Name ~= "UnreadDivider" then
 				Messages.recolor(child, themeColors)
 			end
+		end
+
+		-- Re-render markdown preview with new theme colors
+		if markdownPreviewBar.Visible then
+			updateMarkdownPreview()
 		end
 	end
 
@@ -2059,7 +2325,14 @@ function ChatUI.create(pluginInstance)
 						msgContainer:GetAttribute("SaidBy") == editing.myUserId
 						or msgContainer:GetAttribute("BotOwner") == editing.myUserId
 					)
-				contextMenu.show(timestamp, { canEdit = isMine, canDelete = isMine or ranIt })
+				-- Anyone signed in can pin, except answers only they can see
+				local canPin = editing.myUserId > 0 and not msgContainer:GetAttribute("Ephemeral")
+				contextMenu.show(timestamp, {
+					canEdit = isMine,
+					canDelete = isMine or ranIt,
+					canPin = canPin,
+					pinned = pinnedTimestamps[timestamp] == true,
+				})
 			end
 		end)
 		return msgContainer
@@ -2561,6 +2834,25 @@ function ChatUI.create(pluginInstance)
 	--!
 	-- Registers a callback for message deletion.
 	--!
+	--!
+	-- Registers a callback for pinning and unpinning: fn(timestamp, pinned).
+	--!
+	local function onPin(fn)
+		pinHandler = fn
+		contextMenu.handlers.pin = fn
+	end
+
+	--!
+	-- Shows the open conversation's pinned messages (Services/Chat/Pins.list).
+	--!
+	local function setPins(list)
+		table.clear(pinnedTimestamps)
+		for _, entry in ipairs(list) do
+			pinnedTimestamps[entry.timestamp] = true
+		end
+		pinsPanel.setPins(list)
+	end
+
 	local function onDelete(fn)
 		contextMenu.handlers.delete = fn
 	end
@@ -2717,6 +3009,11 @@ function ChatUI.create(pluginInstance)
 	Lifetime.add(Preferences.changed:Connect(function(key)
 		if key == "typingIndicator" then
 			setTypingUsers(lastTypingUsers)
+		elseif key == "spellCheck" then
+			if Preferences.values.spellCheck then
+				task.spawn(SpellCheck.load)
+			end
+			spelling.refresh()
 		else
 			refreshProfiles()
 		end
@@ -2831,6 +3128,10 @@ function ChatUI.create(pluginInstance)
 		onCreatePoll = onCreatePoll,
 		onReply = onReply,
 		onDelete = onDelete,
+		onPin = onPin,
+		setPins = setPins,
+		pinsPanel = pinsPanel,
+		spelling = spelling,
 		onCopy = onCopy,
 		setTypingUsers = setTypingUsers,
 		onTypingActivity = onTypingActivity,

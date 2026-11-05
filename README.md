@@ -36,6 +36,7 @@ That is the only official version.
 | [PRIVACY.md](PRIVACY.md) | What the plugin stores, where, and who can see it |
 | [SECURITY.md](SECURITY.md) | How to report a security problem privately |
 | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | How to behave in this repository |
+| [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) | Licences of included third-party material (the spell check word list) |
 
 ## Contributing
 

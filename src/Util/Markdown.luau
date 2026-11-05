@@ -10,12 +10,18 @@
 
 	Lines:
 		# Big header      ## Header      ### Small header      -# Subtext
-		> Quote           - List item    * List item
-		```               (a code block until the next ```)
+		> Quote           >>> Quote (the rest of the message)
+		- List item       * List item    (indented: a nested item)
+		```lua            (a code block until a line ending in ```)
 	Inline:
 		**bold**  *italic*  _italic_  __underline__  ~~strikethrough~~
 		`code`  ||spoiler||  [text](https://link)  \*not italic\*
 	Also found in plain text: links, @mentions and #[object] tags.
+
+	Code blocks and quotes are boxes in a message, not text: Markdown.blocks
+	splits a message into text, code and quote parts (UI/MessageText draws
+	each). Markdown.parse still reads them, as monospace lines and "▎" bars,
+	for places that show one line of text (previews, notifications).
 
 	Usage:
 		local doc = Markdown.parse("**hi** @builderman", palette, { textSize = 15 })
@@ -42,6 +48,7 @@ export type Style = {
 	url: string?, -- a link (masked or typed)
 	mention: string?, -- @name
 	tag: string?, -- #[path]: an object in the place
+	block: boolean?, -- a line of a ``` code block (shown in one label)
 }
 
 export type Run = {
@@ -62,13 +69,23 @@ export type Doc = {
 export type Options = {
 	textSize: number?, -- the label's TextSize (headers scale from it)
 	revealSpoilers: boolean?,
+	plain: boolean?, -- no room around `code` (for Markdown.strip)
+}
+
+-- A part of a message: text, a ``` code block, or a > quote
+export type Block = {
+	kind: "text" | "code" | "quote",
+	text: string,
+	language: string?, -- ```lua
 }
 
 local Markdown = {}
 
 local HEADER_SCALE = { 1.6, 1.35, 1.15 }
 local SUBTEXT_SCALE = 0.8
-local CODE_TRANSPARENCY = 0.4 -- the box behind `code`
+-- A thin space each side of `code`, so its box (and the rounded outline
+-- UI/MentionPills draws) doesn't touch the text
+local CODE_PAD = "\u{2009}"
 
 local function escape(text: string): string
 	text = string.gsub(text, "&", "&amp;")
@@ -118,7 +135,7 @@ local function tagsFor(style: Style, palette: Palette, options: Options): (strin
 	end
 	if style.code then
 		wrap(
-			string.format('<mark color="%s" transparency="%s">', hex(palette.inputFrame), tostring(CODE_TRANSPARENCY)),
+			string.format('<mark color="%s" transparency="0">', hex(palette.codeBack or palette.inputFrame)),
 			"</mark>"
 		)
 		wrap(Theme.richFont("mono"), "</font>")
@@ -227,7 +244,11 @@ local function parseInline(builder: Builder, text: string, style: Style)
 			local close = string.find(text, "`", i + 1, true)
 			if close and close > i + 1 then
 				flush()
-				push(builder, string.sub(text, i + 1, close - 1), with(style, { code = true }))
+				local code = string.sub(text, i + 1, close - 1)
+				if not builder.options.plain then
+					code = CODE_PAD .. code .. CODE_PAD
+				end
+				push(builder, code, with(style, { code = true }))
 				i = close + 1
 				continue
 			end
@@ -292,6 +313,90 @@ local function finish(builder: Builder): Doc
 	return { runs = builder.runs, plain = table.concat(plain), markup = table.concat(markup) }
 end
 
+-- The ``` code blocks among a message's lines, by the line they start on.
+-- Like Discord: ``` opens one (a single word after it names the language,
+-- other text is the first line of code) and the next line ending in ```
+-- closes it (text before the ``` is the last line). ```x``` on one line is
+-- a block too. A ``` that's never closed is just text.
+type Fence = { close: number, language: string?, code: { string } }
+
+local function findFences(lines: { string }): { [number]: Fence }
+	local fences = {}
+	local i = 1
+	while i <= #lines do
+		local rest = string.match(lines[i], "^```(.*)$")
+		if rest then
+			local inline = string.match(rest, "^(.-)```%s*$")
+			if inline and inline ~= "" then
+				fences[i] = { close = i, code = { inline } }
+				i += 1
+				continue
+			end
+			local close = nil
+			for j = i + 1, #lines do
+				if string.match(lines[j], "```%s*$") then
+					close = j
+					break
+				end
+			end
+			if close then
+				local code = {}
+				local language = string.match(rest, "^([%w_+#%-]+)%s*$")
+				if not language and string.match(rest, "%S") then
+					table.insert(code, rest)
+				end
+				for j = i + 1, close - 1 do
+					table.insert(code, lines[j])
+				end
+				local last = string.match(lines[close], "^(.-)```%s*$") or ""
+				if last ~= "" then
+					table.insert(code, last)
+				end
+				fences[i] = { close = close, language = language, code = code }
+				i = close + 1
+				continue
+			end
+		end
+		i += 1
+	end
+	return fences
+end
+
+-- "> text" quotes one line, ">>> text" the rest of the message (Discord needs the space)
+local function quoteOf(line: string): string?
+	if line == ">" then
+		return ""
+	end
+	return string.match(line, "^> (.*)$")
+end
+
+-- One line of text: a header, subtext, a quote, a list item or plain markdown
+local function parseLine(builder: Builder, line: string, textSize: number, quoted: boolean)
+	if quoted then
+		push(builder, "\u{258E} ", { muted = true })
+		parseInline(builder, line, {})
+		return
+	end
+	local level, header = string.match(line, "^(#+) (.+)$")
+	if level and #level <= 3 then
+		parseInline(builder, header, { bold = true, size = math.floor(textSize * HEADER_SCALE[#level] + 0.5) })
+		return
+	end
+	local subtext = string.match(line, "^%-# (.+)$")
+	if subtext then
+		parseInline(builder, subtext, { muted = true, size = math.floor(textSize * SUBTEXT_SCALE + 0.5) })
+		return
+	end
+	local indent, item = string.match(line, "^(%s*)[%-%*] (.+)$")
+	if item then
+		-- An indented item is nested: a hollow bullet, like Discord
+		push(builder, indent .. (if indent ~= "" then "\u{25E6} " else "\u{2022} "), {})
+		parseInline(builder, item, {})
+		return
+	end
+	parseInline(builder, line, {})
+end
+
 --[=[
 	Parses a message into runs (see the top of this file).
 ]=]
@@ -300,50 +405,110 @@ function Markdown.parse(content: string?, palette: Palette?, options: Options?):
 	local builder: Builder = { runs = {}, palette = palette or Theme.PALETTES.Dark, options = opts }
 	local textSize = opts.textSize or 15
 	local lines = string.split(content or "", "\n")
-	local inCode = false
-	for index, line in ipairs(lines) do
-		if index > 1 then
+	local fences = findFences(lines)
+	local started = false
+	local function newLine()
+		if started then
 			push(builder, "\n", {})
 		end
-		if string.match(line, "^```") then
-			-- A fence line: starts or ends a code block (a language name after it is ignored)
-			inCode = not inCode
-			local rest = string.match(line, "^```(.-)```$")
-			if rest and rest ~= "" then
-				push(builder, rest, { code = true })
-				inCode = false
+		started = true
+	end
+	local quoteRest = false
+	local i = 1
+	while i <= #lines do
+		local fence = fences[i]
+		if fence then
+			-- In one label: the fence lines stay as empty lines, the code is monospace
+			if fence.close ~= i then
+				newLine()
 			end
+			for _, codeLine in ipairs(fence.code) do
+				newLine()
+				push(builder, codeLine, { code = true, block = true })
+			end
+			if fence.close ~= i then
+				newLine()
+			end
+			i = fence.close + 1
 			continue
 		end
-		if inCode then
-			push(builder, line, { code = true })
-			continue
+		local line = lines[i]
+		newLine()
+		local rest = string.match(line, "^>>> (.*)$")
+		if rest and not quoteRest then
+			quoteRest = true
+			line = rest
 		end
-		local level, header = string.match(line, "^(#+) (.+)$")
-		if level and #level <= 3 then
-			parseInline(builder, header, { bold = true, size = math.floor(textSize * HEADER_SCALE[#level] + 0.5) })
-			continue
-		end
-		local subtext = string.match(line, "^%-# (.+)$")
-		if subtext then
-			parseInline(builder, subtext, { muted = true, size = math.floor(textSize * SUBTEXT_SCALE + 0.5) })
-			continue
-		end
-		local quote = string.match(line, "^> ?(.*)$")
-		if quote then
-			push(builder, "\u{258E} ", { muted = true })
-			parseInline(builder, quote, {})
-			continue
-		end
-		local indent, item = string.match(line, "^(%s*)[%-%*] (.+)$")
-		if item then
-			push(builder, indent .. "\u{2022} ", {})
-			parseInline(builder, item, {})
-			continue
-		end
-		parseInline(builder, line, {})
+		local quote = if quoteRest then line else quoteOf(line)
+		parseLine(builder, quote or line, textSize, quote ~= nil)
+		i += 1
 	end
 	return finish(builder)
+end
+
+--[=[
+	Splits a message into its text, ``` code blocks and > quotes, in order.
+	Empty lines next to a code block or quote are dropped (Discord leaves no
+	gap there either).
+]=]
+function Markdown.blocks(content: string?): { Block }
+	local lines = string.split(content or "", "\n")
+	local fences = findFences(lines)
+	local blocks: { Block } = {}
+	local current: { kind: string, lines: { string } }? = nil
+	local function flush()
+		local open = current
+		if not open then
+			return
+		end
+		current = nil
+		local first, last = 1, #open.lines
+		if open.kind == "text" then
+			while first <= last and not string.match(open.lines[first], "%S") do
+				first += 1
+			end
+			while last >= first and not string.match(open.lines[last], "%S") do
+				last -= 1
+			end
+			if first > last then
+				return
+			end
+		end
+		table.insert(blocks, { kind = open.kind :: any, text = table.concat(open.lines, "\n", first, last) })
+	end
+	local function add(kind: string, line: string)
+		if not current or current.kind ~= kind then
+			flush()
+			current = { kind = kind, lines = {} }
+		end
+		table.insert((current :: any).lines, line)
+	end
+	local quoteRest = false
+	local i = 1
+	while i <= #lines do
+		local fence = fences[i]
+		if fence then
+			flush()
+			table.insert(blocks, { kind = "code", text = table.concat(fence.code, "\n"), language = fence.language })
+			i = fence.close + 1
+			continue
+		end
+		local line = lines[i]
+		local rest = string.match(line, "^>>> (.*)$")
+		if rest and not quoteRest then
+			quoteRest = true
+			line = rest
+		end
+		local quote = if quoteRest then line else quoteOf(line)
+		if quote then
+			add("quote", quote)
+		else
+			add("text", line)
+		end
+		i += 1
+	end
+	flush()
+	return blocks
 end
 
 --[=[
@@ -414,7 +579,7 @@ end
 	The text without markdown (for one-line previews and notifications).
 ]=]
 function Markdown.strip(content: string?): string
-	return Markdown.parse(content, nil, { revealSpoilers = true }).plain
+	return Markdown.parse(content, nil, { revealSpoilers = true, plain = true }).plain
 end
 
 return Markdown

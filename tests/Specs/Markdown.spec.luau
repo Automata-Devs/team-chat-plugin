@@ -101,6 +101,75 @@ return function(t)
 			),
 			pill ~= nil and math.abs(pill.Position.X.Offset + 2 - boldWidth) <= 2
 		)
+
+		-- Blocks: code blocks and quotes are boxes, like Discord
+		local blocks = Markdown.blocks("hi\n```lua\nlocal x = 1\n```\n> quoted\n> twice\nbye")
+		t.equal("a message splits into its parts", #blocks, 4)
+		t.check(
+			"…text, a code block with its language, a quote, text",
+			blocks[1].kind == "text"
+				and blocks[2].kind == "code"
+				and blocks[2].language == "lua"
+				and blocks[2].text == "local x = 1"
+				and blocks[3].kind == "quote"
+				and blocks[3].text == "quoted\ntwice"
+				and blocks[4].text == "bye"
+		)
+		t.equal("```x``` on one line is a block", Markdown.blocks("```x = 1```")[1].kind, "code")
+		t.equal("an unclosed ``` is just text", Markdown.blocks("```\nnot code")[1].kind, "text")
+		t.equal(">>> quotes the rest", #Markdown.blocks(">>> one\ntwo"), 1)
+		t.equal(">text without a space isn't a quote", Markdown.blocks(">.<")[1].kind, "text")
+		t.equal("nested list items get a hollow bullet", Markdown.strip("- a\n  - b"), "\u{2022} a\n  \u{25E6} b")
+		t.equal("`code` has no padding when stripped", Markdown.strip("`x`"), "x")
+
+		local codeStamp = stamp + 1
+		ui.addMessage(
+			"builderman",
+			codeStamp,
+			"Look:\n```lua\nlocal part = workspace.Part\n```\n> careful\n`inline`",
+			nil,
+			nil,
+			156
+		)
+		Harness.settle()
+		local codeRow
+		for _, child in ipairs(gui:FindFirstChild("MessageList", true):GetChildren()) do
+			if child:GetAttribute("Timestamp") == codeStamp then
+				codeRow = child
+			end
+		end
+		local body = codeRow and codeRow:FindFirstChild("TextContent") :: TextLabel
+		local box = body and body:FindFirstChild("CodeBlock") :: Frame
+		t.check("a code block is a box with a border", box ~= nil and box:FindFirstChildOfClass("UIStroke") ~= nil)
+		local code = box and box:FindFirstChild("Code") :: TextLabel
+		t.check("…in monospace", code ~= nil and code.FontFace.Family == Theme.FONTS.mono.Family)
+		t.check(
+			"…and ```lua is coloured",
+			code ~= nil and has(code.Text, "<font color=") and code.ContentText == "local part = workspace.Part"
+		)
+		local quote = body and body:FindFirstChild("Quote")
+		t.check("a quote has a bar", quote ~= nil and quote:FindFirstChild("Bar") ~= nil)
+		local texts = 0
+		for _, part in ipairs(body and body:GetChildren() or {}) do
+			if part.Name == "Text" then
+				texts += 1
+			end
+		end
+		t.equal("text around them stays text", texts, 2)
+		local outline
+		for _ = 1, 40 do
+			for _, part in ipairs(body and body:GetChildren() or {}) do
+				outline = outline or part:FindFirstChild("CodePill")
+			end
+			if outline then
+				break
+			end
+			task.wait(0.1)
+		end
+		t.check(
+			"`inline code` gets a rounded outline",
+			outline ~= nil and outline:FindFirstChildOfClass("UIStroke") ~= nil
+		)
 	end)
 	app.stop()
 	if not ok then

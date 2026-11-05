@@ -46,6 +46,25 @@ return {
 		title = "Team Chat 1",
 		updates = {
 			{
+				version = "1.24.0",
+				date = "05/11/2026",
+				title = "Pins, spell check & code blocks",
+				changes = {
+					{
+						type = "added",
+						text = "Pinned messages: right-click a message and pick Pin Message. The pin button at the top of the chat lists every pinned message, with Jump to go to it and a button to unpin it.",
+					},
+					{
+						type = "added",
+						text = "Spell check: misspelled words get a red wavy line while you type. Click one for suggestions or to add it to your dictionary. Turn it off in Settings > Chat.",
+					},
+					{
+						type = "fixed",
+						text = "Code blocks look like Discord's: a box with a border and rounded corners, and ```lua code is coloured. `Inline code` has a rounded box too, quotes have a bar, and nested list items get their own bullet.",
+					},
+				},
+			},
+			{
 				version = "1.23.0",
 				date = "02/11/2026",
 				title = {

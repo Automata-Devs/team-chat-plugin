@@ -4,12 +4,14 @@
 
 	The bar at the top of the chat: the open conversation ("Team Chat", or a
 	DM's name with the verified badge when they're verified and their
-	@username in small muted text). The plugin version is in the widget's
-	title instead.
+	@username in small muted text), and on the right the pin button that
+	opens the conversation's pinned messages. The plugin version is in the
+	widget's title instead.
 
 	Usage:
-		local header = Header.create({ container = container, getThemeColors = getTheme })
+		local header = Header.create({ container = container, getThemeColors = getTheme, onPins = toggle })
 		header.setTitle("builderman", { verified = true, subtitle = "@builderman" })
+		header.setPinsOpen(true)   -- the pin button looks pressed while the list is open
 		header.recolor()
 ]]
 
@@ -19,6 +21,7 @@ local Theme = require(script.Parent.Parent.Parent.Config.Theme)
 
 local HEIGHT = 36
 local BADGE_SIZE = 15
+local BUTTON_SIZE = 28
 
 type Palette = { [string]: Color3 }
 
@@ -26,7 +29,9 @@ export type TitleOptions = { verified: boolean?, subtitle: string? }
 
 export type Header = {
 	frame: Frame,
+	pinButton: TextButton,
 	setTitle: (title: string, options: TitleOptions?) -> (),
+	setPinsOpen: (open: boolean) -> (),
 	recolor: () -> (),
 }
 
@@ -37,7 +42,7 @@ Header.HEIGHT = HEIGHT
 --[=[
 	Builds the header at the top of `options.container`.
 ]=]
-function Header.create(options: { container: Frame, getThemeColors: () -> Palette }): Header
+function Header.create(options: { container: Frame, getThemeColors: () -> Palette, onPins: (() -> ())? }): Header
 	local colors = options.getThemeColors
 
 	local frame = Instance.new("Frame")
@@ -52,7 +57,7 @@ function Header.create(options: { container: Frame, getThemeColors: () -> Palett
 	local row = Instance.new("Frame")
 	row.Name = "TitleRow"
 	row.Position = UDim2.fromOffset(12, 0)
-	row.Size = UDim2.new(1, -24, 1, 0)
+	row.Size = UDim2.new(1, -(24 + BUTTON_SIZE + 8), 1, 0)
 	row.BackgroundTransparency = 1
 	row.ZIndex = 5
 	row.Parent = frame
@@ -109,6 +114,42 @@ function Header.create(options: { container: Frame, getThemeColors: () -> Palett
 	subtitle.Visible = false
 	subtitle.Parent = row
 
+	-- Pinned messages (right side)
+	local pinsOpen = false
+	local pinButton = Instance.new("TextButton")
+	pinButton.Name = "PinsButton"
+	pinButton.AnchorPoint = Vector2.new(1, 0.5)
+	pinButton.Position = UDim2.new(1, -8, 0.5, 0)
+	pinButton.Size = UDim2.fromOffset(BUTTON_SIZE, BUTTON_SIZE)
+	pinButton.BackgroundColor3 = colors().menuItemHover
+	pinButton.BackgroundTransparency = 1
+	pinButton.AutoButtonColor = false
+	pinButton.TextSize = 18
+	pinButton.TextColor3 = colors().timestamp
+	pinButton.ZIndex = 6
+	Icons.apply(pinButton, "pinned")
+	pinButton.Parent = frame
+	local pinCorner = Instance.new("UICorner")
+	pinCorner.CornerRadius = UDim.new(0, 6)
+	pinCorner.Parent = pinButton
+	local function paintPinButton(hovered: boolean)
+		local palette = colors()
+		pinButton.TextColor3 = if pinsOpen or hovered then palette.messageText else palette.timestamp
+		pinButton.BackgroundTransparency = if pinsOpen or hovered then 0 else 1
+		pinButton.BackgroundColor3 = palette.menuItemHover
+	end
+	pinButton.MouseEnter:Connect(function()
+		paintPinButton(true)
+	end)
+	pinButton.MouseLeave:Connect(function()
+		paintPinButton(false)
+	end)
+	pinButton.MouseButton1Click:Connect(function()
+		if options.onPins then
+			options.onPins()
+		end
+	end)
+
 	local divider = Instance.new("Frame")
 	divider.Name = "Divider"
 	divider.AnchorPoint = Vector2.new(0, 1)
@@ -121,6 +162,11 @@ function Header.create(options: { container: Frame, getThemeColors: () -> Palett
 
 	return {
 		frame = frame,
+		pinButton = pinButton,
+		setPinsOpen = function(open: boolean)
+			pinsOpen = open
+			paintPinButton(false)
+		end,
 		setTitle = function(newTitle: string, titleOptions: TitleOptions?)
 			titleLabel.Text = Icons.escape(newTitle)
 			badgeSlot.Visible = titleOptions ~= nil and titleOptions.verified == true
@@ -134,6 +180,7 @@ function Header.create(options: { container: Frame, getThemeColors: () -> Palett
 			titleLabel.TextColor3 = palette.messageText
 			subtitle.TextColor3 = palette.timestamp
 			divider.BackgroundColor3 = palette.divider
+			paintPinButton(false)
 		end,
 	}
 end

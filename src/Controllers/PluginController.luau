@@ -225,6 +225,22 @@ function PluginController.init(pluginRef, ui, chatNetwork, commandHandler)
 		shown = {}
 	end
 
+	-- The open conversation's pinned messages, for the pin panel (one
+	-- refresh per frame however many pins change)
+	local pinsQueued = false
+	local function refreshPins()
+		if pinsQueued then
+			return
+		end
+		pinsQueued = true
+		task.defer(function()
+			pinsQueued = false
+			if boundFolder and ui.setPins then
+				ui.setPins(chatNetwork.Pins.list(boundFolder))
+			end
+		end)
+	end
+
 	local function showMessage(child)
 		if shown[child] then
 			return
@@ -253,6 +269,9 @@ function PluginController.init(pluginRef, ui, chatNetwork, commandHandler)
 		if entry.editedAt then
 			ui.updateMessage(entry.timestamp, entry.content, true)
 		end
+
+		-- Pins (here or by someone else)
+		table.insert(bindings, Lifetime.connect(child:GetAttributeChangedSignal("Pinned"), refreshPins))
 
 		-- Edits (here or by the author on another computer)
 		table.insert(
@@ -298,6 +317,7 @@ function PluginController.init(pluginRef, ui, chatNetwork, commandHandler)
 		for _, child in ipairs(children) do
 			showMessage(child)
 		end
+		refreshPins()
 
 		table.insert(
 			bindings,
@@ -312,6 +332,9 @@ function PluginController.init(pluginRef, ui, chatNetwork, commandHandler)
 			bindings,
 			Lifetime.connect(folder.ChildRemoved, function(child)
 				shown[child] = nil
+				if child:GetAttribute("Pinned") then
+					refreshPins()
+				end
 				local ts = child:GetAttribute("Timestamp")
 				if ts then
 					ui.removeMessage(ts)
@@ -497,6 +520,23 @@ function PluginController.init(pluginRef, ui, chatNetwork, commandHandler)
 	ui.onDelete(function(timestamp)
 		chatNetwork.deleteMessage(timestamp)
 	end)
+
+	-- Pinning: saved on the message; a pin also posts a notice, like Discord
+	if ui.onPin then
+		ui.onPin(function(timestamp, pinned)
+			local ok, problem = chatNetwork.Pins.set(timestamp, pinned)
+			if not ok then
+				ui.addSystemMessage(Language.t("pins." .. tostring(problem)))
+				return
+			end
+			if pinned then
+				chatNetwork.sendNotice(
+					Language.t("pins.notice", { user = "**" .. chatNetwork.getUsername() .. "**" }),
+					"pin"
+				)
+			end
+		end)
+	end
 
 	-- Typing indicator: publish local typing activity for the open
 	-- conversation and display others' in it

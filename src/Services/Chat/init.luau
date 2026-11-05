@@ -6,6 +6,7 @@
 --   Chat/PollManager    – poll creation and vote casting
 --   Chat/MessageEvents – event listeners for incoming messages
 --   Chat/Conversations – the pinned team chat plus direct messages
+--   Chat/Pins          – pinned messages
 --!
 
 local PluginConfig = require(script.Parent.Parent.Config.Constants)
@@ -15,6 +16,7 @@ local MessageStore = require(script.MessageStore)
 local PollManager = require(script.Polls)
 local TypingIndicator = require(script.Typing)
 local Conversations = require(script.Conversations)
+local Pins = require(script.Pins)
 
 local AdminNetwork = require(script.Parent.Admin)
 
@@ -43,6 +45,7 @@ ChatNetwork.sendPoll = PollManager.sendPoll
 ChatNetwork.castVote = PollManager.castVote
 ChatNetwork.deleteMessage = MessageStore.deleteMessage
 ChatNetwork.sendBotMessage = MessageStore.sendBotMessage
+ChatNetwork.sendNotice = MessageStore.sendNotice
 ChatNetwork.editMessage = MessageStore.editMessage
 ChatNetwork.getFolder = ChatState.getFolder
 ChatNetwork.getActiveFolder = ChatState.getActiveFolder
@@ -52,6 +55,10 @@ ChatNetwork.collect = MessageStore.collect
 -- ── Conversations (team chat + DMs) ──
 
 ChatNetwork.Conversations = Conversations
+
+-- ── Pinned messages (Pins) ──
+
+ChatNetwork.Pins = Pins
 
 -- ── Typing Indicator (TypingIndicator) ──
 

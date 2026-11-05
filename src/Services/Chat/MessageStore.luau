@@ -164,6 +164,26 @@ function MessageStore.sendBotMessage(content: string, embedJson: string?, comman
 	ChatState.saveHistory()
 end
 
+--[=[
+	A Team Chat notice everyone sees in the open conversation, about
+	something the current user did ("d3v_c pinned a message"). Unlike
+	sendBotMessage it has no "used /command" line.
+]=]
+function MessageStore.sendNotice(content: string, kind: string)
+	local folder = ChatState.getActiveFolder()
+	local message = Instance.new("Folder")
+	message.Name = "bot_" .. TimeFormatter.generateId()
+	message:SetAttribute("Sender", "System")
+	message:SetAttribute("SenderId", 0)
+	message:SetAttribute("SaidBy", ChatState.currentUserId) -- they can delete it
+	message:SetAttribute("Notice", kind)
+	message:SetAttribute("Timestamp", os.time())
+	message:SetAttribute("Content", content)
+	message:SetAttribute("MessageType", ChatState.MESSAGE_TYPE_TEXT)
+	message.Parent = folder
+	ChatState.saveHistory()
+end
+
 --!
 -- Sends a file message with file metadata to the open conversation.
 --!

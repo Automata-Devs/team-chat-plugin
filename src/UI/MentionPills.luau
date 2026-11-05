@@ -2,7 +2,9 @@
 --[[
 	MentionPills
 
-	The rounded highlight behind each @mention and #tag, like Discord.
+	The rounded highlight behind each @mention and #tag, like Discord, and
+	the rounded outline around `inline code` (its fill is RichText's <mark>
+	behind the text; this adds the border and round corners).
 	RichText's <mark> can't round its corners, and a TextBox can't show
 	RichText while you type, so the highlight is a small rounded frame laid
 	over the mention: UI/TextLayout measures where it is (markdown included).
@@ -24,6 +26,7 @@ local TextLayout = require(script.Parent.TextLayout)
 
 local PILL_PADDING = 2 -- extra width on each side of the mention
 local PILL_RADIUS = 4
+local CODE_RADIUS = 3
 
 type TextObject = TextLabel | TextBox
 
@@ -34,10 +37,30 @@ local renders: { [Instance]: number } = setmetatable({}, { __mode = "k" }) :: an
 
 local function clear(object: Instance)
 	for _, child in ipairs(object:GetChildren()) do
-		if child.Name == "MentionPill" then
+		if child.Name == "MentionPill" or child.Name == "CodePill" then
 			child:Destroy()
 		end
 	end
+end
+
+-- The outline around `code` (the box itself is the text's <mark>)
+local function makeCodeOutline(object: TextObject, x: number, y: number, width: number, height: number)
+	local palette = palettes[object] or Theme.PALETTES.Dark
+	local outline = Instance.new("Frame")
+	outline.Name = "CodePill"
+	outline.Position = UDim2.fromOffset(math.floor(x), math.floor(y))
+	outline.Size = UDim2.fromOffset(math.ceil(width), math.ceil(height))
+	outline.BackgroundTransparency = 1
+	outline.BorderSizePixel = 0
+	outline.ZIndex = object.ZIndex
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, CODE_RADIUS)
+	corner.Parent = outline
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = palette.codeBorder or palette.divider
+	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	stroke.Parent = outline
+	outline.Parent = object
 end
 
 local function makePill(object: TextObject, x: number, y: number, width: number, height: number)
@@ -56,14 +79,17 @@ local function makePill(object: TextObject, x: number, y: number, width: number,
 	pill.Parent = object
 end
 
--- What gets a pill: @mentions and #[object] tags. A message's doc knows
--- them as runs; plain text (the message box) is searched directly.
-local function targets(doc, isMarkdown: boolean): { { start: number, finish: number } }
+-- What gets a pill: @mentions and #[object] tags (and an outline: `code`).
+-- A message's doc knows them as runs; plain text (the message box) is
+-- searched directly.
+local function targets(doc, isMarkdown: boolean): { { start: number, finish: number, code: boolean? } }
 	local found = {}
 	if isMarkdown then
 		for _, run in ipairs(doc.runs) do
 			if run.style.mention or run.style.tag then
 				table.insert(found, { start = run.start, finish = run.finish })
+			elseif run.style.code and not run.style.block then
+				table.insert(found, { start = run.start, finish = run.finish, code = true })
 			end
 		end
 		return found
@@ -101,15 +127,20 @@ function MentionPills.render(object: TextObject)
 		for _, target in ipairs(found) do
 			local rect = TextLayout.rect(object, doc, target.start, target.finish, isMarkdown)
 			if rect then
-				table.insert(rects, rect)
+				table.insert(rects, { rect = rect, code = target.code })
 			end
 		end
 		if renders[object] ~= version or not object.Parent then
 			return
 		end
 		clear(object)
-		for _, rect in ipairs(rects) do
-			makePill(object, rect.x, rect.y, rect.width, rect.height)
+		for _, item in ipairs(rects) do
+			local rect = item.rect
+			if item.code then
+				makeCodeOutline(object, rect.x, rect.y, rect.width, rect.height)
+			else
+				makePill(object, rect.x, rect.y, rect.width, rect.height)
+			end
 		end
 	end)
 end
@@ -137,6 +168,11 @@ function MentionPills.recolor(object: TextObject, palette)
 	for _, child in ipairs(object:GetChildren()) do
 		if child.Name == "MentionPill" and child:IsA("Frame") then
 			child.BackgroundColor3 = palette.mentionBack
+		elseif child.Name == "CodePill" then
+			local stroke = child:FindFirstChildOfClass("UIStroke")
+			if stroke then
+				stroke.Color = palette.codeBorder or palette.divider
+			end
 		end
 	end
 end

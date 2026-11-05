@@ -129,6 +129,12 @@ local function populateFolder(folder, messages)
 		message:SetAttribute("BotAvatar", entry.botAvatar)
 		message:SetAttribute("Components", entry.components)
 		message:SetAttribute("VisibleTo", entry.visibleTo)
+		if entry.pinned then
+			message:SetAttribute("PinnedAt", entry.pinnedAt)
+			message:SetAttribute("PinnedBy", entry.pinnedBy)
+			message:SetAttribute("PinnedByName", entry.pinnedByName)
+			message:SetAttribute("Pinned", true)
+		end
 		if entry.imageUrl then
 			message:SetAttribute("ImageUrl", entry.imageUrl)
 		end
@@ -177,6 +183,10 @@ function ChatState.serializeMessages(): string?
 			botAvatar = child:GetAttribute("BotAvatar"),
 			components = child:GetAttribute("Components"),
 			visibleTo = child:GetAttribute("VisibleTo"),
+			pinned = child:GetAttribute("Pinned"),
+			pinnedAt = child:GetAttribute("PinnedAt"),
+			pinnedBy = child:GetAttribute("PinnedBy"),
+			pinnedByName = child:GetAttribute("PinnedByName"),
 		}
 		-- Persist reply reference attributes so replies keep their context
 		local replyToTimestamp = child:GetAttribute("ReplyToTimestamp")

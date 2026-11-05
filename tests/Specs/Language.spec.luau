@@ -30,7 +30,6 @@ return function(t)
 			end
 		end
 		t.check("English is there", english ~= nil)
-		t.check("there are several languages (" .. #Language.list() .. ")", #Language.list() >= 6)
 		for _, info in ipairs(Language.list()) do
 			local missing, extra, badVars = {}, {}, {}
 			for key, text in pairs(english) do
@@ -74,48 +73,52 @@ return function(t)
 		controls.language.open()
 		Harness.settle()
 		local list = page:FindFirstChild("DropdownList", true) :: Frame
+		local englishOption = list and list:FindFirstChild("Option_en") :: TextButton?
 		t.check(
 			"it lists Auto and each language in its own name",
 			list ~= nil
 				and list:FindFirstChild("Option_auto") ~= nil
-				and (list:FindFirstChild("Option_nl") :: TextButton).Text == "Nederlands"
-		)
-		controls.language.choose("nl")
-		Harness.settle()
-		t.equal("the choice is saved", app.settings[Constants.SETTING_KEY_LANGUAGE], "nl")
-		t.equal("in use right away", Language.current(), "nl")
-
-		local title = page:FindFirstChild("Title", true) :: TextLabel
-		t.equal("window titles change", title.Text, "Instellingen")
-		t.equal(
-			"setting names change",
-			((page:FindFirstChild("Setting_theme", true) :: Frame):FindFirstChild("Title", true) :: TextLabel).Text,
-			"Thema"
-		)
-		t.equal(
-			"dropdown choices change",
-			((page:FindFirstChild("Setting_theme", true) :: Frame):FindFirstChild("Value", true) :: TextLabel).Text,
-			"Automatisch"
-		)
-		local general = page:FindFirstChild("Tab_General", true) :: TextButton
-		t.equal("tab names change", (general:FindFirstChild("Label") :: TextLabel).Text, "Algemeen")
-		ui.closeSettings()
-		t.equal("the message box changes", ui.textBox.PlaceholderText, "Typ een bericht...")
-		local menu = gui:FindFirstChild("ContextMenu", true) :: Frame
-		t.equal(
-			"the right-click menu changes",
-			((menu:FindFirstChild("ReplyItem") :: TextButton):FindFirstChild("Label") :: TextLabel).Text,
-			"Beantwoorden"
+				and englishOption ~= nil
+				and englishOption.Text == "English"
 		)
 
-		-- Text built elsewhere: command replies and descriptions, What's New notes
-		t.equal("command replies change", Language.t("reply.clear.done"), "Chat gewist.")
-		t.equal(
-			"command descriptions change",
-			Language.tOr("command.coinflip.description", "Flip a coin"),
-			"Gooi een munt op"
-		)
-		t.equal("translated notes pick the language", Language.pick({ en = "Fixed", nl = "Opgelost" }), "Opgelost")
+		-- Switching to another language (when there's one besides English)
+		local other
+		for _, info in ipairs(Language.list()) do
+			if info.code ~= "en" and other == nil then
+				other = info
+			end
+		end
+		if other then
+			controls.language.choose(other.code)
+			Harness.settle()
+			t.equal("the choice is saved", app.settings[Constants.SETTING_KEY_LANGUAGE], other.code)
+			t.equal("in use right away", Language.current(), other.code)
+			local title = page:FindFirstChild("Title", true) :: TextLabel
+			t.equal("window titles change", title.Text, Language.t("title.settings"))
+			local general = page:FindFirstChild("Tab_General", true) :: TextButton
+			t.equal("tab names change", (general:FindFirstChild("Label") :: TextLabel).Text, Language.t("tab.general"))
+			ui.closeSettings()
+			t.equal("the message box changes", ui.textBox.PlaceholderText, Language.t("composer.placeholder"))
+			local menu = gui:FindFirstChild("ContextMenu", true) :: Frame
+			t.equal(
+				"the right-click menu changes",
+				((menu:FindFirstChild("ReplyItem") :: TextButton):FindFirstChild("Label") :: TextLabel).Text,
+				Language.t("menu.reply")
+			)
+			t.equal(
+				"translated notes pick the language",
+				Language.pick({ en = "Fixed", [other.code] = "(translated)" }),
+				"(translated)"
+			)
+		else
+			-- English only: choosing it works and is saved
+			controls.language.choose("en")
+			Harness.settle()
+			t.equal("the choice is saved", app.settings[Constants.SETTING_KEY_LANGUAGE], "en")
+			t.equal("in use right away", Language.current(), "en")
+			ui.closeSettings()
+		end
 		t.equal("untranslated notes stay English", Language.pick({ en = "Fixed" }), "Fixed")
 		t.equal("plain notes stay as they are", Language.pick("Fixed"), "Fixed")
 

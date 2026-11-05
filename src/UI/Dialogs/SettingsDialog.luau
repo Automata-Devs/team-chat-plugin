@@ -93,6 +93,10 @@ local SECTIONS = {
 				kind = "toggle",
 			},
 			{
+				key = "spellCheck",
+				kind = "toggle",
+			},
+			{
 				key = "badges",
 				kind = "toggle",
 			},

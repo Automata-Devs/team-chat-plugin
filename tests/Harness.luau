@@ -136,6 +136,13 @@ function Harness.boot(options: { settings: { [string]: any }?, keepData: boolean
 		"_G.__TeamChatTest.onClick(continueButton, ",
 		1
 	)
+	-- Autocomplete rows: pick one by number, as a click would
+	patch(
+		window,
+		"\tlocal function renderAutocompleteItems%(%)\n",
+		"\t_G.__TeamChatTest.pickAutocomplete = function(i) applyAutocompleteItem(autocompleteItems[i]) end\n\tlocal function renderAutocompleteItems()\n",
+		1
+	)
 	-- Panel buttons (the admin dashboard, the developer portal)
 	patch(
 		copy.UI.Dialogs.PanelKit,

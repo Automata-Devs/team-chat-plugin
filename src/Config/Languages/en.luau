@@ -44,6 +44,8 @@ return {
 		["setting.linkPreviews.description"] = "Show a preview card under messages with links.",
 		["setting.typingIndicator.title"] = "Typing Indicator",
 		["setting.typingIndicator.description"] = 'Show "someone is typing" above the message box.',
+		["setting.spellCheck.title"] = "Spell Check",
+		["setting.spellCheck.description"] = "Underline misspelled words in red while you type (English). Click a word for suggestions.",
 		["setting.badges.title"] = "Badges",
 		["setting.badges.description"] = "Show bought and custom badges next to names. The verified badge always shows.",
 		["setting.badgeTooltips.title"] = "Badge Tooltips",
@@ -84,6 +86,8 @@ return {
 		["menu.reply"] = "Reply",
 		["menu.edit"] = "Edit Message",
 		["menu.copy"] = "Copy",
+		["menu.pin"] = "Pin Message",
+		["menu.unpin"] = "Unpin Message",
 		["menu.delete"] = "Delete",
 
 		-- Sidebar
@@ -440,6 +444,8 @@ return {
 		["notify.repliedToYou"] = "{name} replied to you",
 		["links.copied"] = "Couldn't open the link in your browser, so it was copied to your clipboard: {url}",
 		["autocomplete.object"] = "Objects",
+		["autocomplete.spelling"] = "Spelling",
+		["spelling.add"] = 'Add "{word}" to dictionary',
 		["tag.notFound"] = "Couldn't find {name}. It may have been renamed, moved or deleted.",
 		["sidebar.search"] = "Search conversations",
 		["sidebar.searchFriends"] = 'Search friends for "{query}"',
@@ -459,7 +465,7 @@ return {
 		["bot.keyCleared"] = "Your API key was removed from this computer.",
 		["bot.keySaved"] = "API key saved on this computer only (ends in {ending}). Your bots can now use Open Cloud.",
 		["command.bot.description"] = "Make your own bots and see the bots in this place",
-		["command.bot.arg.action"] = "create, list, reload, remove or key",
+		["command.bot.arg.action"] = "create, createweb, list, reload, remove or key",
 		["command.bot.arg.name"] = "The bot's name (or your API key)",
 		["commandGroup.bots"] = "Bots",
 
@@ -514,6 +520,8 @@ return {
 		["dev.create"] = "Create bot",
 		["dev.badName"] = "Bot names can only have letters, numbers and _.",
 		["dev.createdWeb"] = "Made {name}. Click Sync commands once your server is running.",
+		["dev.createdWebText"] = "Your web bot is ready. Add the token to your server's settings, then click Sync commands in the developer portal.",
+		["dev.botId"] = "Bot ID",
 		["admin.noAccess"] = "The dashboard is for moderators and up. Ask an admin to give you a rank.",
 		["admin.overview"] = "Overview",
 		["admin.statOnline"] = "Online",
@@ -552,5 +560,16 @@ return {
 		["admin.backupLabel"] = "From the dashboard",
 		["admin.restore"] = "Restore",
 		["admin.confirmRestore"] = "Click again to restore",
+
+		-- Pinned messages
+		["pins.title"] = "Pinned Messages",
+		["pins.jump"] = "Jump",
+		["pins.image"] = "Image",
+		["pins.empty"] = "No pinned messages yet",
+		["pins.emptyHint"] = "Right-click a message and pick Pin Message to keep it here.",
+		["pins.notice"] = "\u{1F4CC} {user} pinned a message. See all pinned messages with the pin at the top of the chat.",
+		["pins.signedOut"] = "Sign in to Studio to pin messages.",
+		["pins.notFound"] = "That message can't be pinned: only saved messages can.",
+		["pins.full"] = "This conversation has 50 pinned messages already. Unpin one first.",
 	},
 }

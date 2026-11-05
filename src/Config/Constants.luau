@@ -60,6 +60,8 @@ local Constants = {
 	SETTING_KEY_NOTIFICATIONS = "TeamChatNotifications_v1", -- "All" | "DMs only" | "Off"
 	SETTING_KEY_NOTIFICATION_DURATION = "TeamChatNotificationDuration_v1", -- seconds (number)
 	SETTING_KEY_LANGUAGE = "TeamChatLanguage_v1", -- "auto" or a Config/Languages code
+	SETTING_KEY_SPELL_CHECK = "TeamChatSpellCheck_v1", -- red lines under misspelled words (boolean)
+	SETTING_KEY_DICTIONARY = "TeamChatDictionary_v1", -- words added to the spell check (JSON list)
 
 	-- DataModel folders. Shared data lives in ServerStorage.<PLACE_DATA_FOLDER_NAME>
 	-- (see Core/PlaceStorage) so Team Create syncs it and it saves with the place.

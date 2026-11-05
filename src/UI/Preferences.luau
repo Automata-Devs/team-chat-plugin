@@ -4,7 +4,7 @@
 
 	Display preferences chosen in Settings that several UI modules read:
 	which name to show, badges, badge tooltips, link previews, the typing
-	indicator, animations and notifications. SettingsDialog loads and saves them; `changed` fires after one
+	indicator, spell check, animations and notifications. SettingsDialog loads and saves them; `changed` fires after one
 	changes so the chat can re-render.
 
 	Usage:
@@ -31,6 +31,7 @@ Preferences.values = {
 	badgeTooltips = true,
 	linkPreviews = true,
 	typingIndicator = true,
+	spellCheck = true, -- red lines under misspelled words in the message box
 	animations = true,
 	notifications = "All", -- toasts for new messages: "All" | "DMs only" | "Off"
 	notificationDuration = 5, -- seconds a toast stays
@@ -42,6 +43,7 @@ local KEYS = {
 	badgeTooltips = Constants.SETTING_KEY_BADGE_TOOLTIPS,
 	linkPreviews = Constants.SETTING_KEY_LINK_PREVIEWS,
 	typingIndicator = Constants.SETTING_KEY_TYPING_INDICATOR,
+	spellCheck = Constants.SETTING_KEY_SPELL_CHECK,
 	animations = Constants.SETTING_KEY_ANIMATIONS,
 	notifications = Constants.SETTING_KEY_NOTIFICATIONS,
 	notificationDuration = Constants.SETTING_KEY_NOTIFICATION_DURATION,
