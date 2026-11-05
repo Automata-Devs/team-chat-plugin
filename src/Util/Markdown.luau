@@ -362,6 +362,9 @@ local function findFences(lines: { string }): { [number]: Fence }
 	return fences
 end
 
+-- The same, for Util/MarkdownSource (the message box styles what you type)
+Markdown.fences = findFences
+
 -- "> text" quotes one line, ">>> text" the rest of the message (Discord needs the space)
 local function quoteOf(line: string): string?
 	if line == ">" then

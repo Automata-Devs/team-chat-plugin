@@ -198,6 +198,91 @@ function TextLayout.rect(object: TextObject, doc: Doc, from: number, to: number,
 	return { x = x0, y = textTop(object, s.total()) + y, width = x1 - x0, height = height }
 end
 
+-- One measuring session per object while its text and size stay the same
+-- (the cursor and selection in the message box measure often)
+local cachedSessions: { [Instance]: { key: string, session: any } } = setmetatable({}, { __mode = "k" }) :: any
+
+local function cachedSession(object: TextObject, doc: Doc)
+	local key = doc.markup .. "\0" .. tostring(TextLayout.innerWidth(object)) .. "\0" .. tostring(object.TextSize)
+	local cached = cachedSessions[object]
+	if cached and cached.key == key then
+		return cached.session
+	end
+	local s = session(object, doc, true)
+	cachedSessions[object] = { key = key, session = s }
+	return s
+end
+
+--[=[
+	Where the text cursor goes in a label showing `doc`: before plain byte
+	`cursor` (a TextBox's CursorPosition), as { x, y, height } in the
+	content area. Yields.
+]=]
+function TextLayout.caret(object: TextObject, doc: Doc, cursor: number): Rect
+	local s = cachedSession(object, doc)
+	local plain = doc.plain
+	local lineHeight = measure(object, "Ag", false).Y
+	local top = textTop(object, if s.count > 0 then s.total() else lineHeight)
+	if s.count == 0 or cursor <= 1 then
+		return { x = 0, y = top, width = 0, height = lineHeight }
+	end
+	local before = charAt(s.starts, math.min(cursor - 1, #plain))
+	local beforeChar = string.sub(plain, s.starts[before], s.ends[before])
+	local atChar = if cursor <= #plain then string.sub(plain, cursor, cursor) else ""
+	-- After a newline: the start of the next line
+	if beforeChar == "\n" then
+		local height = measure(object, string.sub(plain, 1, s.ends[before]) .. "x", false).Y
+		return { x = 0, y = top + height - lineHeight, width = 0, height = lineHeight }
+	end
+	-- Before a letter: its left edge (it may have wrapped onto the next line)
+	if atChar ~= "" and not string.match(atChar, "%s") then
+		local at = charAt(s.starts, cursor)
+		local lineFirst = s.lineStart(at)
+		local y = s.top(at)
+		local x = if at > lineFirst then s.widthOf(lineFirst, at - 1) else 0
+		return { x = x, y = top + y, width = 0, height = s.bottom(at) - y }
+	end
+	-- Otherwise: the right edge of the character before
+	local lineFirst = s.lineStart(before)
+	local y = s.top(before)
+	return { x = s.widthOf(lineFirst, before), y = top + y, width = 0, height = s.bottom(before) - y }
+end
+
+--[=[
+	The boxes covering plain bytes `from`..`to` of a label showing `doc`,
+	one per line they're on (for drawing a selection). Yields.
+]=]
+function TextLayout.lineRects(object: TextObject, doc: Doc, from: number, to: number): { Rect }
+	local s = cachedSession(object, doc)
+	local rects = {}
+	if s.count == 0 or to < from then
+		return rects
+	end
+	local top = textTop(object, s.total())
+	local first, last = charAt(s.starts, from), charAt(s.starts, to)
+	local k = first
+	while k <= last do
+		local lineFirst = s.lineStart(k)
+		local lineBottom = s.bottom(k)
+		-- The last character on k's line (or of the selection)
+		local low, high = k, last
+		while low < high do
+			local mid = (low + high + 1) // 2
+			if s.bottom(mid) <= lineBottom then
+				low = mid
+			else
+				high = mid - 1
+			end
+		end
+		local lineTop = s.top(k)
+		local x0 = if k > lineFirst then s.widthOf(lineFirst, k - 1) else 0
+		local x1 = s.widthOf(lineFirst, low)
+		table.insert(rects, { x = x0, y = top + lineTop, width = math.max(x1 - x0, 3), height = lineBottom - lineTop })
+		k = low + 1
+	end
+	return rects
+end
+
 --[=[
 	The Markdown run under a point (relative to the object's top-left). Yields.
 ]=]

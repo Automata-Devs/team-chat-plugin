@@ -3,6 +3,21 @@
 Developer-facing history of the codebase. User-facing notes ("What's New")
 are in `src/Config/Changelog.luau`. Format: [Keep a Changelog](https://keepachangelog.com).
 
+## [1.24.1] - 2026-11-05
+
+### Changed
+- The message box styles markdown as you type, like Discord, instead of a
+  preview bar above it. `Util/MarkdownSource` builds a doc whose plain text
+  is exactly what's typed (markers dimmed; bold as a `<stroke>` outline,
+  italic, underline, strikethrough, spoiler and code `<mark>`s, links and
+  mentions coloured, ```lua lines via `SyntaxHighlight.spans`, a quote's `>`
+  as a bar), using only styles that keep letters as wide. `UI/ComposerText`
+  lays it over the TextBox, hides the TextBox's text (its placeholder still
+  shows), and draws the cursor (blinking) and selection itself, measured on
+  the styled text with `TextLayout.caret` / `TextLayout.lineRects` (a cached
+  session per label).
+- The markdown preview bar is gone.
+
 ## [1.24.0] - 2026-11-05
 
 ### Added

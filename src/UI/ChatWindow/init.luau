@@ -15,6 +15,7 @@ local TweenService = game:GetService("TweenService")
 local UsernameColors = require(script.Parent.Parent.Util.UsernameColors)
 local Theme = require(script.Parent.Parent.Config.Theme)
 local MentionPills = require(script.Parent.MentionPills)
+local ComposerText = require(script.Parent.ComposerText)
 local SpellingMarks = require(script.Parent.SpellingMarks)
 local SpellCheck = require(script.Parent.Parent.Util.SpellCheck)
 local MessageText = require(script.Parent.MessageText)
@@ -726,78 +727,6 @@ function ChatUI.create(pluginInstance)
 	textBox.ClipsDescendants = false -- Let the box grow with wrapped text
 	textBox.Parent = inputFrame
 
-	-- Markdown preview bar (shown above input when markdown is detected) - Discord-style live preview
-	local markdownPreviewBar = Instance.new("Frame")
-	markdownPreviewBar.Name = "MarkdownPreviewBar"
-	markdownPreviewBar.Size = UDim2.new(1, 0, 0, 0)
-	markdownPreviewBar.AutomaticSize = Enum.AutomaticSize.Y
-	markdownPreviewBar.Position = UDim2.new(0, 0, 0, 0)
-	-- Slightly different background to distinguish preview from input (Discord-style)
-	markdownPreviewBar.BackgroundColor3 = themeColors.inputFrame
-	markdownPreviewBar.BackgroundTransparency = 0.1 -- subtle transparency for depth
-	markdownPreviewBar.BorderSizePixel = 0
-	markdownPreviewBar.Visible = false
-	markdownPreviewBar.ZIndex = 5
-	markdownPreviewBar.Parent = inputFrame
-
-	local markdownPreviewPadding = Instance.new("UIPadding")
-	markdownPreviewPadding.PaddingLeft = UDim.new(0, 12)
-	markdownPreviewPadding.PaddingRight = UDim.new(0, 12)
-	markdownPreviewPadding.PaddingTop = UDim.new(0, 6)
-	markdownPreviewPadding.PaddingBottom = UDim.new(0, 6)
-	markdownPreviewPadding.Parent = markdownPreviewBar
-
-	local markdownPreviewLayout = Instance.new("UIListLayout")
-	markdownPreviewLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	markdownPreviewLayout.Padding = UDim.new(0, 2)
-	markdownPreviewLayout.Parent = markdownPreviewBar
-
-	-- Subtle "Preview" badge (like Discord's markdown hint)
-	local previewBadge = Instance.new("TextLabel")
-	previewBadge.Name = "PreviewBadge"
-	previewBadge.Size = UDim2.new(0, 0, 0, 14)
-	previewBadge.AutomaticSize = Enum.AutomaticSize.X
-	previewBadge.BackgroundTransparency = 1
-	previewBadge.Text = "PREVIEW"
-	previewBadge.TextColor3 = themeColors.timestamp
-	previewBadge.FontFace = FONTS.mono
-	previewBadge.TextSize = 9
-	previewBadge.TextXAlignment = Enum.TextXAlignment.Left
-	previewBadge.TextYAlignment = Enum.TextYAlignment.Top
-	previewBadge.BorderSizePixel = 0
-	previewBadge.LayoutOrder = 1
-	previewBadge.Parent = markdownPreviewBar
-	previewBadge.ZIndex = 6
-
-	local markdownPreviewLabel = Instance.new("TextLabel")
-	markdownPreviewLabel.Name = "PreviewLabel"
-	markdownPreviewLabel.Size = UDim2.new(1, 0, 0, 0)
-	markdownPreviewLabel.AutomaticSize = Enum.AutomaticSize.Y
-	markdownPreviewLabel.BackgroundTransparency = 1
-	markdownPreviewLabel.RichText = true
-	markdownPreviewLabel.Text = ""
-	markdownPreviewLabel.TextColor3 = themeColors.messageText
-	markdownPreviewLabel.Font = FONT
-	markdownPreviewLabel.TextSize = 13
-	markdownPreviewLabel.TextXAlignment = Enum.TextXAlignment.Left
-	markdownPreviewLabel.TextYAlignment = Enum.TextYAlignment.Top
-	markdownPreviewLabel.TextWrapped = true
-	markdownPreviewLabel.BorderSizePixel = 0
-	markdownPreviewLabel.LayoutOrder = 2
-	markdownPreviewLabel.Parent = markdownPreviewBar
-
-	local markdownPreviewDivider = Instance.new("Frame")
-	markdownPreviewDivider.Name = "PreviewDivider"
-	markdownPreviewDivider.Size = UDim2.new(1, 0, 0, 1)
-	markdownPreviewDivider.Position = UDim2.new(0, 0, 1, 0)
-	markdownPreviewDivider.BackgroundColor3 = themeColors.divider
-	markdownPreviewDivider.BorderSizePixel = 0
-	markdownPreviewDivider.Parent = markdownPreviewBar
-	-- Its height follows the preview text (AutomaticSize): make room for it
-	markdownPreviewBar:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
-		relayout()
-	end)
-
 	local textBoxCorner = Instance.new("UICorner")
 	textBoxCorner.CornerRadius = UDim.new(1, 0) -- Pill shape when single-line; made adaptive in updateComposerLayout
 	textBoxCorner.Parent = textBox
@@ -811,6 +740,13 @@ function ChatUI.create(pluginInstance)
 	-- @mentions get the same rounded tint while you type (a TextBox can't
 	-- colour its own text)
 	MentionPills.attach(textBox, themeColors)
+
+	-- Markdown styled in the box as you type, like Discord (UI/ComposerText)
+	local composerText = ComposerText.attach(textBox, {
+		getPalette = function()
+			return themeColors
+		end,
+	})
 
 	-- Spell check: red wavy lines under misspelled words (Settings > Chat)
 	local spelling = SpellingMarks.attach(textBox, {
@@ -1375,46 +1311,7 @@ function ChatUI.create(pluginInstance)
 		end
 	end)
 
-	-- Markdown preview: the message rendered above the box while you type
-	-- something with markdown in it (the box itself can only show plain text)
-	local MARKDOWN_HINTS = {
-		"^%s*#+ ", -- headers
-		"^%s*%-# ", -- subtext
-		"^%s*>+ ", -- quotes
-		"^%s*[%-%*] ", -- lists
-		"%*.+%*", -- bold and italic
-		"__.+__", -- underline
-		"_[^_ ]+_", -- italic
-		"~~.+~~", -- strikethrough
-		"`[^`]+`", -- code
-		"```", -- code blocks
-		"||.+||", -- spoilers
-		"%[.+%]%(https?://[^%)]+%)", -- masked links
-		"#%[.+%]", -- object tags
-	}
-	local updateComposerLayout: () -> ()
-	local function updateMarkdownPreview()
-		local text = textBox.Text
-		local hasMarkdown = false
-		for _, hint in ipairs(MARKDOWN_HINTS) do
-			if string.find(text, hint) then
-				hasMarkdown = true
-				break
-			end
-		end
-		if hasMarkdown then
-			markdownPreviewLabel.Text = Markdown.parse(text, themeColors, { textSize = 13 }).markup
-		else
-			markdownPreviewLabel.Text = ""
-		end
-		markdownPreviewBar.Visible = hasMarkdown
-		previewBadge.Visible = hasMarkdown
-		updateComposerLayout()
-	end
-
-	textBox:GetPropertyChangedSignal("Text"):Connect(updateMarkdownPreview)
-
-	updateComposerLayout = function()
+	local function updateComposerLayout()
 		-- Measure the wrapped text at the box's inner width (inside its padding).
 		-- (TextBounds can't be used: it is clipped to the box's current height.)
 		local horizontalPadding = textBoxPadding.PaddingLeft.Offset + textBoxPadding.PaddingRight.Offset
@@ -1437,21 +1334,11 @@ function ChatUI.create(pluginInstance)
 		-- Box = text + its padding (so the last line is never cut off), at least 33px;
 		-- the composer adds 8px above and below the box
 		local wantedBoxHeight = math.max(33, math.ceil(measuredHeight) + verticalPadding)
-
-		-- Markdown preview bar uses AutomaticSize, so we need to measure its actual height
-		local markdownPreviewSpace = markdownPreviewBar.Visible and markdownPreviewBar.AbsoluteSize.Y or 0
-
-		-- composerHeight includes the text box area (wantedBoxHeight + 16 for padding above/below)
-		-- PLUS the markdown preview bar height when visible
-		local baseComposerHeight = math.clamp(wantedBoxHeight + 16, INPUT_HEIGHT, MAX_INPUT_HEIGHT)
-		composerHeight = baseComposerHeight + markdownPreviewSpace
+		composerHeight = math.clamp(wantedBoxHeight + 16, INPUT_HEIGHT, MAX_INPUT_HEIGHT)
 		inputFrame.Size = UDim2.new(1, 0, 0, composerHeight)
 		inputFrame.Position = UDim2.new(0, 0, 1, -composerHeight)
-
-		-- The text box sits under the markdown preview bar
-		local textBoxHeight = baseComposerHeight - 16
+		local textBoxHeight = composerHeight - 16
 		textBox.Size = UDim2.new(1, -98, 0, textBoxHeight)
-		textBox.Position = UDim2.new(0, 49, 0, 8 + markdownPreviewSpace)
 		-- Adaptive corner radius: pill shape (half the height) while single-line,
 		-- capped at 16px as the box grows with wrapped text so corners stay proportionally smaller
 		local cornerRadius = math.min(textBoxHeight / 2, 16)
@@ -1462,14 +1349,12 @@ function ChatUI.create(pluginInstance)
 
 		local previewSpace = previewBar.Visible and PREVIEW_HEIGHT or 0
 		local replySpace = replyBar.Visible and REPLY_BAR_HEIGHT or 0
-		local totalBarSpace = previewSpace + replySpace -- markdown preview is now INSIDE inputFrame
+		local totalBarSpace = previewSpace + replySpace
 		scrollFrame.Size = UDim2.new(1, 0, 1, -(composerHeight + totalBarSpace + topSpace()))
 		scrollFrame.Position = UDim2.new(0, 0, 0, topSpace())
 		emptyState.Size = UDim2.new(1, 0, 1, -(composerHeight + totalBarSpace + topSpace()))
 		emptyState.Position = UDim2.new(0, 0, 0, topSpace())
 		divider.Position = UDim2.new(0, 0, 1, -(composerHeight + totalBarSpace))
-		-- The markdown preview bar is the top of the composer, above the box
-		markdownPreviewBar.Position = UDim2.new(0, 0, 0, 0)
 		previewBar.Position = UDim2.new(0, 0, 1, -(composerHeight + PREVIEW_HEIGHT))
 		replyBar.Position = UDim2.new(0, 0, 1, -(composerHeight + previewSpace + REPLY_BAR_HEIGHT))
 		scrollButton.Position = UDim2.new(1, -14, 1, -(composerHeight + totalBarSpace + 14))
@@ -2188,6 +2073,7 @@ function ChatUI.create(pluginInstance)
 		conversationSidebar.newMessageDialog.recolor()
 		textBox.BackgroundColor3 = themeColors.inputBox
 		MentionPills.recolor(textBox, themeColors)
+		composerText.recolor()
 		spelling.recolor()
 		textBox.TextColor3 = themeColors.textBoxText
 		textBox.PlaceholderColor3 = themeColors.placeholder
@@ -2203,11 +2089,6 @@ function ChatUI.create(pluginInstance)
 		previewLabel.TextColor3 = themeColors.messageText
 		previewRemove.BackgroundColor3 = themeColors.attachButton
 		previewRemove.TextColor3 = themeColors.attachIcon
-
-		markdownPreviewBar.BackgroundColor3 = themeColors.inputFrame
-		markdownPreviewLabel.TextColor3 = themeColors.messageText
-		markdownPreviewDivider.BackgroundColor3 = themeColors.divider
-		previewBadge.TextColor3 = themeColors.timestamp
 
 		dropOverlay.BackgroundTransparency = 0.85
 		dropOverlayStroke.Color = themeColors.sendButton
@@ -2247,11 +2128,6 @@ function ChatUI.create(pluginInstance)
 			if child:IsA("Frame") and child.Name ~= "UnreadDivider" then
 				Messages.recolor(child, themeColors)
 			end
-		end
-
-		-- Re-render markdown preview with new theme colors
-		if markdownPreviewBar.Visible then
-			updateMarkdownPreview()
 		end
 	end
 

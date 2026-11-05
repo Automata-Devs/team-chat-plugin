@@ -46,9 +46,9 @@ return {
 		title = "Team Chat 1",
 		updates = {
 			{
-				version = "1.24.0",
+				version = "1.24.1",
 				date = "05/11/2026",
-				title = "Pins, spell check & code blocks",
+				title = "Pins, spell check & markdown",
 				changes = {
 					{
 						type = "added",
@@ -61,6 +61,10 @@ return {
 					{
 						type = "fixed",
 						text = "Code blocks look like Discord's: a box with a border and rounded corners, and ```lua code is coloured. `Inline code` has a rounded box too, quotes have a bar, and nested list items get their own bullet.",
+					},
+					{
+						type = "changed",
+						text = "The message box shows markdown as you type, like Discord: **bold**, *italic*, `code`, ```lua code, links and quotes are styled right where you type them, with the markers dimmed.",
 					},
 				},
 			},

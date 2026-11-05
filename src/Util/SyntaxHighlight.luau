@@ -333,22 +333,30 @@ end
 	(a light chat when its text is dark).
 ]=]
 function SyntaxHighlight.highlight(code: string, palette: { [string]: Color3 }?): string
+	local parts = {}
+	for _, span in ipairs(SyntaxHighlight.spans(code, palette)) do
+		if span.color then
+			table.insert(parts, string.format('<font color="%s">%s</font>', span.color, escape(span.text)))
+		else
+			table.insert(parts, escape(span.text))
+		end
+	end
+	return table.concat(parts)
+end
+
+--[=[
+	The code as pieces of text with their colour ("#RRGGBB", or nil for
+	plain), for building RichText runs (Util/MarkdownSource).
+]=]
+function SyntaxHighlight.spans(code: string, palette: { [string]: Color3 }?): { { text: string, color: string? } }
 	local text = palette and palette.messageText
 	local light = text ~= nil and (text.R + text.G + text.B) / 3 < 0.5
 	local colors = if light then COLORS.light else COLORS.dark
-	local tokens = tokenize(code)
-	local parts = {}
-
-	for _, token in ipairs(tokens) do
-		local color = colors[token.type]
-		if color then
-			table.insert(parts, string.format('<font color="%s">%s</font>', color, escape(token.text)))
-		else
-			table.insert(parts, escape(token.text))
-		end
+	local spans = {}
+	for _, token in ipairs(tokenize(code)) do
+		table.insert(spans, { text = token.text, color = colors[token.type] })
 	end
-
-	return table.concat(parts)
+	return spans
 end
 
 --[=[
