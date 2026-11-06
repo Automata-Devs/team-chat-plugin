@@ -252,7 +252,8 @@ function PanelKit.tile(parent: Instance, label: string, value: string, order: nu
 	tile.Name = "Tile"
 	tile.BackgroundColor3 = colors.dialogSecondary
 	tile.BorderSizePixel = 0
-	tile.Size = UDim2.fromOffset(104, 58)
+	-- Wider for long values ("06/11 13:09", "Moderator") so they stay on one line
+	tile.Size = UDim2.fromOffset(if (utf8.len(value) or #value) > 6 then 150 else 104, 58)
 	tile.LayoutOrder = order
 	tile.ZIndex = z
 	tile.Parent = parent
@@ -295,6 +296,223 @@ function PanelKit.avatar(
 	avatar.Parent = parent
 	corner(avatar, size // 2)
 	return avatar
+end
+
+--[=[
+	Section tabs: a row of buttons, the selected one filled. items:
+	{ { key, label } }. onSelect(key) when one is clicked.
+]=]
+function PanelKit.tabs(
+	parent: Instance,
+	items: { { key: string, label: string } },
+	selected: string,
+	order: number,
+	z: number,
+	colors: Palette,
+	onSelect: (string) -> ()
+): Frame
+	local row = PanelKit.row(parent, order, z)
+	row.Name = "Tabs"
+	for index, item in ipairs(items) do
+		local tab = PanelKit.button(
+			row,
+			item.label,
+			if item.key == selected then "primary" else "secondary",
+			index,
+			z,
+			colors,
+			function()
+				onSelect(item.key)
+			end
+		)
+		tab.Name = "Tab_" .. item.key
+	end
+	return row
+end
+
+--[=[
+	A column chart: one bar per value, its label under it ("" for none).
+	The tallest bar fills `height` (100).
+]=]
+function PanelKit.barChart(
+	parent: Instance,
+	values: { number },
+	labels: { string },
+	order: number,
+	z: number,
+	colors: Palette,
+	options: { height: number?, color: Color3? }?
+): Frame
+	local opts = options or {}
+	local height = opts.height or 100
+	local max = 1
+	for _, value in ipairs(values) do
+		max = math.max(max, value)
+	end
+	local chart = Instance.new("Frame")
+	chart.Name = "Chart"
+	chart.BackgroundTransparency = 1
+	chart.Size = UDim2.new(1, 0, 0, height + 34)
+	chart.LayoutOrder = order
+	chart.ZIndex = z
+	chart.Parent = parent
+	local layout = Instance.new("UIListLayout")
+	layout.FillDirection = Enum.FillDirection.Horizontal
+	layout.HorizontalFlex = Enum.UIFlexAlignment.Fill
+	layout.Padding = UDim.new(0, 3)
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.Parent = chart
+	for index, value in ipairs(values) do
+		local column = Instance.new("Frame")
+		column.Name = "Column_" .. index
+		column.BackgroundTransparency = 1
+		column.Size = UDim2.new(0, 4, 1, 0)
+		column.LayoutOrder = index
+		column.ZIndex = z
+		column.Parent = chart
+		local barHeight = math.max(if value > 0 then 2 else 0, math.floor(height * value / max + 0.5))
+		local bar = Instance.new("Frame")
+		bar.Name = "Bar"
+		bar.AnchorPoint = Vector2.new(0, 1)
+		bar.Position = UDim2.new(0, 0, 1, -18)
+		bar.Size = UDim2.new(1, 0, 0, barHeight)
+		bar.BackgroundColor3 = opts.color or colors.sendButton
+		bar.BorderSizePixel = 0
+		bar.ZIndex = z
+		bar:SetAttribute("Value", value)
+		bar.Parent = column
+		corner(bar, 3)
+		local count = Instance.new("TextLabel")
+		count.Name = "Value"
+		count.BackgroundTransparency = 1
+		count.AnchorPoint = Vector2.new(0, 1)
+		count.Position = UDim2.new(0, 0, 1, -20 - barHeight)
+		count.Size = UDim2.new(1, 0, 0, 14)
+		count.FontFace = FONTS.mono
+		count.TextSize = 10
+		count.TextColor3 = colors.timestamp
+		count.Text = if value > 0 then tostring(value) else ""
+		count.ZIndex = z
+		count.Parent = column
+		local label = Instance.new("TextLabel")
+		label.Name = "Label"
+		label.BackgroundTransparency = 1
+		label.AnchorPoint = Vector2.new(0, 1)
+		label.Position = UDim2.fromScale(0, 1)
+		label.Size = UDim2.new(1, 0, 0, 16)
+		label.FontFace = FONTS.body
+		label.TextSize = 10
+		label.TextColor3 = colors.timestamp
+		label.Text = labels[index] or ""
+		label.ZIndex = z
+		label.Parent = column
+	end
+	return chart
+end
+
+--[=[
+	Horizontal bars, one per item ({ label, value, detail? }) in the order
+	given: for top lists (most active people, most used commands).
+]=]
+function PanelKit.bars(
+	parent: Instance,
+	items: { { label: string, value: number, detail: string? } },
+	order: number,
+	z: number,
+	colors: Palette
+): Frame
+	local max = 1
+	for _, item in ipairs(items) do
+		max = math.max(max, item.value)
+	end
+	local stack = Instance.new("Frame")
+	stack.Name = "Bars"
+	stack.BackgroundTransparency = 1
+	stack.Size = UDim2.new(1, 0, 0, 0)
+	stack.AutomaticSize = Enum.AutomaticSize.Y
+	stack.LayoutOrder = order
+	stack.ZIndex = z
+	stack.Parent = parent
+	list(stack, false, 6)
+	for index, item in ipairs(items) do
+		local row = Instance.new("Frame")
+		row.Name = "Bar_" .. index
+		row.BackgroundTransparency = 1
+		row.Size = UDim2.new(1, 0, 0, 22)
+		row.LayoutOrder = index
+		row.ZIndex = z
+		row.Parent = stack
+		local fill = Instance.new("Frame")
+		fill.Name = "Fill"
+		fill.BackgroundColor3 = colors.sendButton
+		fill.BackgroundTransparency = 0.6
+		fill.BorderSizePixel = 0
+		fill.Size = UDim2.new(math.max(item.value / max, 0.02), 0, 1, 0)
+		fill.ZIndex = z
+		fill.Parent = row
+		corner(fill, 4)
+		local label = Instance.new("TextLabel")
+		label.Name = "Label"
+		label.BackgroundTransparency = 1
+		label.Position = UDim2.fromOffset(8, 0)
+		label.Size = UDim2.new(1, -60, 1, 0)
+		label.FontFace = FONTS.medium
+		label.TextSize = 12
+		label.TextColor3 = colors.messageText
+		label.TextXAlignment = Enum.TextXAlignment.Left
+		label.TextTruncate = Enum.TextTruncate.AtEnd
+		label.RichText = true
+		label.Text = item.label
+			.. (if item.detail then '  <font transparency="0.4">' .. item.detail .. "</font>" else "")
+		label.ZIndex = z + 1
+		label.Parent = row
+		local value = Instance.new("TextLabel")
+		value.Name = "Value"
+		value.BackgroundTransparency = 1
+		value.AnchorPoint = Vector2.new(1, 0)
+		value.Position = UDim2.new(1, -8, 0, 0)
+		value.Size = UDim2.new(0, 50, 1, 0)
+		value.FontFace = FONTS.mono
+		value.TextSize = 12
+		value.TextColor3 = colors.messageText
+		value.TextXAlignment = Enum.TextXAlignment.Right
+		value.Text = tostring(item.value)
+		value.ZIndex = z + 1
+		value.Parent = row
+	end
+	return stack
+end
+
+--[=[
+	Code you can select and copy (read-only, monospace, as tall as it is).
+]=]
+function PanelKit.codeBox(parent: Instance, code: string, order: number, z: number, colors: Palette): TextBox
+	local box = Instance.new("TextBox")
+	box.Name = "Code"
+	box.BackgroundColor3 = colors.codeBack or colors.dialogInput
+	box.BorderSizePixel = 0
+	box.Size = UDim2.new(1, 0, 0, 0)
+	box.AutomaticSize = Enum.AutomaticSize.Y
+	box.ClearTextOnFocus = false
+	box.TextEditable = false
+	box.MultiLine = true
+	box.TextWrapped = true
+	box.FontFace = FONTS.mono
+	box.TextSize = 12
+	box.TextColor3 = colors.codeText or colors.dialogInputText
+	box.TextXAlignment = Enum.TextXAlignment.Left
+	box.TextYAlignment = Enum.TextYAlignment.Top
+	box.Text = code
+	box.LayoutOrder = order
+	box.ZIndex = z
+	box.Parent = parent
+	corner(box, 6)
+	padding(box, 10)
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = colors.codeBorder or colors.dialogBorder
+	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	stroke.Parent = box
+	return box
 end
 
 return PanelKit

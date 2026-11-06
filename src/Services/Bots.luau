@@ -28,6 +28,12 @@
 		Bots.create("Weather")              -- a Studio bot script owned by you
 		Bots.createWeb("Weather", url)      -- a web bot owned by you
 		Bots.clickButton(info)              -- a button under a bot message was clicked
+
+	For the developer portal: Bots.test (run a command or button without
+	posting), Bots.logOf / Bots.statsOf (recent interactions and use per
+	command, kept on the manifest), Bots.editBot (name, description, avatar
+	and commands set in the portal, over what the script or server says) and
+	Bots.checkHealth.
 ]]
 
 local HttpService = game:GetService("HttpService")
@@ -59,6 +65,8 @@ Bots.TOKEN_HEADER = "X-TeamChat-Token"
 local HEARTBEAT = 10 -- seconds between "still online" marks
 local ONLINE_FOR = 30 -- a Studio bot is online when its mark is this fresh
 local REQUEST_TIMEOUT = 60 -- unanswered requests are cleaned up after this
+local LOG_MAX = 40 -- interactions kept per bot for the developer portal
+local TEST_WAIT = 30 -- seconds a test waits for a web bot's deferred answer
 local FOLLOWUP_EVERY = 2 -- seconds between asking a web bot for its deferred answer
 local FOLLOWUP_FOR = 60 -- give up on a deferred answer after this
 local OPTION_TYPES = { string = true, integer = true, number = true, boolean = true, user = true }
@@ -287,12 +295,32 @@ function Bots.isOnline(manifest: Instance): boolean
 	return ownerHere and os.time() - lastSeen <= ONLINE_FOR
 end
 
+-- Set in the developer portal: these win over the script's or server's own
+local function nameOf(manifest: Instance): string
+	local custom = manifest:GetAttribute("CustomName")
+	return if type(custom) == "string" and custom ~= "" then custom else manifest:GetAttribute("Name") or "Bot"
+end
+
+local function avatarOf(manifest: Instance, data: { [string]: any }): string?
+	return safeAvatar(manifest:GetAttribute("CustomAvatar")) or safeAvatar(data.avatar)
+end
+
+local function disabledCommands(manifest: Instance): { [string]: boolean }
+	local set = {}
+	for _, name in ipairs(decode(manifest:GetAttribute("DisabledCommands")) or {}) do
+		if type(name) == "string" then
+			set[name] = true
+		end
+	end
+	return set
+end
+
 local function identityOf(manifest: Instance): BotIdentity
 	local data = decode(manifest:GetAttribute("Manifest")) or {}
 	return {
 		id = manifest.Name,
-		name = manifest:GetAttribute("Name") or "Bot",
-		avatar = safeAvatar(data.avatar),
+		name = nameOf(manifest),
+		avatar = avatarOf(manifest, data),
 		ownerId = manifest:GetAttribute("OwnerId"),
 	}
 end
@@ -305,28 +333,47 @@ function Bots.list(): { { [string]: any } }
 	local list = {}
 	for _, manifest in ipairs(manifests():GetChildren()) do
 		local data = decode(manifest:GetAttribute("Manifest")) or {}
+		local off = disabledCommands(manifest)
+		local notes = decode(manifest:GetAttribute("CommandNotes")) or {}
 		local commands = {}
 		for _, command in ipairs(if type(data.commands) == "table" then data.commands else {}) do
 			if type(command) == "table" and type(command.name) == "string" then
+				local name = cleanName(command.name)
+				local note = notes[name]
 				table.insert(commands, {
-					name = cleanName(command.name),
-					description = if type(command.description) == "string" then command.description else "",
+					name = name,
+					description = if type(note) == "string" and note ~= ""
+						then note
+						elseif type(command.description) == "string" then command.description
+						else "",
 					options = optionsOf(command),
+					enabled = not off[name],
 				})
 			end
 		end
+		local custom = manifest:GetAttribute("CustomDescription")
 		table.insert(list, {
 			id = manifest.Name,
 			kind = manifest:GetAttribute("Kind") or "studio",
-			name = manifest:GetAttribute("Name") or "Bot",
+			name = nameOf(manifest),
 			ownerId = manifest:GetAttribute("OwnerId"),
 			ownerName = manifest:GetAttribute("OwnerName") or "?",
 			online = Bots.isOnline(manifest),
 			disabled = manifest:GetAttribute("Disabled") == true,
-			avatar = safeAvatar(data.avatar),
-			description = if type(data.description) == "string" then data.description else "",
+			avatar = avatarOf(manifest, data),
+			description = if type(custom) == "string" and custom ~= ""
+				then custom
+				elseif type(data.description) == "string" then data.description
+				else "",
 			commands = commands,
 			url = manifest:GetAttribute("Url"),
+			lastSeen = manifest:GetAttribute("LastSeen"),
+			health = {
+				time = manifest:GetAttribute("HealthTime"),
+				ok = manifest:GetAttribute("HealthOk"),
+				ms = manifest:GetAttribute("HealthMs"),
+				error = manifest:GetAttribute("HealthError"),
+			},
 		})
 	end
 	table.sort(list, function(a, b)
@@ -356,6 +403,9 @@ function Bots.commands(): { BotCommand }
 	for _, bot in ipairs(Bots.list()) do
 		if not bot.disabled then
 			for _, command in ipairs(bot.commands) do
+				if not command.enabled then
+					continue -- turned off in the developer portal
+				end
 				local args = {}
 				for _, option in ipairs(command.options) do
 					table.insert(args, {
@@ -382,6 +432,48 @@ end
 
 local function manifestOf(id: string): Instance?
 	return manifests():FindFirstChild(id)
+end
+
+-- An interaction for the developer portal's log and stats (kept on the manifest)
+type LogEntry = {
+	t: number,
+	kind: string, -- "command" | "button" | "ping"
+	name: string?, -- the command or button
+	user: string?,
+	ok: boolean,
+	error: string?,
+	ms: number?,
+	test: boolean?, -- from the portal's test console
+}
+
+local function record(manifest: Instance?, entry: LogEntry)
+	if not manifest or not manifest.Parent then
+		return
+	end
+	local entries = decode(manifest:GetAttribute("Log")) or {}
+	table.insert(entries, 1, entry)
+	while #entries > LOG_MAX do
+		table.remove(entries)
+	end
+	manifest:SetAttribute("Log", HttpService:JSONEncode(entries))
+	if entry.test or entry.kind == "ping" then
+		return -- tests and checks aren't real use
+	end
+	local stats = decode(manifest:GetAttribute("Stats")) or {}
+	stats.total = (tonumber(stats.total) or 0) + 1
+	stats.errors = (tonumber(stats.errors) or 0) + (if entry.ok then 0 else 1)
+	if entry.ms then
+		stats.ms = (tonumber(stats.ms) or 0) + entry.ms
+		stats.timed = (tonumber(stats.timed) or 0) + 1
+	end
+	stats.commands = if type(stats.commands) == "table" then stats.commands else {}
+	local key = (if entry.kind == "button" then "button:" else "/") .. tostring(entry.name or "?")
+	stats.commands[key] = (tonumber(stats.commands[key]) or 0) + 1
+	manifest:SetAttribute("Stats", HttpService:JSONEncode(stats))
+end
+
+local function elapsed(since: number): number
+	return math.floor((os.clock() - since) * 1000 + 0.5)
 end
 
 -- A Studio bot's manifest: only plain data (never functions)
@@ -601,6 +693,10 @@ function Bots.setApiKey(key: string?)
 end
 
 local function runningIdentity(bot: Running): BotIdentity
+	local manifest = manifestOf(bot.id)
+	if manifest then
+		return identityOf(manifest)
+	end
 	return {
 		id = bot.id,
 		name = tostring(bot.definition.name or bot.module.Name),
@@ -737,6 +833,7 @@ local function handle(request: Instance)
 	request:SetAttribute("Handling", true)
 	local conversation = request:GetAttribute("Conversation")
 	local ctx = makeContext(bot, request, conversation)
+	local startedAt = os.clock()
 
 	if request:GetAttribute("Kind") == "button" then
 		local handler = bot.definition.onButton
@@ -745,6 +842,15 @@ local function handle(request: Instance)
 			if not ok then
 				ctx.reply({ content = "\u{26A0} " .. tostring(err), ephemeral = true })
 			end
+			record(manifest, {
+				t = os.time(),
+				kind = "button",
+				name = ctx.customId,
+				user = ctx.user and ctx.user.name,
+				ok = ok,
+				error = if ok then nil else tostring(err),
+				ms = elapsed(startedAt),
+			})
 		end
 		request:Destroy()
 		return
@@ -767,6 +873,15 @@ local function handle(request: Instance)
 			if not ok then
 				ctx.reply({ content = "\u{26A0} " .. tostring(err), ephemeral = true })
 			end
+			record(manifest, {
+				t = os.time(),
+				kind = "command",
+				name = name,
+				user = ctx.user and ctx.user.name,
+				ok = ok,
+				error = if ok then nil else tostring(err),
+				ms = elapsed(startedAt),
+			})
 		end
 	end
 	request:Destroy()
@@ -1115,17 +1230,315 @@ local function webInteraction(manifest: Instance, payload: { [string]: any }, in
 	task.spawn(function()
 		local id = HttpService:GenerateGUID(false)
 		payload.id = id
+		payload.test = false -- the portal's test console sends true
 		payload.bot = { id = manifest.Name }
 		payload.user = { id = Identity.userId, name = Identity.username }
 		payload.place = { id = game.PlaceId }
 		payload.conversation = interaction.conversation
+		local startedAt = os.clock()
 		local answer, problem = callWeb(manifest, payload)
+		record(manifest, {
+			t = os.time(),
+			kind = payload.type,
+			name = payload.command or payload.customId,
+			user = Identity.username,
+			ok = not (answer == nil and problem),
+			error = if answer == nil then problem else nil,
+			ms = elapsed(startedAt),
+		})
 		if answer == nil and problem then
 			say(Language.t("bot.webError", { bot = manifest:GetAttribute("Name") or "Bot", error = problem }))
 			return
 		end
 		applyWebAnswer(manifest, answer, interaction, id)
 	end)
+end
+
+--------------------------------------------------------------------------------
+-- Developer portal: logs, stats, editing, tests and health checks
+--------------------------------------------------------------------------------
+
+--[=[
+	A bot's recent interactions, newest first: { t, kind, name, user, ok,
+	error, ms, test }.
+]=]
+function Bots.logOf(id: string): { LogEntry }
+	local manifest = manifestOf(id)
+	return if manifest then decode(manifest:GetAttribute("Log")) or {} else {}
+end
+
+--[=[
+	How a bot is used: { total, errors, averageMs, commands = { { name, count } } }
+	(most used first). Tests and health checks don't count.
+]=]
+function Bots.statsOf(id: string): {
+	total: number,
+	errors: number,
+	averageMs: number?,
+	commands: { { name: string, count: number } },
+}
+	local manifest = manifestOf(id)
+	local stats = (manifest and decode(manifest:GetAttribute("Stats"))) or {}
+	local commands = {}
+	for name, count in pairs(if type(stats.commands) == "table" then stats.commands else {}) do
+		table.insert(commands, { name = tostring(name), count = tonumber(count) or 0 })
+	end
+	table.sort(commands, function(a, b)
+		return if a.count ~= b.count then a.count > b.count else a.name < b.name
+	end)
+	local timed = tonumber(stats.timed) or 0
+	return {
+		total = tonumber(stats.total) or 0,
+		errors = tonumber(stats.errors) or 0,
+		averageMs = if timed > 0 then math.floor((tonumber(stats.ms) or 0) / timed + 0.5) else nil,
+		commands = commands,
+	}
+end
+
+--[=[
+	Empties a bot's log and stats (yours only).
+]=]
+function Bots.clearLog(id: string): boolean
+	local manifest = manifestOf(id)
+	if not manifest or manifest:GetAttribute("OwnerId") ~= Identity.userId then
+		return false
+	end
+	manifest:SetAttribute("Log", nil)
+	manifest:SetAttribute("Stats", nil)
+	return true
+end
+
+--[=[
+	Changes how one of your bots shows, over what its script or server says:
+	{ name, description, avatar } ("" goes back to the bot's own),
+	disabledCommands (names nobody can use) and commandNotes (a description
+	per command). Returns false for someone else's bot.
+]=]
+function Bots.editBot(
+	id: string,
+	fields: {
+		name: string?,
+		description: string?,
+		avatar: string?,
+		disabledCommands: { string }?,
+		commandNotes: { [string]: string }?,
+	}
+): boolean
+	local manifest = manifestOf(id)
+	if not manifest or manifest:GetAttribute("OwnerId") ~= Identity.userId then
+		return false
+	end
+	local function set(attribute: string, value: string?)
+		if value ~= nil then
+			local trimmed = string.match(value, "^%s*(.-)%s*$") or ""
+			manifest:SetAttribute(attribute, if trimmed ~= "" then trimmed else nil)
+		end
+	end
+	set("CustomName", fields.name)
+	set("CustomDescription", fields.description)
+	if fields.avatar ~= nil then
+		local avatar = string.match(fields.avatar, "^%s*(.-)%s*$") or ""
+		-- A bare number is an image asset id
+		if string.match(avatar, "^%d+$") then
+			avatar = "rbxassetid://" .. avatar
+		end
+		manifest:SetAttribute("CustomAvatar", if avatar ~= "" then safeAvatar(avatar) else nil)
+	end
+	if fields.disabledCommands then
+		manifest:SetAttribute(
+			"DisabledCommands",
+			if #fields.disabledCommands > 0 then HttpService:JSONEncode(fields.disabledCommands) else nil
+		)
+	end
+	if fields.commandNotes then
+		local notes = {}
+		local any = false
+		for name, note in pairs(fields.commandNotes) do
+			if type(note) == "string" and note ~= "" then
+				notes[name] = note
+				any = true
+			end
+		end
+		manifest:SetAttribute("CommandNotes", if any then HttpService:JSONEncode(notes) else nil)
+	end
+	return true
+end
+
+export type TestResult = {
+	ok: boolean,
+	messages: { Message & { update: boolean? } }, -- what the bot answered (not posted)
+	error: string?,
+	ms: number,
+}
+
+-- A Studio bot's command or button, run here with its answers collected
+local function testStudio(bot: Running, input: { command: string?, args: { string }?, button: string? }): TestResult
+	local sink = {}
+	local ctx = makeContext(bot, nil, Conversations.getActiveId())
+	ctx.user = { id = Identity.userId, name = Identity.username }
+	ctx.test = true
+	ctx.reply = function(message: any)
+		table.insert(sink, normalize(message))
+	end
+	ctx.send = ctx.reply
+	ctx.defer = function() end
+	ctx.update = function(message: any)
+		local normalized: any = normalize(message)
+		normalized.update = true
+		table.insert(sink, normalized)
+	end
+	local startedAt = os.clock()
+	if input.button then
+		local handler = bot.definition.onButton
+		if type(handler) ~= "function" then
+			return { ok = false, messages = {}, error = "noButtons", ms = 0 }
+		end
+		ctx.customId = input.button
+		local ok, err = pcall(handler, ctx, input.button)
+		return { ok = ok, messages = sink, error = if ok then nil else tostring(err), ms = elapsed(startedAt) }
+	end
+	local name = cleanName(input.command or "")
+	local command = nil
+	for commandName, definition in pairs(bot.definition.commands or {}) do
+		if cleanName(tostring(commandName)) == name and type(definition) == "table" then
+			command = definition
+		end
+	end
+	if not command or type(command.run) ~= "function" then
+		return { ok = false, messages = {}, error = "noCommand", ms = 0 }
+	end
+	ctx.command = name
+	ctx.args = input.args or {}
+	ctx.text = table.concat(ctx.args, " ")
+	local values, problem = Bots.parseOptions(name, optionsOf(command), ctx.args)
+	if not values then
+		return { ok = false, messages = {}, error = problem, ms = 0 }
+	end
+	ctx.options = values
+	local ok, err = pcall(command.run, ctx)
+	return { ok = ok, messages = sink, error = if ok then nil else tostring(err), ms = elapsed(startedAt) }
+end
+
+-- A web bot's command or button, sent with test = true; the answer isn't posted
+local function testWeb(manifest: Instance, input: { command: string?, args: { string }?, button: string? }): TestResult
+	local id = HttpService:GenerateGUID(false)
+	local payload: { [string]: any } = {
+		type = if input.button then "button" else "command",
+		id = id,
+		test = true,
+		bot = { id = manifest.Name },
+		user = { id = Identity.userId, name = Identity.username },
+		place = { id = game.PlaceId },
+		conversation = Conversations.getActiveId(),
+	}
+	if input.button then
+		payload.customId = input.button
+	else
+		local name = cleanName(input.command or "")
+		local options = {}
+		local data = decode(manifest:GetAttribute("Manifest")) or {}
+		for _, command in ipairs(if type(data.commands) == "table" then data.commands else {}) do
+			if type(command) == "table" and cleanName(tostring(command.name)) == name then
+				options = optionsOf(command)
+			end
+		end
+		local values, problem = Bots.parseOptions(name, options, input.args or {})
+		if not values then
+			return { ok = false, messages = {}, error = problem, ms = 0 }
+		end
+		payload.command = name
+		payload.options = values
+		payload.args = input.args or {}
+	end
+	local startedAt = os.clock()
+	local answer, problem = callWeb(manifest, payload)
+	if answer == nil and problem then
+		return { ok = false, messages = {}, error = problem, ms = elapsed(startedAt) }
+	end
+	if type(answer) == "table" and answer.type == "deferred" then
+		local deadline = os.clock() + TEST_WAIT
+		answer = nil
+		while os.clock() < deadline do
+			task.wait(FOLLOWUP_EVERY)
+			local followup = callWeb(manifest, { type = "followup", id = id, test = true })
+			if type(followup) == "table" and (followup.type == "message" or followup.content or followup.embed) then
+				answer = followup
+				break
+			end
+		end
+		if not answer then
+			return { ok = false, messages = {}, error = "noAnswer", ms = elapsed(startedAt) }
+		end
+	end
+	local messages = {}
+	if type(answer) == "table" and answer.type ~= "none" then
+		local message: any = normalize(answer)
+		message.update = answer.type == "update"
+		table.insert(messages, message)
+	end
+	return { ok = true, messages = messages, ms = elapsed(startedAt) }
+end
+
+--[=[
+	Runs one of your bots' commands ({ command, args }) or a button click
+	({ button = customId }) without posting anything: the answers come back
+	for the portal's test console. A Studio bot has to be running here.
+	Yields (a web bot is called).
+]=]
+function Bots.test(id: string, input: { command: string?, args: { string }?, button: string? }): TestResult
+	local manifest = manifestOf(id)
+	if not manifest then
+		return { ok = false, messages = {}, error = "notFound", ms = 0 }
+	end
+	local result
+	if manifest:GetAttribute("Kind") == "web" then
+		result = testWeb(manifest, input)
+	else
+		local bot = running[id]
+		if not bot then
+			return { ok = false, messages = {}, error = "notRunning", ms = 0 }
+		end
+		result = testStudio(bot, input)
+	end
+	record(manifest, {
+		t = os.time(),
+		kind = if input.button then "button" else "command",
+		name = input.button or input.command,
+		user = Identity.username,
+		ok = result.ok,
+		error = result.error,
+		ms = result.ms,
+		test = true,
+	})
+	return result
+end
+
+--[=[
+	Checks a bot: a web bot is pinged (timed), a Studio bot is online when
+	its owner's plugin marked it lately. Saves and returns { ok, ms, error }.
+	Yields for web bots.
+]=]
+function Bots.checkHealth(id: string): { ok: boolean, ms: number?, error: string? }
+	local manifest = manifestOf(id)
+	if not manifest then
+		return { ok = false, error = "notFound" }
+	end
+	local result: { ok: boolean, ms: number?, error: string? }
+	if manifest:GetAttribute("Kind") == "web" then
+		local startedAt = os.clock()
+		local answer, problem = callWeb(manifest, { type = "ping", bot = { id = id } })
+		local ok = type(answer) == "table" and answer.type == "pong"
+		result = { ok = ok, ms = elapsed(startedAt), error = if ok then nil else problem or "noPong" }
+	else
+		local online = Bots.isOnline(manifest)
+		result = { ok = online, error = if online then nil else "offline" }
+	end
+	manifest:SetAttribute("HealthTime", os.time())
+	manifest:SetAttribute("HealthOk", result.ok)
+	manifest:SetAttribute("HealthMs", result.ms)
+	manifest:SetAttribute("HealthError", result.error)
+	record(manifest, { t = os.time(), kind = "ping", ok = result.ok, error = result.error, ms = result.ms })
+	return result
 end
 
 --------------------------------------------------------------------------------
@@ -1141,8 +1554,12 @@ function Bots.tryCommand(name: string, args: { string }, context): boolean
 	for _, manifest in ipairs(manifests():GetChildren()) do
 		local data = decode(manifest:GetAttribute("Manifest")) or {}
 		for _, command in ipairs(if type(data.commands) == "table" then data.commands else {}) do
-			if type(command) == "table" and cleanName(tostring(command.name)) == lowered then
-				local botName = manifest:GetAttribute("Name") or "Bot"
+			if
+				type(command) == "table"
+				and cleanName(tostring(command.name)) == lowered
+				and not disabledCommands(manifest)[lowered]
+			then
+				local botName = nameOf(manifest)
 				if manifest:GetAttribute("Disabled") then
 					context.addSystemMessage(Language.t("bot.disabled", { bot = botName }))
 					return true

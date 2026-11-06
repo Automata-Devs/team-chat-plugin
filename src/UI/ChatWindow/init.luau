@@ -1573,6 +1573,9 @@ function ChatUI.create(pluginInstance)
 	-- Admin: the dashboard for moderators and up
 	local adminDialog = AdminDialog.create(modalKit, {
 		getThemeColors = getThemeColors,
+		openScript = function(module)
+			pluginInstance:OpenScript(module)
+		end,
 	})
 
 	-- Developer: make and manage your bots
@@ -3007,6 +3010,8 @@ function ChatUI.create(pluginInstance)
 		onPin = onPin,
 		setPins = setPins,
 		pinsPanel = pinsPanel,
+		developerDialog = developerDialog,
+		adminDialog = adminDialog,
 		spelling = spelling,
 		onCopy = onCopy,
 		setTypingUsers = setTypingUsers,

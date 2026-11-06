@@ -3,6 +3,38 @@
 Developer-facing history of the codebase. User-facing notes ("What's New")
 are in `src/Config/Changelog.luau`. Format: [Keep a Changelog](https://keepachangelog.com).
 
+## [1.25.0] - 2026-11-06
+
+### Added
+- `Services/Admin/AuditLog`: every moderation action, one folder per entry in
+  `TeamChatData.AdminLog` (newest 500, sorted by an `Order` attribute so
+  actions in the same second keep their order); the `Services/Admin` facade wraps
+  mute, unmute, ban, unban, kick, warn, (un)blacklist, (un)whitelist,
+  whitelist mode, slowmode, purge and setRank to record them and fire
+  `onAdminEvent` (it was never fired before; it now returns a disconnect).
+- `Services/Admin/ChatRules` (in `TeamChatData.ChatRules`): blocked words
+  (whole words, any case; `MessageController` refuses them for anyone below
+  moderator, keeping the text) and automatic backups every 1/6/24 hours,
+  claimed through `LastAutoBackup` so only one plugin makes each.
+- `Services/Chat/Stats`: messages per day and per hour, the most active
+  people, DM/bot/file/poll counts and per-person totals; a text transcript
+  saved as a ModuleScript in `ServerStorage.TeamChatExports`.
+- `Services/Bots`: `test` (a Studio bot's command or button run with its
+  answers collected; a web bot called with `"test": true`), `logOf` /
+  `statsOf` / `clearLog` (`Log` and `Stats` on the manifest, from Studio and
+  web interactions), `editBot` (`CustomName`, `CustomDescription`,
+  `CustomAvatar`, `DisabledCommands`, `CommandNotes`, used by `list`,
+  `commands`, `tryCommand` and posted messages) and `checkHealth`.
+- `PanelKit.tabs`, `barChart`, `bars` and `codeBox`; `PanelKit.tile` is wider
+  for long values (a date, a rank name) so they stay on one line.
+- AdminPortal spec. BotInteractions opens the dashboard's and portal's
+  sections before looking for their controls.
+
+### Changed
+- `AdminDialog`: sections Overview, Members (with details), Moderation, Audit
+  log and Chat tools. `DeveloperDialog`: Your bots (a page per bot with
+  Overview, Test console, Logs & stats and Edit), New bot and Docs.
+
 ## [1.24.1] - 2026-11-05
 
 ### Changed

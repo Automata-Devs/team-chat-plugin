@@ -14,10 +14,26 @@ There are two kinds of bot:
 
 ## The developer portal
 
-**Settings > Developer** lists your bots with their status and commands.
-There you can make a new Studio or web bot, open a Studio bot's script,
-reload it, turn a bot off and on, and delete it. For a web bot you also set
-its URL, see or replace its token, and sync its commands.
+**Settings > Developer** has three tabs:
+
+- **Your bots**: your bots with their status, commands, uses and errors.
+  **Manage** opens a bot's page:
+  - **Overview**: a health check (is it answering, and how fast), its
+    commands, and its actions: open a Studio bot's script, reload it, turn it
+    off and on, delete it. For a web bot you also set its URL, see or replace
+    its token, and sync its commands.
+  - **Test console**: run a command (`/hello Ana`) or click its buttons. The
+    answer shows only in the console; nothing is posted in the chat. A Studio
+    bot must be running (Reload it first); a web bot gets `"test": true`.
+  - **Logs & stats**: its last 40 interactions (who, how long, and the error
+    when one failed), how often it's used, its average answer time and its
+    most used commands. Tests show in the log but don't count as use.
+  - **Edit**: the name, description and avatar Team Chat shows for it (over
+    what its script or server says), and each command turned on or off with
+    its own description.
+- **New bot**: make a Studio or web bot.
+- **Docs**: a quick start, what Team Chat sends and expects back, and starter
+  servers for Node.js and Python.
 
 Admins and up can turn anyone's bot off or on from **Settings > Admin**.
 
@@ -217,6 +233,7 @@ Every request is a `POST` with a JSON body, and every answer is JSON.
 {
   "type": "command",
   "id": "8F1C…",
+  "test": false,
   "bot": { "id": "…" },
   "user": { "id": 156, "name": "builderman" },
   "place": { "id": 1818 },
@@ -230,6 +247,10 @@ Every request is a `POST` with a JSON body, and every answer is JSON.
 A button click is the same with `"type": "button"`, `"customId"`, and
 `"message": { "id", "content" }` (the message the button is on) instead of
 `command`, `options` and `args`.
+
+`"test": true` means it comes from the portal's test console: answer as usual
+(nothing is posted), but don't do anything you only want for real use, like
+saving to a database.
 
 ### Answers
 

@@ -46,6 +46,21 @@ return {
 		title = "Team Chat 1",
 		updates = {
 			{
+				version = "1.25.0",
+				date = "06/11/2026",
+				title = "Advanced dashboard & developer portal",
+				changes = {
+					{
+						type = "added",
+						text = "The admin dashboard has sections: an overview with messages per day, busiest hours and the most active people; members with a search and a details page (warnings, mute timer, messages) with reasons and mute lengths; an audit log of every moderation action; and chat tools: blocked words, purging, exporting the chat and automatic backups.",
+					},
+					{
+						type = "added",
+						text = "The developer portal has a page per bot: a test console that runs commands and buttons without posting, logs with errors and response times, use per command, a health check, and editing its name, description, avatar and commands. A Docs tab has a quick start and starter servers for Node.js and Python.",
+					},
+				},
+			},
+			{
 				version = "1.24.1",
 				date = "05/11/2026",
 				title = "Pins, spell check & markdown",

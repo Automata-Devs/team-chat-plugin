@@ -6,7 +6,9 @@
 
 local HttpService = game:GetService("HttpService")
 
+local AdminNetwork = require(script.Parent.Parent.Services.Admin)
 local EmojiData = require(script.Parent.Parent.Util.EmojiData)
+local Language = require(script.Parent.Parent.Core.Language)
 local UsageTracker = require(script.Parent.Parent.Services.Usage)
 
 local MessageController = {}
@@ -99,6 +101,16 @@ local function sendMessage(ui, chatNetwork, commandHandler)
 		local ts, replySender, replyContent, replySenderId = ui.getReplyReference()
 		if ts then
 			replyRef = { timestamp = ts, sender = replySender, content = replyContent, senderId = replySenderId }
+		end
+	end
+
+	-- Blocked words (admin dashboard > Chat tools): not sent, the text stays in
+	-- the box to fix; moderators and up are exempt
+	if text ~= "" and text:sub(1, 1) ~= "/" and not AdminNetwork.hasRank(AdminNetwork.RANK_MODERATOR) then
+		local blocked = AdminNetwork.ChatRules.findBlocked(text)
+		if blocked then
+			ui.addSystemMessage(Language.t("rules.blocked", { word = blocked }))
+			return
 		end
 	end
 

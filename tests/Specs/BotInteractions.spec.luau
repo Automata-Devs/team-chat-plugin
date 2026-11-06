@@ -276,6 +276,11 @@ return function(t)
 			end
 		end
 		t.check("…with the token hidden", webBox ~= nil and not tokenShown)
+		local newTab = portal and portal:FindFirstChild("Tab_new", true)
+		if newTab and hooks.clicks[newTab] then
+			hooks.clicks[newTab]()
+			Harness.settle()
+		end
 		local kindWeb = portal and portal:FindFirstChild("KindWeb", true)
 		if kindWeb and hooks.clicks[kindWeb] then
 			hooks.clicks[kindWeb]()
@@ -299,7 +304,16 @@ return function(t)
 		if Admin.getMyRank() >= 1 then
 			local overview = dashboard:FindFirstChild("Overview", true)
 			t.check("…with an overview", overview ~= nil and overview:FindFirstChild("admin.statOnline") ~= nil)
+			local function openSection(key: string)
+				local tab = dashboard:FindFirstChild("Tab_" .. key, true)
+				if tab and hooks.clicks[tab] then
+					hooks.clicks[tab]()
+					Harness.settle()
+				end
+			end
+			openSection("members")
 			t.check("…members", dashboard:FindFirstChild("Members", true) ~= nil)
+			openSection("moderation")
 			t.check("…slowmode presets", dashboard:FindFirstChild("Slowmode_10", true) ~= nil)
 			t.check("…the place's bots", dashboard:FindFirstChild("Bots", true) ~= nil)
 			local slow10 = dashboard:FindFirstChild("Slowmode_10", true)
