@@ -1,7 +1,6 @@
 {
   "name": "Team Chat Development",
   "globIgnorePaths": [
-    "src/build/**",
     "src/Packages",
     "src/Packages/**"
   ],

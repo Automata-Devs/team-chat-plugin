@@ -1,6 +1,6 @@
 """
-Builds every released version of the plugin into src/build/, one file per
-version: src/build/TeamChatPlugin<version>.rbxm.
+Builds every released version of the plugin into build/ (outside src, so
+Rojo never sees it), one file per version: build/TeamChatPlugin<version>.rbxm.
 
 A version is released when a commit changes `Version` in src/init.meta.json;
 each one is built from that commit's sources. The working tree's version is
@@ -24,7 +24,7 @@ import tarfile
 import tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT = os.path.join(ROOT, "src", "build")
+OUT = os.path.join(ROOT, "build")
 META = "src/init.meta.json"
 
 
@@ -63,7 +63,7 @@ def build(source_dir: str, version: str):
     project_path = os.path.join(source_dir, "build_version.project.json")
     with open(project_path, "w", encoding="utf-8") as f:
         json.dump(project, f)
-    # Older versions never had src/build; the working tree's must not include it
+    # Some older commits kept their builds in src/build: never build those in
     shutil.rmtree(os.path.join(source_dir, "src", "build"), ignore_errors=True)
     subprocess.run([rojo(), "build", project_path, "-o", target], check=True, capture_output=True)
     print(f"built {os.path.relpath(target, ROOT)}")

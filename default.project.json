@@ -1,8 +1,5 @@
 {
   "name": "TeamChatPlugin",
-  "globIgnorePaths": [
-    "src/build/**"
-  ],
   "tree": {
     "$path": "src"
   }
