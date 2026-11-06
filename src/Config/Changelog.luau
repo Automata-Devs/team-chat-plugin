@@ -46,6 +46,29 @@ return {
 		title = "Team Chat 1",
 		updates = {
 			{
+				version = "1.26.0",
+				date = "06/11/2026",
+				title = "Reactions & unread badge",
+				changes = {
+					{
+						type = "added",
+						text = "Emoji reactions, like Discord: right-click a message and pick Add Reaction (or click the button after its reactions) to pick an emoji, with a search and the ones you use most first. Click a reaction to add or remove yours, and hover it to see who reacted.",
+					},
+					{
+						type = "added",
+						text = "The Team Chat button in the toolbar shows how many unread messages you have, like the badges in the chat (9+ past nine).",
+					},
+					{
+						type = "changed",
+						text = "The unread count is at the end of the window's title now: Team Chat 1.26.0 (3).",
+					},
+					{
+						type = "removed",
+						text = "The melting and saluting face emoji: Roblox can't show them.",
+					},
+				},
+			},
+			{
 				version = "1.25.1",
 				date = "06/11/2026",
 				title = "Advanced dashboard & developer portal",

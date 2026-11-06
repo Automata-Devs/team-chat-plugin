@@ -40,8 +40,7 @@ local RAW: { { any } } = {
 	{ "skull", "💀" },
 	{ "exploding_head", "🤯", { "mind_blown" } },
 	{ "partying", "🥳", { "partying_face" } },
-	{ "melting", "🫠", { "melting_face" } },
-	{ "saluting", "🫡", { "salute" } },
+	-- No Emoji 14+ (🫠 melting, 🫡 saluting, ...): Roblox draws them as empty boxes
 	{ "roll_eyes", "🙄", { "eye_roll" } },
 	{ "smirk", "😏" },
 	{ "unamused", "😒" },

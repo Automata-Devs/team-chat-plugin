@@ -135,6 +135,9 @@ local function populateFolder(folder, messages)
 			message:SetAttribute("PinnedByName", entry.pinnedByName)
 			message:SetAttribute("Pinned", true)
 		end
+		if type(entry.reactions) == "string" and entry.reactions ~= "" then
+			message:SetAttribute("Reactions", entry.reactions)
+		end
 		if entry.imageUrl then
 			message:SetAttribute("ImageUrl", entry.imageUrl)
 		end
@@ -187,6 +190,7 @@ function ChatState.serializeMessages(): string?
 			pinnedAt = child:GetAttribute("PinnedAt"),
 			pinnedBy = child:GetAttribute("PinnedBy"),
 			pinnedByName = child:GetAttribute("PinnedByName"),
+			reactions = child:GetAttribute("Reactions"), -- JSON (Chat/Reactions)
 		}
 		-- Persist reply reference attributes so replies keep their context
 		local replyToTimestamp = child:GetAttribute("ReplyToTimestamp")

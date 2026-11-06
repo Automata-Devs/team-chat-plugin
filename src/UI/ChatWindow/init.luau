@@ -24,8 +24,10 @@ local Markdown = require(script.Parent.Parent.Util.Markdown)
 local CommandEmbed = require(script.Parent.Embeds.Providers.CommandEmbed)
 local Components = require(script.Parent.Embeds.Components)
 local Bots = require(script.Parent.Parent.Services.Bots)
+local UsageTracker = require(script.Parent.Parent.Services.Usage)
 local Browser = require(script.Parent.Parent.Core.Browser)
 local ContextMenu = require(script.ContextMenu)
+local EmojiPicker = require(script.EmojiPicker)
 local Pointer = require(script.Pointer)
 local TypingBar = require(script.TypingBar)
 local Header = require(script.Header)
@@ -477,6 +479,37 @@ function ChatUI.create(pluginInstance)
 		onVisibility = header.setPinsOpen,
 		ignoreClicksOn = { header.pinButton },
 	})
+
+	-- Emoji reactions: the picker (from Add Reaction, or the button after a
+	-- message's reactions) and what picking or clicking a reaction does
+	-- A message is its saved name (MessageId on its row) or, for rows shown
+	-- without one, its timestamp
+	local reactHandler: ((target: string | number, emoji: string) -> ())? = nil
+	local emojiPicker = EmojiPicker.create({
+		container = container,
+		widget = widget,
+		getThemeColors = function()
+			return themeColors
+		end,
+		getMousePosition = function()
+			return widget:GetRelativeMousePosition()
+		end,
+		getScore = function(entry)
+			return UsageTracker.getCount("emoji", entry.name)
+		end,
+	})
+	local function pickReaction(target: string | number)
+		hideContextMenu()
+		emojiPicker.open(function(entry)
+			UsageTracker.record("emoji", entry.name)
+			if reactHandler then
+				reactHandler(target, entry.emoji)
+			end
+		end)
+	end
+	contextMenu.handlers.react = function(timestamp: number, messageId: string?)
+		pickReaction(messageId or timestamp)
+	end
 
 	local function updateScrollState()
 		isScrollAtBottom = scrollFrame.CanvasPosition.Y >= getMaxScroll() - SCROLL_BOTTOM_THRESHOLD
@@ -2063,6 +2096,7 @@ function ChatUI.create(pluginInstance)
 		scrollButton.TextColor3 = themeColors.menuItemText or themeColors.messageText
 		scrollButtonStroke.Color = themeColors.menuBorder
 		recolorContextMenu()
+		emojiPicker.recolor()
 		divider.BackgroundColor3 = themeColors.divider
 		inputFrame.BackgroundColor3 = themeColors.inputFrame
 		header.recolor()
@@ -2211,6 +2245,8 @@ function ChatUI.create(pluginInstance)
 					canDelete = isMine or ranIt,
 					canPin = canPin,
 					pinned = pinnedTimestamps[timestamp] == true,
+					canReact = canPin,
+					messageId = msgContainer:GetAttribute("MessageId"),
 				})
 			end
 		end)
@@ -2262,7 +2298,10 @@ function ChatUI.create(pluginInstance)
 		-- Right-click context menu for announcement interactions (Discord-style)
 		msgContainer.InputBegan:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton2 then
-				contextMenu.show(timestamp)
+				contextMenu.show(timestamp, {
+					canReact = editing.myUserId > 0,
+					messageId = msgContainer:GetAttribute("MessageId"),
+				})
 			end
 		end)
 	end
@@ -2304,7 +2343,10 @@ function ChatUI.create(pluginInstance)
 		-- Right-click context menu for poll interactions (Discord-style)
 		msgContainer.InputBegan:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton2 then
-				contextMenu.show(timestamp)
+				contextMenu.show(timestamp, {
+					canReact = editing.myUserId > 0,
+					messageId = msgContainer:GetAttribute("MessageId"),
+				})
 			end
 		end)
 	end
@@ -2365,7 +2407,10 @@ function ChatUI.create(pluginInstance)
 		-- Right-click context menu for file interactions (Discord-style)
 		msgContainer.InputBegan:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton2 then
-				contextMenu.show(timestamp)
+				contextMenu.show(timestamp, {
+					canReact = editing.myUserId > 0,
+					messageId = msgContainer:GetAttribute("MessageId"),
+				})
 			end
 		end)
 	end
@@ -2542,14 +2587,14 @@ function ChatUI.create(pluginInstance)
 		conversationSidebar.entries = entries
 		conversationSidebar.activeId = activeId
 		conversationSidebar.list.update(entries, activeId)
-		-- All unread messages in the widget's title, like "(3) Team Chat 1.15.3",
+		-- All unread messages in the widget's title, like "Team Chat 1.26.0 (3)",
 		-- so they show while the chat is a tab or out of view
 		local total = 0
 		for _, entry in ipairs(entries) do
 			total += entry.unread or 0
 		end
 		widget.Title = if total > 0
-			then string.format("(%s) %s", if total > 99 then "99+" else tostring(total), baseTitle)
+			then string.format("%s (%s)", baseTitle, if total > 99 then "99+" else tostring(total))
 			else baseTitle
 	end
 
@@ -2734,6 +2779,87 @@ function ChatUI.create(pluginInstance)
 
 	local function onDelete(fn)
 		contextMenu.handlers.delete = fn
+	end
+
+	--!
+	-- Registers what reacting does: fn(timestamp, emoji) adds or removes yours.
+	--!
+	local function onReact(fn)
+		reactHandler = fn
+	end
+
+	-- "builderman and Roblox reacted with 👍" (at most 3 names)
+	local function describeReaction(reaction): string
+		local names = reaction.names or {}
+		local shown = {}
+		for index = 1, math.min(3, #names) do
+			table.insert(shown, names[index])
+		end
+		local list = table.concat(shown, ", ")
+		if #names > 3 then
+			return Language.t("reactions.whoMore", { names = list, count = #names - 3, emoji = reaction.emoji })
+		end
+		return Language.t("reactions.who", { names = list, emoji = reaction.emoji })
+	end
+
+	-- A saved message's row: by its name (MessageId) or, failing that, the
+	-- newest row with its timestamp
+	local function rowOf(target: string | number, untaggedOnly: boolean?): Frame?
+		local found = nil
+		for _, child in ipairs(scrollFrame:GetChildren()) do
+			if child:IsA("Frame") and not child:GetAttribute("IsSystem") and not child:GetAttribute("Ephemeral") then
+				local id = child:GetAttribute("MessageId")
+				if type(target) == "string" then
+					if id == target then
+						return child
+					end
+				elseif child:GetAttribute("Timestamp") == target and not (untaggedOnly and id) then
+					found = child
+				end
+			end
+		end
+		return found
+	end
+
+	--!
+	-- Marks the row just shown for a saved message with the message's name,
+	-- so reactions find the right one when messages share a second.
+	--!
+	local function tagMessage(timestamp: number, messageId: string)
+		local row = rowOf(timestamp, true)
+		if row then
+			row:SetAttribute("MessageId", messageId)
+		end
+	end
+
+	--!
+	-- Shows a message's reactions (Services/Chat/Reactions.read) under it.
+	-- target: the message's name (or its timestamp).
+	--!
+	local function setReactions(target: string | number, reactions)
+		local row = rowOf(target)
+		if not row then
+			return
+		end
+		Messages.setReactions(row, reactions, themeColors, {
+			toggle = function(emoji: string)
+				if reactHandler then
+					reactHandler(target, emoji)
+				end
+			end,
+			add = function()
+				pickReaction(target)
+			end,
+			hover = function(button, reaction)
+				if not button then
+					badgeTooltip.hide()
+				elseif reaction then
+					badgeTooltip.show(button, describeReaction(reaction))
+				else
+					badgeTooltip.show(button, Language.t("menu.addReaction"))
+				end
+			end,
+		})
 	end
 
 	--!
@@ -3034,6 +3160,10 @@ function ChatUI.create(pluginInstance)
 		onDelete = onDelete,
 		onPin = onPin,
 		setPins = setPins,
+		onReact = onReact,
+		setReactions = setReactions,
+		tagMessage = tagMessage,
+		emojiPicker = emojiPicker,
 		pinsPanel = pinsPanel,
 		developerDialog = developerDialog,
 		adminDialog = adminDialog,

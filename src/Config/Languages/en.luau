@@ -92,6 +92,7 @@ return {
 		["menu.copy"] = "Copy",
 		["menu.pin"] = "Pin Message",
 		["menu.unpin"] = "Unpin Message",
+		["menu.addReaction"] = "Add Reaction",
 		["menu.delete"] = "Delete",
 
 		-- Sidebar
@@ -575,6 +576,16 @@ return {
 		["pins.signedOut"] = "Sign in to Studio to pin messages.",
 		["pins.notFound"] = "That message can't be pinned: only saved messages can.",
 		["pins.full"] = "This conversation has 50 pinned messages already. Unpin one first.",
+		-- Emoji reactions
+		["reactions.search"] = "Find the perfect emoji",
+		["reactions.none"] = "No emoji match that.",
+		["reactions.hint"] = "Pick an emoji to react with",
+		["reactions.who"] = "{names} reacted with {emoji}",
+		["reactions.whoMore"] = "{names} and {count} more reacted with {emoji}",
+		["reactions.signedOut"] = "Sign in to Studio to react to messages.",
+		["reactions.invalid"] = "Reactions are emoji only.",
+		["reactions.notFound"] = "That message can't get reactions: only saved messages can.",
+		["reactions.full"] = "This message has 20 different reactions already.",
 		-- Admin dashboard: sections, overview and charts
 		["admin.section.overview"] = "Overview",
 		["admin.section.members"] = "Members",

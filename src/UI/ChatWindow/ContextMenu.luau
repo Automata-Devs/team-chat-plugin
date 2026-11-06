@@ -2,16 +2,18 @@
 --[[
 	ContextMenu
 
-	The right-click menu on messages: Reply, Edit Message (your own text
-	messages only), Pin / Unpin Message, Copy and (red, below a divider)
-	Delete (your own messages only), opened next to the cursor and kept inside the panel. Its item
+	The right-click menu on messages: Add Reaction, Reply, Edit Message (your
+	own text messages only), Pin / Unpin Message, Copy and (red, below a
+	divider) Delete (your own messages only), opened next to the cursor and
+	kept inside the panel. Its item
 	style (icon + label, red for destructive actions) is also used by the plus
 	menu through createItem().
 
 	Usage:
 		local menu = ContextMenu.create({ container = container, widget = widget, getThemeColors = getTheme })
 		menu.handlers.reply = function(timestamp) ... end
-		menu.show(timestamp, { canEdit = true, canDelete = true, canPin = true, pinned = false })   -- on right-click
+		menu.handlers.react = function(timestamp) ... end -- opens the emoji picker
+		menu.show(timestamp, { canEdit = true, canDelete = true, canPin = true, pinned = false, canReact = true })
 		menu.createItem("Create Poll", "createPoll", 1, false, plusMenuFrame)
 ]]
 
@@ -41,9 +43,18 @@ export type Handlers = {
 	copy: ((timestamp: number) -> ())?,
 	delete: ((timestamp: number) -> ())?,
 	pin: ((timestamp: number, pinned: boolean) -> ())?, -- pinned: pin it (false: unpin)
+	-- Add Reaction: pick an emoji for it (messageId: the saved message's name, when known)
+	react: ((timestamp: number, messageId: string?) -> ())?,
 }
 
-export type ShowOptions = { canEdit: boolean?, canDelete: boolean?, canPin: boolean?, pinned: boolean? }
+export type ShowOptions = {
+	canEdit: boolean?,
+	canDelete: boolean?,
+	canPin: boolean?,
+	pinned: boolean?,
+	canReact: boolean?,
+	messageId: string?,
+}
 
 export type ContextMenu = {
 	frame: Frame,
@@ -191,11 +202,12 @@ function ContextMenu.create(options: Options): ContextMenu
 		return item
 	end
 
-	local replyItem = createItem("Reply", "reply", 1, nil, nil, "menu.reply")
-	local editItem = createItem("Edit Message", "edit", 2, nil, nil, "menu.edit")
-	local pinItem = createItem("Pin Message", "pinned", 3, nil, nil, "menu.pin")
-	local unpinItem = createItem("Unpin Message", "pinned", 3, nil, nil, "menu.unpin")
-	local copyItem = createItem("Copy", "copy", 4, nil, nil, "menu.copy")
+	local addReaction = createItem("Add Reaction", "emoji", 1, nil, nil, "menu.addReaction")
+	local replyItem = createItem("Reply", "reply", 2, nil, nil, "menu.reply")
+	local editItem = createItem("Edit Message", "edit", 3, nil, nil, "menu.edit")
+	local pinItem = createItem("Pin Message", "pinned", 4, nil, nil, "menu.pin")
+	local unpinItem = createItem("Unpin Message", "pinned", 4, nil, nil, "menu.unpin")
+	local copyItem = createItem("Copy", "copy", 5, nil, nil, "menu.copy")
 
 	-- Thin separator so the destructive action sits apart at the bottom
 	local divider = Instance.new("Frame")
@@ -203,14 +215,15 @@ function ContextMenu.create(options: Options): ContextMenu
 	divider.Size = UDim2.new(1, 0, 0, 1)
 	divider.BackgroundColor3 = colors().menuBorder
 	divider.BorderSizePixel = 0
-	divider.LayoutOrder = 5
+	divider.LayoutOrder = 6
 	divider.ZIndex = 21
 	divider.Parent = frame
 
-	local deleteItem = createItem("Delete", "delete", 6, true, nil, "menu.delete")
+	local deleteItem = createItem("Delete", "delete", 7, true, nil, "menu.delete")
 
 	local menu: ContextMenu
 	local targetTimestamp: number? = nil
+	local targetMessageId: string? = nil
 	-- Where the menu was opened (widget coordinates), so it can be re-placed
 	-- once its automatic height is known.
 	local cursor = Vector2.zero
@@ -243,6 +256,7 @@ function ContextMenu.create(options: Options): ContextMenu
 	local function hide()
 		frame.Visible = false
 		targetTimestamp = nil
+		targetMessageId = nil
 	end
 
 	local function run(handler: ((number) -> ())?)
@@ -280,6 +294,15 @@ function ContextMenu.create(options: Options): ContextMenu
 			end
 			else nil)
 	end)
+	addReaction.MouseButton1Click:Connect(function()
+		local handler = menu.handlers.react
+		local messageId = targetMessageId
+		run(if handler
+			then function(timestamp)
+				handler(timestamp, messageId)
+			end
+			else nil)
+	end)
 
 	-- Any click outside the menu closes it (its padding and divider do nothing)
 	container.InputBegan:Connect(function(input: InputObject)
@@ -298,12 +321,14 @@ function ContextMenu.create(options: Options): ContextMenu
 		hide = hide,
 		show = function(timestamp: number, showOptions: ShowOptions?)
 			targetTimestamp = timestamp
+			targetMessageId = showOptions and showOptions.messageId
 			editItem.Visible = showOptions ~= nil and showOptions.canEdit == true
 			deleteItem.Visible = showOptions ~= nil and showOptions.canDelete == true
 			local canPin = showOptions ~= nil and showOptions.canPin == true
 			local pinned = showOptions ~= nil and showOptions.pinned == true
 			pinItem.Visible = canPin and not pinned
 			unpinItem.Visible = canPin and pinned
+			addReaction.Visible = showOptions ~= nil and showOptions.canReact == true and menu.handlers.react ~= nil
 			divider.Visible = deleteItem.Visible
 			cursor = widget:GetRelativeMousePosition()
 			frame.Visible = true

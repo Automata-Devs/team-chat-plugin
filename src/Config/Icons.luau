@@ -60,6 +60,7 @@ Icons.NAMES = {
 	attachFile = "page",
 	dropFile = "arrow-down-to-line",
 	close = "x",
+	emoji = "circle-face-emoji",
 
 	-- Media playback
 	play = "play-large",

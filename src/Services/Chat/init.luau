@@ -7,6 +7,7 @@
 --   Chat/MessageEvents – event listeners for incoming messages
 --   Chat/Conversations – the pinned team chat plus direct messages
 --   Chat/Pins          – pinned messages
+--   Chat/Reactions     – emoji reactions on messages
 --!
 
 local PluginConfig = require(script.Parent.Parent.Config.Constants)
@@ -17,6 +18,7 @@ local PollManager = require(script.Polls)
 local TypingIndicator = require(script.Typing)
 local Conversations = require(script.Conversations)
 local Pins = require(script.Pins)
+local Reactions = require(script.Reactions)
 
 local AdminNetwork = require(script.Parent.Admin)
 
@@ -59,6 +61,10 @@ ChatNetwork.Conversations = Conversations
 -- ── Pinned messages (Pins) ──
 
 ChatNetwork.Pins = Pins
+
+-- ── Emoji reactions (Reactions) ──
+
+ChatNetwork.Reactions = Reactions
 
 -- ── Typing Indicator (TypingIndicator) ──
 

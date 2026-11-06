@@ -16,6 +16,7 @@ local Announcement = require(script.Announcement)
 local Author = require(script.Author)
 local FileMessage = require(script.FileMessage)
 local PollMessage = require(script.PollMessage)
+local Reactions = require(script.Reactions)
 local Recolor = require(script.Recolor)
 local Shared = require(script.Shared)
 local TextMessage = require(script.TextMessage)
@@ -34,6 +35,7 @@ Messages.applyMention = Shared.applyMention
 Messages.addOnlyYouNote = Shared.addOnlyYouNote
 Messages.markBot = Author.markBot
 Messages.mentionsMe = Shared.mentionsMe
+Messages.setReactions = Reactions.render
 
 --[=[
 	Sets the message text size ("Small" | "Default" | "Large").

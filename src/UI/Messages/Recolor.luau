@@ -12,6 +12,7 @@ local EmbedManager = require(script.Parent.Parent.Embeds.EmbedManager)
 local Components = require(script.Parent.Parent.Embeds.Components)
 local MentionPills = require(script.Parent.Parent.MentionPills)
 local MessageText = require(script.Parent.Parent.MessageText)
+local Reactions = require(script.Parent.Reactions)
 local RichText = require(script.Parent.Parent.Parent.Util.RichText)
 local Shared = require(script.Parent.Shared)
 
@@ -40,6 +41,7 @@ function Recolor.apply(container, themeColors)
 		container.BackgroundColor3 = themeColors.menuItemHover
 	end
 	Shared.recolorOnlyYouNote(container, themeColors)
+	Reactions.recolor(container, themeColors)
 	local buttons = container:FindFirstChild("Components")
 	if buttons then
 		Components.recolor(buttons, themeColors)

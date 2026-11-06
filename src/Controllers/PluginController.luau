@@ -15,6 +15,7 @@ local Mentions = require(script.Parent.Parent.Util.Mentions)
 local Markdown = require(script.Parent.Parent.Util.Markdown)
 local Profiles = require(script.Parent.Parent.Services.Profiles)
 local Preferences = require(script.Parent.Parent.UI.Preferences)
+local ToolbarIcons = require(script.Parent.Parent.Config.ToolbarIcons)
 
 local NOTIFY_AFTER = 3 -- seconds after loading: the place's messages replicate in first
 local NOTIFY_MAX_AGE = 30 -- seconds; older messages arriving don't notify
@@ -25,8 +26,7 @@ local PluginController = {}
 function PluginController.init(pluginRef, ui, chatNetwork, commandHandler)
 	local toolbar = pluginRef:CreateToolbar("Team Chat")
 
-	local toggleButton =
-		toolbar:CreateButton("ToggleTeamChat", "Open or close Team Chat", "rbxassetid://104410097861078", "Chat")
+	local toggleButton = toolbar:CreateButton("ToggleTeamChat", "Open or close Team Chat", ToolbarIcons.BASE, "Chat")
 
 	local settingsButton = toolbar:CreateButton(
 		"ToggleTeamChatSettings",
@@ -241,6 +241,21 @@ function PluginController.init(pluginRef, ui, chatNetwork, commandHandler)
 		end)
 	end
 
+	-- A message's reactions under it (here or added by someone else)
+	local function showReactions(child: Instance)
+		if ui.setReactions then
+			ui.setReactions(child.Name, chatNetwork.Reactions.read(child))
+		end
+	end
+
+	-- The row just drawn for a saved message knows its name (messages can
+	-- share a second; reactions must go on the right one)
+	local function tagRow(child: Instance)
+		if ui.tagMessage then
+			ui.tagMessage(child:GetAttribute("Timestamp"), child.Name)
+		end
+	end
+
 	local function showMessage(child)
 		if shown[child] then
 			return
@@ -253,6 +268,7 @@ function PluginController.init(pluginRef, ui, chatNetwork, commandHandler)
 			return -- someone else's ephemeral bot answer
 		end
 		renderEntry(entry)
+		tagRow(child)
 		if entry.botId then
 			-- A bot changed the message (a deferred answer, a button's update):
 			-- draw it again where it was
@@ -263,6 +279,8 @@ function PluginController.init(pluginRef, ui, chatNetwork, commandHandler)
 					local updated = chatNetwork.readEntry(child)
 					updated.instance = child
 					renderEntry(updated)
+					tagRow(child)
+					showReactions(child)
 				end)
 			)
 		end
@@ -272,6 +290,17 @@ function PluginController.init(pluginRef, ui, chatNetwork, commandHandler)
 
 		-- Pins (here or by someone else)
 		table.insert(bindings, Lifetime.connect(child:GetAttributeChangedSignal("Pinned"), refreshPins))
+
+		-- Reactions (here or by someone else)
+		if chatNetwork.Reactions.has(child) then
+			showReactions(child)
+		end
+		table.insert(
+			bindings,
+			Lifetime.connect(child:GetAttributeChangedSignal("Reactions"), function()
+				showReactions(child)
+			end)
+		)
 
 		-- Edits (here or by the author on another computer)
 		table.insert(
@@ -343,8 +372,22 @@ function PluginController.init(pluginRef, ui, chatNetwork, commandHandler)
 		)
 	end
 
+	-- The toolbar button shows your unread count, like the chat's badges
+	local function showUnreadOnToolbar(entries)
+		local total = 0
+		for _, entry in ipairs(entries) do
+			total += entry.unread or 0
+		end
+		local icon = ToolbarIcons.forCount(total)
+		if toggleButton.Icon ~= icon then
+			toggleButton.Icon = icon
+		end
+	end
+
 	local function refreshConversationList()
-		ui.setConversations(Conversations.list(), Conversations.getActiveId())
+		local entries = Conversations.list()
+		ui.setConversations(entries, Conversations.getActiveId())
+		showUnreadOnToolbar(entries)
 	end
 
 	-- Who's typing in the open conversation (the team chat or a DM)
@@ -534,6 +577,16 @@ function PluginController.init(pluginRef, ui, chatNetwork, commandHandler)
 					Language.t("pins.notice", { user = "**" .. chatNetwork.getUsername() .. "**" }),
 					"pin"
 				)
+			end
+		end)
+	end
+
+	-- Reactions: picking an emoji or clicking a reaction adds or removes yours
+	if ui.onReact then
+		ui.onReact(function(timestamp, emoji)
+			local ok, problem = chatNetwork.Reactions.toggle(timestamp, emoji)
+			if not ok then
+				ui.addSystemMessage(Language.t("reactions." .. tostring(problem)))
 			end
 		end)
 	end

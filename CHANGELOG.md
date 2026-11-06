@@ -3,6 +3,35 @@
 Developer-facing history of the codebase. User-facing notes ("What's New")
 are in `src/Config/Changelog.luau`. Format: [Keep a Changelog](https://keepachangelog.com).
 
+## [1.26.0] - 2026-11-06
+
+### Added
+- `Services/Chat/Reactions` (`ChatNetwork.Reactions`): emoji reactions saved
+  on the message as a `Reactions` attribute (JSON `[{e, u, n}]`, at most 20
+  different emoji), kept in chat history. `toggle` takes the message's name
+  (or a timestamp) and adds or removes yours; `read` gives
+  `{emoji, count, users, names, mine}`.
+- `UI/ChatWindow/EmojiPicker`: search, a grid ordered by `Usage` emoji counts
+  and the hovered `:name:`. Opened by the context menu's Add Reaction (now its
+  first item, shown with `canReact`) and by the button after a message's
+  reactions.
+- `UI/Messages/Reactions`: the pills under a message (yours outlined), a
+  hover tooltip with who reacted, re-themed by `Recolor`.
+- Rows of saved messages get a `MessageId` (`ui.tagMessage`, from
+  `PluginController.showMessage`), so reactions reach the right message when
+  two share a second; `ui.setReactions` / `ui.onReact`.
+- `Config/ToolbarIcons`: the toolbar button's icon with the unread count
+  (1-9, 9+), uploaded images made by `tools/make_badge_icons.py`;
+  `PluginController` sets it from the conversation list.
+- Reactions spec.
+
+### Changed
+- The widget title puts the unread count last: `Team Chat 1.26.0 (3)`.
+
+### Removed
+- `:melting:` and `:saluting:` from `Util/EmojiData` (Emoji 14: Roblox draws
+  them as empty boxes).
+
 ## [1.25.1] - 2026-11-06
 
 ### Changed

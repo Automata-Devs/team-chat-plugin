@@ -119,7 +119,7 @@ return function(t)
 			table.insert(copies, copy)
 		end
 		ui.setConversations(copies, Conversations.getActiveId())
-		t.equal("unread messages show in the title", hooks.title, "(4) " .. base)
+		t.equal("unread messages show in the title", hooks.title, base .. " (4)")
 		copies[1].unread = 0
 		ui.setConversations(copies, Conversations.getActiveId())
 		t.equal("…and leave it when read", hooks.title, base)
