@@ -2747,32 +2747,57 @@ function ChatUI.create(pluginInstance)
 	settingsDialog.restore()
 	applyTheme(settingsDialog.resolveTheme())
 
-	-- The Settings window: General, Badges, What's New, Admin, Developer and About as tabs
+	-- The Settings window, its tabs in groups: Team Chat (General, Badges),
+	-- Manage (Admin, Developer) and Info (What's New, About)
 	local settingsTabs = SettingsTabs.create({
 		{
 			name = "General",
 			icon = "settings",
 			labelKey = "tab.general",
 			titleKey = "title.settings",
+			group = "chat",
 			dialog = settingsDialog,
 		},
-		{ name = "Badges", icon = "badges", labelKey = "tab.badges", titleKey = "title.badges", dialog = badgesDialog },
 		{
-			name = "What's New",
-			icon = "whatsNew",
-			labelKey = "tab.whatsNew",
-			titleKey = "title.whatsNew",
-			dialog = changelog,
+			name = "Badges",
+			icon = "badges",
+			labelKey = "tab.badges",
+			titleKey = "title.badges",
+			group = "chat",
+			dialog = badgesDialog,
 		},
-		{ name = "Admin", icon = "admin", labelKey = "tab.admin", titleKey = "title.admin", dialog = adminDialog },
+		{
+			name = "Admin",
+			icon = "admin",
+			labelKey = "tab.admin",
+			titleKey = "title.admin",
+			group = "manage",
+			dialog = adminDialog,
+		},
 		{
 			name = "Developer",
 			icon = "developer",
 			labelKey = "tab.developer",
 			titleKey = "title.developer",
+			group = "manage",
 			dialog = developerDialog,
 		},
-		{ name = "About", icon = "about", labelKey = "tab.about", titleKey = "title.about", dialog = aboutDialog },
+		{
+			name = "What's New",
+			icon = "whatsNew",
+			labelKey = "tab.whatsNew",
+			titleKey = "title.whatsNew",
+			group = "info",
+			dialog = changelog,
+		},
+		{
+			name = "About",
+			icon = "about",
+			labelKey = "tab.about",
+			titleKey = "title.about",
+			group = "info",
+			dialog = aboutDialog,
+		},
 	}, getThemeColors)
 	conversationSidebar.settingsTabs = settingsTabs
 

@@ -3,6 +3,21 @@
 Developer-facing history of the codebase. User-facing notes ("What's New")
 are in `src/Config/Changelog.luau`. Format: [Keep a Changelog](https://keepachangelog.com).
 
+## [1.25.1] - 2026-11-06
+
+### Changed
+- `SettingsTabs`: the tab column and the open dialog's card are one window.
+  A `SettingsWindow` frame behind both draws the background, the outline
+  (the card's own `DialogStroke` is turned off), a divider and a
+  `CornerFill` that squares the card's left corners; the column no longer
+  tucks under the card. Tabs take a `group` and are listed under its
+  heading (`Group_<group>`, `tab.group.*`; a thin rule when narrow); the
+  plugin version (`tab.version`) is at the bottom. The open tab's `Pill`
+  sits inside its highlight. New palette colours `navBack` and
+  `navSelected`. Tabs are ordered General, Badges | Admin, Developer |
+  What's New, About.
+- Polish spec checks the window, the groups and the version.
+
 ## [1.25.0] - 2026-11-06
 
 ### Added

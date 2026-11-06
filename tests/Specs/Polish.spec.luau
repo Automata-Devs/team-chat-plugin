@@ -105,6 +105,25 @@ return function(t)
 			(general:FindFirstChild("Icon") :: TextLabel).Text ~= ""
 				and (general:FindFirstChild("Label") :: TextLabel).Text == "General"
 		)
+		local window = overlay:FindFirstChild("SettingsWindow") :: Frame
+		local function edge(gui: GuiObject): number
+			return gui.AbsolutePosition.X + gui.AbsoluteSize.X
+		end
+		t.check(
+			"the tabs and the page are one window",
+			window ~= nil
+				and math.abs(window.AbsolutePosition.X - nav.AbsolutePosition.X) <= 1
+				and math.abs(edge(window) - edge(card)) <= 1
+				and math.abs(edge(nav) - card.AbsolutePosition.X) <= 1
+		)
+		t.check(
+			"…with the tabs in groups",
+			nav:FindFirstChild("Group_chat") ~= nil
+				and nav:FindFirstChild("Group_manage") ~= nil
+				and nav:FindFirstChild("Group_info") ~= nil
+		)
+		local version = window and window:FindFirstChild("Version") :: TextLabel
+		t.check("…and the version at the bottom", version ~= nil and string.find(version.Text, "%d+%.%d+") ~= nil)
 		t.check(
 			"settings has Animations and Notifications",
 			gui:FindFirstChild("Setting_notifications", true) ~= nil

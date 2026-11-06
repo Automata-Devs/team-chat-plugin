@@ -46,10 +46,14 @@ return {
 		title = "Team Chat 1",
 		updates = {
 			{
-				version = "1.25.0",
+				version = "1.25.1",
 				date = "06/11/2026",
 				title = "Advanced dashboard & developer portal",
 				changes = {
+					{
+						type = "changed",
+						text = "The Settings window's tabs and page are one window now: the tabs sit in their own column with a divider, in groups (Team Chat, Manage, Info), with the plugin's version at the bottom.",
+					},
 					{
 						type = "added",
 						text = "The admin dashboard has sections: an overview with messages per day, busiest hours and the most active people; members with a search and a details page (warnings, mute timer, messages) with reasons and mute lengths; an audit log of every moderation action; and chat tools: blocked words, purging, exporting the chat and automatic backups.",
