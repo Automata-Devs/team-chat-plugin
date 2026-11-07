@@ -92,7 +92,7 @@ function ContextMenu.create(options: Options): ContextMenu
 	frame.Parent = container
 
 	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, 6)
+	corner.CornerRadius = UDim.new(0, 8)
 	corner.Parent = frame
 
 	local layout = Instance.new("UIListLayout")

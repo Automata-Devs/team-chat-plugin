@@ -15,6 +15,7 @@
 local Announcement = require(script.Announcement)
 local Author = require(script.Author)
 local FileMessage = require(script.FileMessage)
+local Grouping = require(script.Grouping)
 local PollMessage = require(script.PollMessage)
 local Reactions = require(script.Reactions)
 local Recolor = require(script.Recolor)
@@ -36,6 +37,7 @@ Messages.addOnlyYouNote = Shared.addOnlyYouNote
 Messages.markBot = Author.markBot
 Messages.mentionsMe = Shared.mentionsMe
 Messages.setReactions = Reactions.render
+Messages.group = Grouping.attach -- Discord-style groups and the row hover
 
 --[=[
 	Sets the message text size ("Small" | "Default" | "Large").

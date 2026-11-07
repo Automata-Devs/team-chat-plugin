@@ -44,14 +44,14 @@ return function(t)
 		t.check(
 			"announcement renders with its body",
 			announcement ~= nil
-				and announcement:FindFirstChild("Body") ~= nil
-				and (announcement :: any).Body.Text == "Server restart at 5"
+				and announcement:FindFirstChild("Body", true) ~= nil
+				and (announcement:FindFirstChild("Body", true) :: TextLabel).Text == "Server restart at 5"
 		)
 
 		local poll = row(base + 2)
 		t.check(
 			"poll card renders its question",
-			poll ~= nil and (poll:FindFirstChild("Question") :: TextLabel).Text == "Tabs or spaces?"
+			poll ~= nil and (poll:FindFirstChild("Question", true) :: TextLabel).Text == "Tabs or spaces?"
 		)
 		ui.updatePollMessage(
 			base + 2,

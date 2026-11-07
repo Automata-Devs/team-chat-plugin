@@ -8,6 +8,7 @@
 --!
 
 local Browser = require(script.Parent.Parent.Parent.Core.Browser)
+local Foundation = require(script.Parent.Parent.Foundation)
 local Icons = require(script.Parent.Parent.Parent.Config.Icons)
 local Language = require(script.Parent.Parent.Parent.Core.Language)
 local ModalKit = require(script.Parent.ModalKit)
@@ -60,7 +61,7 @@ function PurchaseDialog.create(kit, params)
 	summary.LayoutOrder = 2
 	summary.ZIndex = z
 	summary.Parent = card
-	corner(summary, 10)
+	corner(summary, 8)
 
 	local tile = Instance.new("TextLabel")
 	tile.Name = "Icon"
@@ -73,7 +74,7 @@ function PurchaseDialog.create(kit, params)
 	tile.TextSize = 26
 	tile.ZIndex = z + 1
 	tile.Parent = summary
-	corner(tile, 10)
+	corner(tile, 8)
 
 	local info = Instance.new("TextLabel")
 	info.Name = "Info"
@@ -187,11 +188,9 @@ function PurchaseDialog.create(kit, params)
 				elseif state == "waiting" then "checkout.openAgain"
 				else "checkout.tryAgain"
 		)
-		continueButton.BackgroundColor3 = palette.dialogButton
-		continueButton.TextColor3 = palette.dialogButtonText
+		Foundation.button(continueButton, palette, "emphasis")
 		cancelButton.Text = Language.t(if done then "checkout.done" else "common.cancel")
-		cancelButton.BackgroundColor3 = palette.dialogSecondary
-		cancelButton.TextColor3 = palette.menuItemText or palette.messageText
+		Foundation.button(cancelButton, palette, "standard")
 		ModalKit.recolorText(card, palette)
 	end
 

@@ -50,7 +50,7 @@ function Tooltip.create(parent: GuiBase2d, palette: Palette)
 	sizeConstraint.MaxSize = Vector2.new(MAX_WIDTH, math.huge)
 	sizeConstraint.Parent = label
 	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, 6)
+	corner.CornerRadius = UDim.new(0, 4)
 	corner.Parent = label
 	local padding = Instance.new("UIPadding")
 	padding.PaddingLeft = UDim.new(0, 8)

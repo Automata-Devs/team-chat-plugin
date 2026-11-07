@@ -190,7 +190,7 @@ function PluginController.init(pluginRef, ui, chatNetwork, commandHandler)
 				end,
 			})
 		elseif msg.messageType == "Poll" and msg.pollData then
-			ui.addPollMessage(msg.sender, msg.timestamp, msg.pollData, replyRef)
+			ui.addPollMessage(msg.sender, msg.timestamp, msg.pollData, replyRef, msg.senderId)
 		elseif msg.messageType == "File" and msg.fileName then
 			ui.addFileMessage(
 				msg.sender,

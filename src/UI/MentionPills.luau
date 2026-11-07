@@ -26,7 +26,7 @@ local TextLayout = require(script.Parent.TextLayout)
 
 local PILL_PADDING = 2 -- extra width on each side of the mention
 local PILL_RADIUS = 4
-local CODE_RADIUS = 3
+local CODE_RADIUS = 4
 
 type TextObject = TextLabel | TextBox
 

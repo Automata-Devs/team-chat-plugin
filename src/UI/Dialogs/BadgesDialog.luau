@@ -6,6 +6,7 @@
 -- given by the controller (UI doesn't require services).
 --!
 
+local Foundation = require(script.Parent.Parent.Foundation)
 local Icons = require(script.Parent.Parent.Parent.Config.Icons)
 local Language = require(script.Parent.Parent.Parent.Core.Language)
 local Lifetime = require(script.Parent.Parent.Parent.Core.Lifetime)
@@ -86,7 +87,7 @@ function BadgesDialog.create(kit, params)
 	refreshButton.LayoutOrder = 10
 	refreshButton.ZIndex = z + 1
 	refreshButton.Parent = card
-	corner(refreshButton, 6)
+	corner(refreshButton, 8)
 
 	local status = ModalKit.addText(card, "muted", "", 11, z, colors)
 	status.Name = "Status"
@@ -168,7 +169,7 @@ function BadgesDialog.create(kit, params)
 		buy.TextSize = 13
 		buy.ZIndex = z + 2
 		buy.Parent = row
-		corner(buy, 6)
+		corner(buy, 8)
 
 		if item.owned then
 			buy.Text = Language.t("badges.owned")
@@ -184,9 +185,7 @@ function BadgesDialog.create(kit, params)
 			buy.Text = if item.price
 				then Icons.inline("robux", false, 13) .. " " .. tostring(item.price)
 				else Language.t("badges.buy")
-			buy.AutoButtonColor = true
-			buy.BackgroundColor3 = palette.dialogButton
-			buy.TextColor3 = palette.dialogButtonText
+			Foundation.button(buy, palette, "emphasis")
 			buy.MouseButton1Click:Connect(function()
 				if params.onBuy then
 					params.onBuy(item) -- the checkout (PurchaseDialog)
@@ -218,8 +217,7 @@ function BadgesDialog.create(kit, params)
 		local handlers = params.getHandlers()
 		mine.Text = describeBadges(if handlers then handlers.myBadges() else {})
 		renderVerifiedText()
-		refreshButton.BackgroundColor3 = palette.dialogSecondary
-		refreshButton.TextColor3 = palette.menuItemText or palette.messageText
+		Foundation.button(refreshButton, palette, "standard")
 		ModalKit.recolorText(card, palette)
 		renderStore()
 	end

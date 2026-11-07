@@ -21,6 +21,8 @@
 
 local Animation = require(script.Parent.Parent.Animation)
 local EmojiData = require(script.Parent.Parent.Parent.Util.EmojiData)
+local Icons = require(script.Parent.Parent.Parent.Config.Icons)
+local Foundation = require(script.Parent.Parent.Foundation)
 local Language = require(script.Parent.Parent.Parent.Core.Language)
 local Pointer = require(script.Parent.Pointer)
 local Theme = require(script.Parent.Parent.Parent.Config.Theme)
@@ -96,12 +98,23 @@ function EmojiPicker.create(options: Options): EmojiPicker
 	search.Parent = frame
 	Language.bind(search, "PlaceholderText", "reactions.search")
 	local searchCorner = Instance.new("UICorner")
-	searchCorner.CornerRadius = UDim.new(0, 6)
+	searchCorner.CornerRadius = UDim.new(0, 8)
 	searchCorner.Parent = search
 	local searchPadding = Instance.new("UIPadding")
-	searchPadding.PaddingLeft = UDim.new(0, 10)
+	searchPadding.PaddingLeft = UDim.new(0, 30)
 	searchPadding.PaddingRight = UDim.new(0, 10)
 	searchPadding.Parent = search
+	-- A magnifying glass in the box, like Roblox's search fields
+	local searchIcon = Instance.new("TextLabel")
+	searchIcon.Name = "Icon"
+	searchIcon.AnchorPoint = Vector2.new(0, 0.5)
+	searchIcon.Position = UDim2.new(0, -22, 0.5, 0)
+	searchIcon.Size = UDim2.fromOffset(16, 16)
+	searchIcon.BackgroundTransparency = 1
+	searchIcon.TextSize = 14
+	searchIcon.ZIndex = Z + 2
+	Icons.apply(searchIcon, "search")
+	searchIcon.Parent = search
 
 	local gridTop = PADDING * 2 + SEARCH_HEIGHT
 	local grid = Instance.new("ScrollingFrame")
@@ -191,7 +204,8 @@ function EmojiPicker.create(options: Options): EmojiPicker
 		local palette = colors()
 		frame.BackgroundColor3 = palette.menuBack
 		stroke.Color = palette.menuBorder
-		search.BackgroundColor3 = palette.inputBox
+		Foundation.input(search, palette)
+		searchIcon.TextColor3 = palette.placeholder or palette.timestamp
 		search.TextColor3 = palette.textBoxText or palette.messageText
 		search.PlaceholderColor3 = palette.placeholder or palette.timestamp
 		grid.ScrollBarImageColor3 = palette.scrollBar or palette.timestamp
@@ -215,7 +229,7 @@ function EmojiPicker.create(options: Options): EmojiPicker
 		button.ZIndex = Z + 2
 		button.Parent = grid
 		local buttonCorner = Instance.new("UICorner")
-		buttonCorner.CornerRadius = UDim.new(0, 6)
+		buttonCorner.CornerRadius = UDim.new(0, 8)
 		buttonCorner.Parent = button
 		button.MouseEnter:Connect(function()
 			button.BackgroundTransparency = 0

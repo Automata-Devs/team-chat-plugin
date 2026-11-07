@@ -820,7 +820,7 @@ function DeveloperDialog.create(kit, params)
 		PanelKit.button(
 			kinds,
 			Language.t("dev.kindStudio"),
-			if newKind == "studio" then "primary" else "secondary",
+			if newKind == "studio" then "selected" else "choice",
 			1,
 			z,
 			colors,
@@ -833,7 +833,7 @@ function DeveloperDialog.create(kit, params)
 		PanelKit.button(
 			kinds,
 			Language.t("dev.kindWeb"),
-			if newKind == "web" then "primary" else "secondary",
+			if newKind == "web" then "selected" else "choice",
 			2,
 			z,
 			colors,

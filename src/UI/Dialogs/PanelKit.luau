@@ -13,6 +13,7 @@
 		PanelKit.button(row, "Save", "primary", 1, z, colors, function() ... end)
 ]]
 
+local Foundation = require(script.Parent.Parent.Foundation)
 local Theme = require(script.Parent.Parent.Parent.Config.Theme)
 
 local FONTS = Theme.FONTS
@@ -81,8 +82,7 @@ function PanelKit.text(
 	label.ZIndex = z
 	if role == "heading" then
 		label.FontFace = FONTS.bold
-		label.TextSize = 11
-		label.Text = string.upper(text)
+		label.TextSize = 12
 		label.TextColor3 = colors.timestamp
 	elseif role == "title" then
 		label.FontFace = FONTS.semibold
@@ -137,7 +137,10 @@ function PanelKit.row(parent: Instance, order: number, z: number): Frame
 end
 
 --[=[
-	A button. style: "primary" | "secondary" | "danger".
+	A button. style: "primary" | "secondary" | "danger", drawn as
+	Foundation's emphasis, standard and alert buttons; or a chip for a
+	pick-one switch: "choice", and "selected" for the chosen one (filled
+	with the text colour, like a Roblox filter chip).
 ]=]
 function PanelKit.button(
 	parent: Instance,
@@ -150,27 +153,26 @@ function PanelKit.button(
 ): TextButton
 	local button = Instance.new("TextButton")
 	button.Name = "Button"
-	button.AutoButtonColor = true
 	button.BorderSizePixel = 0
-	button.Size = UDim2.fromOffset(0, 28)
+	button.Size = UDim2.fromOffset(0, 32)
 	button.AutomaticSize = Enum.AutomaticSize.X
 	button.FontFace = FONTS.semibold
-	button.TextSize = 12
+	button.TextSize = 13
 	button.Text = text
 	button.LayoutOrder = order
 	button.ZIndex = z
-	if style == "primary" then
-		button.BackgroundColor3 = colors.dialogButton
-		button.TextColor3 = colors.dialogButtonText
-	elseif style == "danger" then
-		button.BackgroundColor3 = colors.danger
-		button.TextColor3 = Color3.new(1, 1, 1)
-	else
-		button.BackgroundColor3 = colors.menuItemHover
-		button.TextColor3 = colors.messageText
-	end
+	Foundation.button(
+		button,
+		colors,
+		if style == "primary"
+			then "emphasis"
+			elseif style == "danger" then "alert"
+			elseif style == "selected" then "subEmphasis"
+			else "standard"
+	)
+	button:SetAttribute("Selected", if style == "selected" then true else nil)
 	button.Parent = parent
-	corner(button, 6)
+	corner(button, if style == "selected" or style == "choice" then 999 else 8)
 	local p = Instance.new("UIPadding")
 	p.PaddingLeft = UDim.new(0, 12)
 	p.PaddingRight = UDim.new(0, 12)
@@ -194,9 +196,9 @@ function PanelKit.input(
 	local opts = options or {}
 	local input = Instance.new("TextBox")
 	input.Name = "Input"
-	input.BackgroundColor3 = colors.dialogInput
+	Foundation.input(input, colors)
 	input.BorderSizePixel = 0
-	input.Size = UDim2.new(opts.width or UDim.new(1, 0), UDim.new(0, 30))
+	input.Size = UDim2.new(opts.width or UDim.new(1, 0), UDim.new(0, 32))
 	input.ClearTextOnFocus = false
 	input.TextEditable = not opts.readOnly
 	input.FontFace = if opts.mono then FONTS.mono else FONTS.body
@@ -210,7 +212,7 @@ function PanelKit.input(
 	input.LayoutOrder = order
 	input.ZIndex = z
 	input.Parent = parent
-	corner(input, 6)
+	corner(input, 8)
 	local p = Instance.new("UIPadding")
 	p.PaddingLeft = UDim.new(0, 10)
 	p.PaddingRight = UDim.new(0, 10)
@@ -230,13 +232,13 @@ function PanelKit.pill(parent: Instance, text: string, color: Color3, order: num
 	pill.Size = UDim2.fromOffset(0, 18)
 	pill.AutomaticSize = Enum.AutomaticSize.X
 	pill.FontFace = FONTS.bold
-	pill.TextSize = 10
+	pill.TextSize = 11
 	pill.TextColor3 = color
-	pill.Text = string.upper(text)
+	pill.Text = text
 	pill.LayoutOrder = order
 	pill.ZIndex = z
 	pill.Parent = parent
-	corner(pill, 9)
+	corner(pill, 999)
 	local p = Instance.new("UIPadding")
 	p.PaddingLeft = UDim.new(0, 7)
 	p.PaddingRight = UDim.new(0, 7)
@@ -299,8 +301,9 @@ function PanelKit.avatar(
 end
 
 --[=[
-	Section tabs: a row of buttons, the selected one filled. items:
-	{ { key, label } }. onSelect(key) when one is clicked.
+	Section tabs: a row of chips (round buttons), the selected one filled
+	like a chosen Roblox filter chip. items: { { key, label } }. onSelect(key)
+	when one is clicked.
 ]=]
 function PanelKit.tabs(
 	parent: Instance,
@@ -317,7 +320,7 @@ function PanelKit.tabs(
 		local tab = PanelKit.button(
 			row,
 			item.label,
-			if item.key == selected then "primary" else "secondary",
+			if item.key == selected then "selected" else "choice",
 			index,
 			z,
 			colors,
@@ -381,7 +384,7 @@ function PanelKit.barChart(
 		bar.ZIndex = z
 		bar:SetAttribute("Value", value)
 		bar.Parent = column
-		corner(bar, 3)
+		corner(bar, 2)
 		local count = Instance.new("TextLabel")
 		count.Name = "Value"
 		count.BackgroundTransparency = 1
@@ -506,7 +509,7 @@ function PanelKit.codeBox(parent: Instance, code: string, order: number, z: numb
 	box.LayoutOrder = order
 	box.ZIndex = z
 	box.Parent = parent
-	corner(box, 6)
+	corner(box, 8)
 	padding(box, 10)
 	local stroke = Instance.new("UIStroke")
 	stroke.Color = colors.codeBorder or colors.dialogBorder

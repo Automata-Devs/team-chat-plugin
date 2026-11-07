@@ -23,7 +23,13 @@ return function(t)
 		(gui:FindFirstChild("AboutDialog", true) :: Frame).Visible = false
 
 		-- Version: in the widget title, not the header
-		t.equal("widget title has the version", hooks.title, "Team Chat " .. Constants.PLUGIN_VERSION)
+		t.equal(
+			"widget title has the version",
+			hooks.title,
+			"Team Chat "
+				.. Constants.PLUGIN_VERSION
+				.. (if Constants.DEVELOPMENT_MODE then " \u{00B7} Development Mode" else "")
+		)
 		local headerText = ""
 		for _, label in ipairs((gui:FindFirstChild("TopBar", true) :: Frame):GetDescendants()) do
 			if label:IsA("TextLabel") then

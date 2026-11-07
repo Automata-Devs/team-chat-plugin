@@ -90,7 +90,7 @@ function Toasts.create(parent: Instance, palette: Palette, options: { bottomOffs
 		frame.LayoutOrder = order
 		frame.ZIndex = Z
 		local corner = Instance.new("UICorner")
-		corner.CornerRadius = UDim.new(0, 10)
+		corner.CornerRadius = UDim.new(0, 8)
 		corner.Parent = frame
 		local stroke = Instance.new("UIStroke")
 		stroke.Name = "Stroke"

@@ -3,6 +3,60 @@
 Developer-facing history of the codebase. User-facing notes ("What's New")
 are in `src/Config/Changelog.luau`. Format: [Keep a Changelog](https://keepachangelog.com).
 
+## [1.27.0] - 2026-11-07
+
+### Added
+- `UI/Foundation`: Roblox Foundation looks on the palette's new `tint` (a
+  see-through blue-grey): `input` (tint + outline), `stroke` ("FoundationStroke",
+  muted/default/emphasis) and `button` variants (emphasis, standard,
+  subEmphasis, alert) with hover and press states.
+- `UI/Messages/Grouping` (`Messages.group`): Discord-style groups. A message
+  from the same sender within 7 minutes hides its `Author` header (`Grouped`
+  attribute) and shows its time in the gutter on hover; replies, system and
+  only-you messages, the New line and other rows start a group. Message rows
+  get a soft hover highlight.
+- `Theme.RADIUS` (Foundation's 2/4/8/16/round), `Theme.STATE`, `Theme.STROKE`.
+- Header: a `#` / `@` before the name (`TitleOptions.icon`; Icons `channel`,
+  `dmHeader`).
+
+### Changed
+- `Theme.PALETTES` rebuilt from Roblox's Foundation tokens (read from
+  roblox.com): dark surfaces #121215-#272930 with #F7F7F8 / #D5D7DD / #BCBEC8
+  text, light white / #F7F7F8 with #202227 / #494D5A / #6A6F81; overlays baked
+  onto their surface. Mentions use Roblox blue (soft emphasis,
+  `MENTION_TRANSPARENCY` 0.65), `LINK_COLOR` is #4078FF, and the display and
+  heading fonts are Builder Sans Bold instead of Builder Extended.
+- Corner radii on Foundation's scale across the UI: 8 for buttons, inputs,
+  cards and menus, 16 for modals and the Settings window, 4 for tags and
+  tooltips.
+- Headings are sentence case (no `string.upper`): Settings sections and tab
+  groups, the sidebar, the poll and new message dialogs, ModalKit's
+  "heading" role (14px) and PanelKit's (12px).
+- `PanelKit.button` is 32px with Foundation variants, plus chip styles for
+  pick-one switches: "choice", and "selected" for the chosen one (admin
+  periods, slowmode, audit filters, backups, the developer bot kind);
+  `PanelKit.tabs` are chips. `PanelKit.input` is a Foundation input and
+  `pill` isn't in capitals.
+- `Controls`: dropdowns are Foundation inputs (the outline turns blue on
+  hover); toggle and slider tracks use the contrast stroke (`scrollBar`).
+- Search boxes (sidebar, Settings, emoji picker, new message) are Foundation
+  inputs; the sidebar's and the emoji picker's have a magnifying glass.
+- Dialog buttons (poll, purchase, badges) and the What's New version tabs
+  use Foundation buttons; bots' secondary and link buttons are a tint, 32px.
+- `Messages/PollMessage`: a message row with an author header and a
+  `PollCard` (Question, VoteSummary, Option_<i>, at most 460px wide);
+  `ui.addPollMessage(..., senderId)`.
+- `Messages/Announcement`: its text is in a `Content` frame; the header shows
+  the plain time.
+- ModalKit: Roblox's scrim colour, a 20px title, a title icon in the text
+  colour.
+
+### Fixed
+- Announcement cards grew far taller than their text: the accent bar was in
+  the card's list layout at the card's full height.
+- Specs: the title checks allow the Development Mode tag, About's terms check
+  ignores case, and the composer's marker colour comes from the palette.
+
 ## [1.26.2] - 2026-11-07
 
 ### Changed

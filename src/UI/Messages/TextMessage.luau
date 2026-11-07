@@ -121,7 +121,7 @@ function TextMessage.create(sender, timestamp, content, imageUrl, themeColors, r
 		imageLabel.Parent = container
 
 		local imageCorner = Instance.new("UICorner")
-		imageCorner.CornerRadius = UDim.new(0, 6)
+		imageCorner.CornerRadius = UDim.new(0, 8)
 		imageCorner.Parent = imageLabel
 
 		imageLabel:GetPropertyChangedSignal("Image"):Connect(function()

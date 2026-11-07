@@ -16,6 +16,7 @@
 
 local Theme = require(script.Parent.Parent.Parent.Config.Theme)
 local Animation = require(script.Parent.Parent.Animation)
+local Foundation = require(script.Parent.Parent.Foundation)
 local BadgeIcons = require(script.Parent.BadgeIcons)
 local Preferences = require(script.Parent.Parent.Preferences)
 local Constants = require(script.Parent.Parent.Parent.Config.Constants)
@@ -159,11 +160,11 @@ function ConversationList.create(
 		Position = UDim2.fromOffset(14, PINNED_TOP + ROW_HEIGHT + 4),
 		Size = UDim2.new(1, -28, 0, 14),
 		FontFace = FONTS.bold,
-		TextSize = 10,
+		TextSize = 12,
 		TextColor3 = colors.timestamp,
 		Visible = false,
 	})
-	Language.bind(sectionTitle, "Text", "sidebar.directMessages", nil, string.upper)
+	Language.bind(sectionTitle, "Text", "sidebar.directMessages")
 
 	local list = Instance.new("ScrollingFrame")
 	list.Name = "DirectMessages"
@@ -194,7 +195,7 @@ function ConversationList.create(
 	search.Name = "Search"
 	search.Position = UDim2.fromOffset(12, 3)
 	search.Size = UDim2.new(1, -24, 0, 28)
-	search.BackgroundColor3 = colors.inputBox
+	Foundation.input(search, colors)
 	search.BorderSizePixel = 0
 	search.ClearTextOnFocus = false
 	search.FontFace = FONTS.body
@@ -207,9 +208,20 @@ function ConversationList.create(
 	search.Parent = searchHolder
 	corner(search, UDim.new(0, 8))
 	local searchPadding = Instance.new("UIPadding")
-	searchPadding.PaddingLeft = UDim.new(0, 10)
+	searchPadding.PaddingLeft = UDim.new(0, 30)
 	searchPadding.PaddingRight = UDim.new(0, 10)
 	searchPadding.Parent = search
+	-- A magnifying glass in the box, like Roblox's search fields
+	local searchIcon = newLabel("Icon", search, {
+		AnchorPoint = Vector2.new(0, 0.5),
+		Position = UDim2.new(0, -22, 0.5, 0),
+		Size = UDim2.fromOffset(16, 16),
+		TextColor3 = colors.placeholder,
+		TextSize = 14,
+		TextXAlignment = Enum.TextXAlignment.Center,
+		TextTruncate = Enum.TextTruncate.None,
+	})
+	Icons.apply(searchIcon, "search")
 	Language.bind(search, "PlaceholderText", "sidebar.search")
 	self.search = search
 
@@ -311,7 +323,7 @@ function ConversationList.create(
 		Visible = false,
 		ZIndex = 60,
 	})
-	corner(tooltip, UDim.new(0, 6))
+	corner(tooltip, UDim.new(0, 4))
 	local tooltipPadding = Instance.new("UIPadding")
 	tooltipPadding.PaddingLeft = UDim.new(0, 8)
 	tooltipPadding.PaddingRight = UDim.new(0, 8)
@@ -409,7 +421,7 @@ function ConversationList.create(
 		button:SetAttribute("Tooltip", tooltipText)
 		Icons.apply(button, iconKey)
 		button.Parent = footer
-		corner(button, UDim.new(0, 6))
+		corner(button, UDim.new(0, 8))
 		button.MouseEnter:Connect(function()
 			Animation.tween(button, "quick", { BackgroundTransparency = 0 })
 			button.TextColor3 = colors.messageText
@@ -544,7 +556,7 @@ function ConversationList.create(
 		avatar.ScaleType = Enum.ScaleType.Crop
 		avatar.Parent = row
 		-- The pinned game is a rounded square (like Roblox game tiles); people are round.
-		corner(avatar, if entry.kind == "place" then UDim.new(0, 12) else UDim.new(1, 0))
+		corner(avatar, if entry.kind == "place" then UDim.new(0, 8) else UDim.new(1, 0))
 
 		local fallback = newLabel("Fallback", avatar, {
 			Size = UDim2.fromScale(1, 1),
@@ -895,9 +907,10 @@ function ConversationList.create(
 		separator.BackgroundColor3 = colors.divider
 		sectionTitle.TextColor3 = colors.timestamp
 		emptyHint.TextColor3 = colors.timestamp
-		search.BackgroundColor3 = colors.inputBox
+		Foundation.input(search, colors)
 		search.TextColor3 = colors.messageText
 		search.PlaceholderColor3 = colors.placeholder
+		searchIcon.TextColor3 = colors.placeholder
 		footerDivider.BackgroundColor3 = colors.divider
 		for _, button in ipairs(footerButtons) do
 			button.BackgroundColor3 = colors.menuItemHover

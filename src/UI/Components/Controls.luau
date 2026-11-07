@@ -24,6 +24,7 @@
 ]]
 
 local Animation = require(script.Parent.Parent.Animation)
+local Foundation = require(script.Parent.Parent.Foundation)
 local Icons = require(script.Parent.Parent.Parent.Config.Icons)
 local Theme = require(script.Parent.Parent.Parent.Config.Theme)
 
@@ -197,7 +198,7 @@ function Controls.toggle(parent: Instance, options: { value: boolean, onChange: 
 	local inset = (TOGGLE_SIZE.Y - KNOB) / 2
 
 	local function trackColor(): Color3
-		local base = if value then colors.sendButton else colors.divider
+		local base = if value then colors.sendButton else colors.scrollBar
 		return if hovered then base:Lerp(Color3.new(1, 1, 1), 0.12) else base
 	end
 
@@ -352,7 +353,7 @@ function Controls.slider(
 		fill.Size = UDim2.new(f, 0, 1, 0)
 		knob.Position = UDim2.new(f, 0, 0.5, 0)
 		label.Text = if options.format then options.format(value) else tostring(value)
-		track.BackgroundColor3 = colors.divider
+		track.BackgroundColor3 = colors.scrollBar
 		fill.BackgroundColor3 = colors.sendButton
 		label.TextColor3 = colors.messageText
 		frame:SetAttribute("Value", value)
@@ -490,10 +491,8 @@ function Controls.dropdown(
 	button.BorderSizePixel = 0
 	button.ZIndex = z + 1
 	button.Parent = parent
-	corner(button, UDim.new(0, 6))
-	local stroke = Instance.new("UIStroke")
-	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-	stroke.Parent = button
+	corner(button, UDim.new(0, 8))
+	local stroke = Foundation.stroke(button, palette)
 
 	local label = Instance.new("TextLabel")
 	label.Name = "Value"
@@ -523,10 +522,9 @@ function Controls.dropdown(
 
 	local function render()
 		label.Text = textOf(value)
-		button.BackgroundColor3 = colors.dialogInput
+		Foundation.input(button, colors)
 		label.TextColor3 = colors.messageText
 		chevron.TextColor3 = colors.timestamp
-		stroke.Color = colors.dialogBorder
 		button:SetAttribute("Value", value)
 	end
 	render()
@@ -585,7 +583,7 @@ function Controls.dropdown(
 		menu.BorderSizePixel = 0
 		menu.ZIndex = 151
 		menu.Parent = overlay
-		corner(menu, UDim.new(0, 6))
+		corner(menu, UDim.new(0, 8))
 		local menuStroke = Instance.new("UIStroke")
 		menuStroke.Color = colors.menuBorder
 		menuStroke.Parent = menu
@@ -650,10 +648,10 @@ function Controls.dropdown(
 		end
 	end)
 	button.MouseEnter:Connect(function()
-		Animation.tween(stroke, "quick", { Color = colors.sendButton })
+		Animation.tween(stroke, "quick", { Color = colors.sendButton, Transparency = 0 })
 	end)
 	button.MouseLeave:Connect(function()
-		Animation.tween(stroke, "quick", { Color = colors.dialogBorder })
+		Animation.tween(stroke, "quick", { Color = colors.tint, Transparency = Theme.STROKE.default })
 	end)
 
 	function self.set(newValue: string)

@@ -96,7 +96,7 @@ function ModalKit.new(params)
 		local overlay = Instance.new("Frame")
 		overlay.Name = options.name
 		overlay.Size = UDim2.new(1, 0, 1, 0)
-		overlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+		overlay.BackgroundColor3 = Color3.fromRGB(10, 10, 14) -- Roblox's scrim
 		overlay.BackgroundTransparency = OVERLAY_TRANSPARENCY
 		overlay.BorderSizePixel = 0
 		overlay.Visible = false
@@ -127,7 +127,7 @@ function ModalKit.new(params)
 		card.Parent = overlay
 
 		local corner = Instance.new("UICorner")
-		corner.CornerRadius = UDim.new(0, 10)
+		corner.CornerRadius = UDim.new(0, 16)
 		corner.Parent = card
 
 		local stroke = Instance.new("UIStroke")
@@ -158,7 +158,7 @@ function ModalKit.new(params)
 		title.Text = options.title
 		title.TextColor3 = colors.messageText
 		title.FontFace = FONTS.display
-		title.TextSize = 18
+		title.TextSize = 20
 		title.TextXAlignment = Enum.TextXAlignment.Left
 		title.LayoutOrder = 1
 		title.ZIndex = z + 2
@@ -177,7 +177,7 @@ function ModalKit.new(params)
 		titleIcon.Size = UDim2.fromOffset(20, 20)
 		titleIcon.BackgroundTransparency = 1
 		Icons.apply(titleIcon, options.iconKey)
-		titleIcon.TextColor3 = colors.sendButton
+		titleIcon.TextColor3 = colors.messageText
 		titleIcon.TextSize = 20
 		titleIcon.ZIndex = z + 2
 		titleIcon.Parent = title
@@ -265,7 +265,7 @@ function ModalKit.new(params)
 			card.ScrollBarImageColor3 = palette.scrollBar
 			stroke.Color = palette.dialogBorder
 			title.TextColor3 = palette.messageText
-			titleIcon.TextColor3 = palette.sendButton
+			titleIcon.TextColor3 = palette.messageText
 			closeButton.TextColor3 = palette.timestamp
 		end
 
@@ -306,14 +306,14 @@ end
 
 -- Text roles for addText: font, size and palette color
 local TEXT_ROLES = {
-	heading = { font = FONTS.bold, size = 12, color = "messageText", upper = true },
+	heading = { font = FONTS.bold, size = 14, color = "messageText" },
 	body = { font = FONTS.body, size = 13, color = "messageText" },
 	muted = { font = FONTS.body, size = 12, color = "timestamp" },
 }
 
 --!
--- Adds a wrapping text label to a dialog card. role: "heading" (small
--- capitals), "body" or "muted". Text is rich text. recolorText re-applies
+-- Adds a wrapping text label to a dialog card. role: "heading" (a bold
+-- title), "body" or "muted". Text is rich text. recolorText re-applies
 -- the palette to every label made here.
 --!
 function ModalKit.addText(parent: Instance, role: string, text: string, order: number, zIndex: number, colors)

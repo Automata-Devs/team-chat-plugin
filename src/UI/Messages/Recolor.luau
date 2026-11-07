@@ -22,7 +22,7 @@ local Recolor = {}
 -- Re-renders an existing message container with new theme colors.
 --!
 function Recolor.apply(container, themeColors)
-	local reply = container:FindFirstChild("ReplyReference")
+	local reply = container:FindFirstChild("ReplyReference", true)
 	if reply then
 		Shared.renderReplyLabel(reply) -- names / verified badges may have come in
 		Shared.recolorReply(reply, themeColors)
@@ -52,16 +52,19 @@ function Recolor.apply(container, themeColors)
 	end
 
 	if container:GetAttribute("IsPoll") then
-		container.BackgroundColor3 = themeColors.inputFrame
-		local headerLabel = container:FindFirstChild("Header")
-		if headerLabel and sender and timestamp then
-			headerLabel.Text = RichText.buildPollHeader(sender, timestamp, themeColors)
+		local card = container:FindFirstChild("PollCard")
+		if card then
+			card.BackgroundColor3 = themeColors.inputFrame
+			local cardStroke = card:FindFirstChildOfClass("UIStroke")
+			if cardStroke then
+				cardStroke.Color = themeColors.divider
+			end
 		end
-		local questionLabel = container:FindFirstChild("Question")
+		local questionLabel = container:FindFirstChild("Question", true)
 		if questionLabel then
 			questionLabel.TextColor3 = themeColors.messageText
 		end
-		local summaryLabel = container:FindFirstChild("VoteSummary")
+		local summaryLabel = container:FindFirstChild("VoteSummary", true)
 		if summaryLabel then
 			summaryLabel.TextColor3 = themeColors.timestamp
 		end
@@ -73,11 +76,11 @@ function Recolor.apply(container, themeColors)
 		if accentBar then
 			accentBar.BackgroundColor3 = themeColors.sendButton
 		end
-		local headerLabel = container:FindFirstChild("Header")
+		local headerLabel = container:FindFirstChild("Header", true)
 		if headerLabel and sender and timestamp then
 			headerLabel.Text = Announcement.buildHeader(sender, timestamp, themeColors)
 		end
-		local bodyLabel = container:FindFirstChild("Body")
+		local bodyLabel = container:FindFirstChild("Body", true)
 		if bodyLabel then
 			bodyLabel.TextColor3 = themeColors.messageText
 		end
@@ -128,7 +131,8 @@ function Recolor.apply(container, themeColors)
 		end
 	end
 
-	for _, child in ipairs(container:GetChildren()) do
+	local pollCard = container:FindFirstChild("PollCard")
+	for _, child in ipairs((pollCard or container):GetChildren()) do
 		if child:IsA("TextButton") and string.match(child.Name, "^Option_%d+$") then
 			child.BackgroundColor3 = themeColors.pollBar
 			local voteBar = child:FindFirstChild("VoteBar")

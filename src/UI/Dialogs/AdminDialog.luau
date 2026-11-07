@@ -205,7 +205,7 @@ function AdminDialog.create(kit, params)
 			PanelKit.button(
 				periods,
 				Language.t("admin.lastDays", { days = days }),
-				if period == days then "primary" else "secondary",
+				if period == days then "selected" else "choice",
 				index,
 				z,
 				colors,
@@ -614,7 +614,7 @@ function AdminDialog.create(kit, params)
 			PanelKit.button(
 				presets,
 				if seconds == 0 then Language.t("option.off") else seconds .. "s",
-				if slowmode == seconds then "primary" else "secondary",
+				if slowmode == seconds then "selected" else "choice",
 				index,
 				z,
 				colors,
@@ -720,7 +720,7 @@ function AdminDialog.create(kit, params)
 		PanelKit.button(
 			filters,
 			Language.t("admin.allActions"),
-			if auditAction == nil then "primary" else "secondary",
+			if auditAction == nil then "selected" else "choice",
 			0,
 			z,
 			colors,
@@ -733,7 +733,7 @@ function AdminDialog.create(kit, params)
 			PanelKit.button(
 				filters,
 				Language.tOr("admin.action." .. action, action),
-				if auditAction == action then "primary" else "secondary",
+				if auditAction == action then "selected" else "choice",
 				index,
 				z,
 				colors,
@@ -878,7 +878,7 @@ function AdminDialog.create(kit, params)
 			PanelKit.button(
 				autoRow,
 				if option == 0 then Language.t("option.off") else Language.t("admin.everyHours", { hours = option }),
-				if hours == option then "primary" else "secondary",
+				if hours == option then "selected" else "choice",
 				index,
 				z,
 				colors,

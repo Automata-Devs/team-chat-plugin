@@ -10,7 +10,7 @@
 
 	Usage:
 		local header = Header.create({ container = container, getThemeColors = getTheme, onPins = toggle })
-		header.setTitle("builderman", { verified = true, subtitle = "@builderman" })
+		header.setTitle("builderman", { verified = true, subtitle = "@builderman", icon = "dmHeader" })
 		header.setPinsOpen(true)   -- the pin button looks pressed while the list is open
 		header.recolor()
 ]]
@@ -25,7 +25,8 @@ local BUTTON_SIZE = 28
 
 type Palette = { [string]: Color3 }
 
-export type TitleOptions = { verified: boolean?, subtitle: string? }
+-- icon: an Icons key shown before the name (# for the team chat, @ for a DM)
+export type TitleOptions = { verified: boolean?, subtitle: string?, icon: string? }
 
 export type Header = {
 	frame: Frame,
@@ -67,6 +68,18 @@ function Header.create(options: { container: Frame, getThemeColors: () -> Palett
 	layout.SortOrder = Enum.SortOrder.LayoutOrder
 	layout.Padding = UDim.new(0, 6)
 	layout.Parent = row
+
+	-- A # or @ before the name, like Discord's channel header
+	local titleIcon = Instance.new("TextLabel")
+	titleIcon.Name = "TitleIcon"
+	titleIcon.Size = UDim2.fromOffset(18, 18)
+	titleIcon.BackgroundTransparency = 1
+	titleIcon.TextSize = 18
+	titleIcon.TextColor3 = colors().timestamp
+	titleIcon.LayoutOrder = 0
+	titleIcon.ZIndex = 5
+	titleIcon.Visible = false
+	titleIcon.Parent = row
 
 	local titleLabel = Instance.new("TextLabel")
 	titleLabel.Name = "Title"
@@ -130,7 +143,7 @@ function Header.create(options: { container: Frame, getThemeColors: () -> Palett
 	Icons.apply(pinButton, "pinned")
 	pinButton.Parent = frame
 	local pinCorner = Instance.new("UICorner")
-	pinCorner.CornerRadius = UDim.new(0, 6)
+	pinCorner.CornerRadius = UDim.new(0, 8)
 	pinCorner.Parent = pinButton
 	local function paintPinButton(hovered: boolean)
 		local palette = colors()
@@ -169,6 +182,11 @@ function Header.create(options: { container: Frame, getThemeColors: () -> Palett
 		end,
 		setTitle = function(newTitle: string, titleOptions: TitleOptions?)
 			titleLabel.Text = Icons.escape(newTitle)
+			local icon = titleOptions and titleOptions.icon
+			if icon then
+				Icons.apply(titleIcon, icon)
+			end
+			titleIcon.Visible = icon ~= nil
 			badgeSlot.Visible = titleOptions ~= nil and titleOptions.verified == true
 			local sub = titleOptions and titleOptions.subtitle
 			subtitle.Text = if sub then Icons.escape(sub) else ""
@@ -179,6 +197,7 @@ function Header.create(options: { container: Frame, getThemeColors: () -> Palett
 			frame.BackgroundColor3 = palette.inputFrame
 			titleLabel.TextColor3 = palette.messageText
 			subtitle.TextColor3 = palette.timestamp
+			titleIcon.TextColor3 = palette.timestamp
 			divider.BackgroundColor3 = palette.divider
 			paintPinButton(false)
 		end,

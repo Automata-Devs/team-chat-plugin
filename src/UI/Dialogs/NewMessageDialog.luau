@@ -7,6 +7,7 @@
 
 local Theme = require(script.Parent.Parent.Parent.Config.Theme)
 local BadgeIcons = require(script.Parent.Parent.Components.BadgeIcons)
+local Foundation = require(script.Parent.Parent.Foundation)
 local Language = require(script.Parent.Parent.Parent.Core.Language)
 local Icons = require(script.Parent.Parent.Parent.Config.Icons)
 
@@ -66,7 +67,7 @@ function NewMessageDialog.create(kit, opts)
 	local search = Instance.new("TextBox")
 	search.Name = "Search"
 	search.Size = UDim2.new(1, 0, 0, 38)
-	search.BackgroundColor3 = colors.dialogInput
+	Foundation.input(search, colors)
 	search.TextColor3 = colors.dialogInputText
 	Language.bind(search, "PlaceholderText", "newMessage.search")
 	search.PlaceholderColor3 = colors.placeholder
@@ -79,7 +80,7 @@ function NewMessageDialog.create(kit, opts)
 	search.LayoutOrder = 2
 	search.ZIndex = z
 	search.Parent = card
-	corner(search, 6)
+	corner(search, 8)
 	local searchPadding = Instance.new("UIPadding")
 	searchPadding.PaddingLeft = UDim.new(0, 10)
 	searchPadding.PaddingRight = UDim.new(0, 10)
@@ -256,13 +257,13 @@ function NewMessageDialog.create(kit, opts)
 			Size = UDim2.new(1, 0, 0, 24),
 			TextColor3 = colors.timestamp,
 			FontFace = FONTS.bold,
-			TextSize = 11,
+			TextSize = 12,
 			TextYAlignment = Enum.TextYAlignment.Bottom,
 			LayoutOrder = order,
 		})
 
 		if not friendsLoaded then
-			heading.Text = string.upper(Language.t("newMessage.friendsHeading"))
+			heading.Text = Language.t("newMessage.friendsHeading")
 			order += 1
 			label("Status", list, {
 				Size = UDim2.new(1, 0, 0, 30),
@@ -285,7 +286,7 @@ function NewMessageDialog.create(kit, opts)
 				table.insert(matches, friend)
 			end
 		end
-		heading.Text = string.upper(Language.t("newMessage.friendsHeading")) .. " \u{2014} " .. tostring(#matches)
+		heading.Text = Language.t("newMessage.friendsHeading") .. " \u{2014} " .. tostring(#matches)
 
 		if #matches == 0 then
 			order += 1
@@ -379,7 +380,7 @@ function NewMessageDialog.create(kit, opts)
 
 	function dialog.recolor()
 		colors = opts.getThemeColors()
-		search.BackgroundColor3 = colors.dialogInput
+		Foundation.input(search, colors)
 		search.TextColor3 = colors.dialogInputText
 		search.PlaceholderColor3 = colors.placeholder
 		note.TextColor3 = colors.timestamp

@@ -57,7 +57,10 @@ return function(t)
 		t.check("bold is an outline, not wider letters", has(markup, "<stroke") and not has(markup, "<b>"))
 		t.check("italic is italic", has(markup, "<i>i</i>"))
 		t.check("code has a box", has(markup, "<mark"))
-		t.check("markers are dimmed", has(markup, '<font color="#A6A8AD">**</font>'))
+		t.check(
+			"markers are dimmed",
+			has(markup, '<font color="#' .. string.upper(palette.timestamp:ToHex()) .. '">**</font>')
+		)
 		local quote = MarkdownSource.render("> said", palette)
 		t.check("a quote's > is a bar", has(quote, '<font transparency="1">&gt;</font></mark>'))
 		t.check("```lua is coloured", has(MarkdownSource.render("```lua\nlocal x\n```", palette), "#FF7B72"))

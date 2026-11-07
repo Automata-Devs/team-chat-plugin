@@ -11,6 +11,7 @@
 --!
 
 local Controls = require(script.Parent.Parent.Components.Controls)
+local Foundation = require(script.Parent.Parent.Foundation)
 local Language = require(script.Parent.Parent.Parent.Core.Language)
 local Icons = require(script.Parent.Parent.Parent.Config.Icons)
 local Lifetime = require(script.Parent.Parent.Parent.Core.Lifetime)
@@ -264,11 +265,8 @@ function SettingsDialog.create(kit, opts)
 	search.ZIndex = z
 	search.Parent = card
 	local searchCorner = Instance.new("UICorner")
-	searchCorner.CornerRadius = UDim.new(0, 6)
+	searchCorner.CornerRadius = UDim.new(0, 8)
 	searchCorner.Parent = search
-	local searchStroke = Instance.new("UIStroke")
-	searchStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-	searchStroke.Parent = search
 	local searchIcon = Instance.new("TextLabel")
 	searchIcon.Name = "Icon"
 	searchIcon.Size = UDim2.fromOffset(32, 34)
@@ -308,7 +306,7 @@ function SettingsDialog.create(kit, opts)
 		order += 10
 		local heading = Instance.new("TextLabel")
 		heading.Name = string.upper(string.sub(section.heading, 1, 1)) .. string.sub(section.heading, 2) .. "Section"
-		Language.bind(heading, "Text", "section." .. section.heading, nil, string.upper)
+		Language.bind(heading, "Text", "section." .. section.heading)
 		heading.Size = UDim2.new(1, 0, 0, 26)
 		heading.BackgroundTransparency = 1
 		heading.FontFace = FONTS.bold
@@ -480,11 +478,10 @@ function SettingsDialog.create(kit, opts)
 			entry.card.recolor(colors)
 			entry.control.recolor(colors)
 		end
-		search.BackgroundColor3 = colors.dialogInput
-		searchStroke.Color = colors.dialogBorder
+		Foundation.input(search, colors)
 		searchIcon.TextColor3 = colors.timestamp
 		searchBox.TextColor3 = colors.messageText
-		searchBox.PlaceholderColor3 = colors.timestamp
+		searchBox.PlaceholderColor3 = colors.placeholder
 		noResults.TextColor3 = colors.timestamp
 	end
 	self.recolor()

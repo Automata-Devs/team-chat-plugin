@@ -164,7 +164,7 @@ function PinsPanel.create(options: Options)
 		item:SetAttribute("Timestamp", entry.timestamp)
 		item.Parent = list
 		local c = Instance.new("UICorner")
-		c.CornerRadius = UDim.new(0, 6)
+		c.CornerRadius = UDim.new(0, 8)
 		c.Parent = item
 		local s = Instance.new("UIStroke")
 		s.Color = palette.divider

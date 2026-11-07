@@ -326,6 +326,12 @@ function ChatUI.create(pluginInstance)
 	padding.PaddingRight = UDim.new(0, 5)
 	padding.Parent = scrollFrame
 
+	-- Back-to-back messages from one person share a header, like Discord
+	-- (Messages/Grouping), and rows light up under the mouse
+	Messages.group(scrollFrame, function()
+		return themeColors
+	end)
+
 	-- Round "scroll to bottom" button (Discord-style): shown when the user
 	-- has scrolled away from the bottom of the message list so new messages
 	-- can be missed; clicking it jumps the list back to the bottom.
@@ -702,7 +708,7 @@ function ChatUI.create(pluginInstance)
 	menuClickCatcher.Parent = container
 
 	local menuCorner = Instance.new("UICorner")
-	menuCorner.CornerRadius = UDim.new(0, 6)
+	menuCorner.CornerRadius = UDim.new(0, 8)
 	menuCorner.Parent = menuFrame
 
 	local menuStroke = Instance.new("UIStroke")
@@ -1469,7 +1475,7 @@ function ChatUI.create(pluginInstance)
 	dropOverlay.Parent = container
 
 	local dropOverlayCorner = Instance.new("UICorner")
-	dropOverlayCorner.CornerRadius = UDim.new(0, 8)
+	dropOverlayCorner.CornerRadius = UDim.new(0, 16)
 	dropOverlayCorner.Parent = dropOverlay
 
 	local dropOverlayStroke = Instance.new("UIStroke")
@@ -1672,7 +1678,7 @@ function ChatUI.create(pluginInstance)
 	--!
 	local function markReplyDeleted(msgContainer)
 		msgContainer:SetAttribute("ReplyOriginalDeleted", true)
-		local ref = msgContainer:FindFirstChild("ReplyReference")
+		local ref = msgContainer:FindFirstChild("ReplyReference", true)
 		if not ref then
 			return
 		end
@@ -2311,9 +2317,9 @@ function ChatUI.create(pluginInstance)
 	--!
 	local pollContainers = {}
 
-	local function addPollMessage(sender, timestamp, pollData, replyRef)
+	local function addPollMessage(sender, timestamp, pollData, replyRef, senderId)
 		hideEmptyState()
-		local msgContainer = Messages.poll(sender, timestamp, pollData, themeColors, replyRef)
+		local msgContainer = Messages.poll(sender, timestamp, pollData, themeColors, replyRef, senderId)
 		msgContainer:SetAttribute("Sender", sender)
 		msgContainer:SetAttribute("Timestamp", timestamp)
 		msgContainer:SetAttribute("IsPoll", true)
@@ -2330,7 +2336,7 @@ function ChatUI.create(pluginInstance)
 
 		-- Wire up click-to-vote on each option
 		for i = 1, #pollData.options do
-			local optionFrame = msgContainer:FindFirstChild("Option_" .. i)
+			local optionFrame = msgContainer:FindFirstChild("Option_" .. i, true)
 			if optionFrame then
 				optionFrame.MouseButton1Click:Connect(function()
 					if onVoteCallback then
@@ -2567,6 +2573,7 @@ function ChatUI.create(pluginInstance)
 		header.setTitle(shown, {
 			verified = verified,
 			subtitle = if isDm and shown ~= info.name then "@" .. info.name else nil,
+			icon = if isDm then "dmHeader" else "channel",
 		})
 		textBox.PlaceholderText = if isDm
 			then Language.t("composer.placeholderDm", { name = shown })

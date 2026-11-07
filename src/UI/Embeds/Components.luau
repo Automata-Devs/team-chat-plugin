@@ -18,7 +18,7 @@ local Icons = require(script.Parent.Parent.Parent.Config.Icons)
 local Theme = require(script.Parent.Parent.Parent.Config.Theme)
 
 local FONTS = Theme.FONTS
-local BUTTON_HEIGHT = 30
+local BUTTON_HEIGHT = 32
 
 local Components = {}
 
@@ -31,15 +31,19 @@ local function colorsFor(style: string, palette): (Color3, Color3)
 	elseif style == "danger" then
 		return palette.danger, Color3.new(1, 1, 1)
 	end
-	return palette.menuItemHover, palette.messageText -- secondary and link
+	-- Secondary and link: Roblox's standard button, a see-through tint
+	return palette.tint, palette.messageText
 end
 
 local function paint(button: TextButton, palette)
-	local background, text = colorsFor(button:GetAttribute("Style") or "secondary", palette)
+	local style = button:GetAttribute("Style") or "secondary"
+	local background, text = colorsFor(style, palette)
+	local tinted = style ~= "primary" and style ~= "success" and style ~= "danger"
+	local disabled = button:GetAttribute("Disabled") == true
 	button.BackgroundColor3 = background
 	button.TextColor3 = text
-	button.BackgroundTransparency = if button:GetAttribute("Disabled") then 0.5 else 0
-	button.TextTransparency = if button:GetAttribute("Disabled") then 0.4 else 0
+	button.BackgroundTransparency = if tinted then (if disabled then 0.94 else 0.88) elseif disabled then 0.5 else 0
+	button.TextTransparency = if disabled then 0.4 else 0
 end
 
 --[=[
@@ -91,7 +95,7 @@ function Components.build(rows: { { { [string]: any } } }, palette, onClick: ({ 
 			button:SetAttribute("CustomId", info.customId)
 			button.Parent = rowFrame
 			local corner = Instance.new("UICorner")
-			corner.CornerRadius = UDim.new(0, 6)
+			corner.CornerRadius = UDim.new(0, 8)
 			corner.Parent = button
 			local buttonPadding = Instance.new("UIPadding")
 			buttonPadding.PaddingLeft = UDim.new(0, 14)

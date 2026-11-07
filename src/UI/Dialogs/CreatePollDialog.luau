@@ -6,6 +6,7 @@
 -- answers to opts.onSubmit.
 --!
 
+local Foundation = require(script.Parent.Parent.Foundation)
 local Language = require(script.Parent.Parent.Parent.Core.Language)
 local Theme = require(script.Parent.Parent.Parent.Config.Theme)
 local Icons = require(script.Parent.Parent.Parent.Config.Icons)
@@ -53,7 +54,7 @@ function CreatePollDialog.create(kit, opts)
 
 	local function roundCorners(gui: GuiObject)
 		local corner = Instance.new("UICorner")
-		corner.CornerRadius = UDim.new(0, 6)
+		corner.CornerRadius = UDim.new(0, 8)
 		corner.Parent = gui
 	end
 
@@ -65,12 +66,12 @@ function CreatePollDialog.create(kit, opts)
 	end
 
 	local questionHeading = heading("QuestionHeading", "QUESTION", 2)
-	Language.bind(questionHeading, "Text", "poll.question", nil, string.upper)
+	Language.bind(questionHeading, "Text", "poll.question")
 
 	local questionBox = Instance.new("TextBox")
 	questionBox.Name = "QuestionBox"
 	questionBox.Size = UDim2.new(1, 0, 0, 40)
-	questionBox.BackgroundColor3 = colors.dialogInput
+	Foundation.input(questionBox, colors)
 	questionBox.TextColor3 = colors.dialogInputText
 	Language.bind(questionBox, "PlaceholderText", "poll.questionPlaceholder")
 	questionBox.PlaceholderColor3 = colors.placeholder
@@ -87,7 +88,7 @@ function CreatePollDialog.create(kit, opts)
 	horizontalPadding(questionBox)
 
 	local answersHeading = heading("AnswersHeading", "ANSWERS", 4)
-	Language.bind(answersHeading, "Text", "poll.answers", nil, string.upper)
+	Language.bind(answersHeading, "Text", "poll.answers")
 
 	local optionsContainer = Instance.new("Frame")
 	optionsContainer.Name = "OptionsContainer"
@@ -106,14 +107,12 @@ function CreatePollDialog.create(kit, opts)
 	local addOptionButton = Instance.new("TextButton")
 	addOptionButton.Name = "AddOption"
 	addOptionButton.Size = UDim2.new(1, 0, 0, 36)
-	addOptionButton.BackgroundColor3 = colors.dialogSecondary
 	Language.bind(addOptionButton, "Text", "poll.addAnswer", nil, function(text)
 		return "+  " .. text
 	end)
-	addOptionButton.TextColor3 = colors.menuItemText or colors.messageText
-	addOptionButton.FontFace = FONTS.medium
+	addOptionButton.FontFace = FONTS.semibold
 	addOptionButton.TextSize = 13
-	addOptionButton.AutoButtonColor = true
+	Foundation.button(addOptionButton, colors, "standard")
 	addOptionButton.BorderSizePixel = 0
 	addOptionButton.LayoutOrder = 6
 	addOptionButton.ZIndex = z
@@ -131,12 +130,10 @@ function CreatePollDialog.create(kit, opts)
 	local cancelButton = Instance.new("TextButton")
 	cancelButton.Name = "Cancel"
 	cancelButton.Size = UDim2.new(0.5, -4, 1, 0)
-	cancelButton.BackgroundColor3 = colors.dialogSecondary
 	Language.bind(cancelButton, "Text", "common.cancel")
-	cancelButton.TextColor3 = colors.menuItemText or colors.messageText
-	cancelButton.FontFace = FONTS.medium
+	cancelButton.FontFace = FONTS.semibold
 	cancelButton.TextSize = 14
-	cancelButton.AutoButtonColor = true
+	Foundation.button(cancelButton, colors, "standard")
 	cancelButton.BorderSizePixel = 0
 	cancelButton.ZIndex = z + 1
 	cancelButton.Parent = buttonsRow
@@ -146,12 +143,10 @@ function CreatePollDialog.create(kit, opts)
 	createButton.Name = "Create"
 	createButton.Size = UDim2.new(0.5, -4, 1, 0)
 	createButton.Position = UDim2.new(0.5, 4, 0, 0)
-	createButton.BackgroundColor3 = colors.dialogButton
 	Language.bind(createButton, "Text", "poll.create")
-	createButton.TextColor3 = colors.dialogButtonText
 	createButton.FontFace = FONTS.semibold
 	createButton.TextSize = 14
-	createButton.AutoButtonColor = true
+	Foundation.button(createButton, colors, "emphasis")
 	createButton.BorderSizePixel = 0
 	createButton.ZIndex = z + 1
 	createButton.Parent = buttonsRow
@@ -188,7 +183,7 @@ function CreatePollDialog.create(kit, opts)
 		local box = Instance.new("TextBox")
 		box.Name = "Answer"
 		box.Size = UDim2.new(1, -34, 1, 0)
-		box.BackgroundColor3 = palette.dialogInput
+		Foundation.input(box, palette)
 		box.TextColor3 = palette.dialogInputText
 		box.PlaceholderColor3 = palette.placeholder
 		box.FontFace = FONTS.body
@@ -264,17 +259,14 @@ function CreatePollDialog.create(kit, opts)
 		local palette = opts.getThemeColors()
 		questionHeading.TextColor3 = palette.messageText
 		answersHeading.TextColor3 = palette.messageText
-		questionBox.BackgroundColor3 = palette.dialogInput
+		Foundation.input(questionBox, palette)
 		questionBox.TextColor3 = palette.dialogInputText
 		questionBox.PlaceholderColor3 = palette.placeholder
-		addOptionButton.BackgroundColor3 = palette.dialogSecondary
-		addOptionButton.TextColor3 = palette.menuItemText or palette.messageText
-		cancelButton.BackgroundColor3 = palette.dialogSecondary
-		cancelButton.TextColor3 = palette.menuItemText or palette.messageText
-		createButton.BackgroundColor3 = palette.dialogButton
-		createButton.TextColor3 = palette.dialogButtonText
+		Foundation.button(addOptionButton, palette, "standard")
+		Foundation.button(cancelButton, palette, "standard")
+		Foundation.button(createButton, palette, "emphasis")
 		for _, box in ipairs(optionBoxes) do
-			box.BackgroundColor3 = palette.dialogInput
+			Foundation.input(box, palette)
 			box.TextColor3 = palette.dialogInputText
 			box.PlaceholderColor3 = palette.placeholder
 			local removeButton = box.Parent and box.Parent:FindFirstChild("Remove")

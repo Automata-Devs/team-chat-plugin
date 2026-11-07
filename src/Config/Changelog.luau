@@ -46,13 +46,33 @@ return {
 		title = "Team Chat 1",
 		updates = {
 			{
-				version = "1.26.2",
+				version = "1.27.0",
 				date = "07/11/2026",
-				title = "Roblox-style reactions",
+				title = "A Roblox look",
 				changes = {
 					{
 						type = "changed",
-						text = "Reactions look like Roblox's chips now: round capsules, yours filled in a soft light gray (dark gray in Light), everyone else's a soft tint that lights up when you hover or click it, and a round button to add another.",
+						text = "Team Chat looks like Roblox now, in both themes: Roblox's own colours, Builder Sans headings, rounder corners, and buttons, inputs, dropdowns and tabs styled like the Roblox app's (the tab you're on is a filled chip).",
+					},
+					{
+						type = "added",
+						text = "Messages group like on Discord: send a few in a row and they share one name and picture (hover one to see its time), and the message under your mouse lights up.",
+					},
+					{
+						type = "added",
+						text = "A # before the team chat's name and an @ before a DM's at the top of the chat.",
+					},
+					{
+						type = "changed",
+						text = "Polls show who made them: a card under their name and picture, like Discord.",
+					},
+					{
+						type = "changed",
+						text = "Reactions look like Roblox's chips: round capsules, yours filled in a soft light gray (dark gray in Light), everyone else's a soft tint that lights up when you hover or click it, and a round button to add another.",
+					},
+					{
+						type = "fixed",
+						text = "Announcements were drawn far taller than their text.",
 					},
 				},
 			},

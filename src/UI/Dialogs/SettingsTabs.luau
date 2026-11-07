@@ -19,7 +19,7 @@ local FONTS = Theme.FONTS
 local NAV_WIDE = 168 -- icons and names
 local NAV_NARROW = 52 -- icons only
 local NARROW_BELOW = 460 -- panel width where the column switches to icons only
-local RADIUS = 10 -- the window's corners (the same as ModalKit's card)
+local RADIUS = 16 -- the window's corners (the same as ModalKit's card)
 local NAV_PADDING = 10
 local ITEM_HEIGHT = 32
 local ICON_LEFT = 4
@@ -268,12 +268,12 @@ function SettingsTabs.create(tabs, getThemeColors)
 			text.Size = UDim2.new(1, 0, 0, 16)
 			text.BackgroundTransparency = 1
 			text.FontFace = FONTS.bold
-			text.TextSize = 11
+			text.TextSize = 12
 			text.TextXAlignment = Enum.TextXAlignment.Left
 			text.TextTruncate = Enum.TextTruncate.AtEnd
 			text.ZIndex = z + 2
 			text.Parent = heading
-			Language.bind(text, "Text", "tab.group." .. group, nil, string.upper)
+			Language.bind(text, "Text", "tab.group." .. group)
 			local textPadding = Instance.new("UIPadding")
 			textPadding.PaddingLeft = UDim.new(0, 10)
 			textPadding.Parent = text
@@ -307,7 +307,7 @@ function SettingsTabs.create(tabs, getThemeColors)
 			item.LayoutOrder = order
 			item.ZIndex = z + 2
 			item.Parent = frame
-			corner(item, 6)
+			corner(item, 8)
 
 			-- The open tab's accent, inside its highlight
 			local pill = Instance.new("Frame")

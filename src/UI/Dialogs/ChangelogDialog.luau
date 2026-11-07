@@ -10,6 +10,7 @@
 
 local Animation = require(script.Parent.Parent.Animation)
 local Changelog = require(script.Parent.Parent.Parent.Config.Changelog)
+local Foundation = require(script.Parent.Parent.Foundation)
 local ChangelogView = require(script.Parent.ChangelogView)
 local Icons = require(script.Parent.Parent.Parent.Config.Icons)
 local Language = require(script.Parent.Parent.Parent.Core.Language)
@@ -119,7 +120,7 @@ function ChangelogDialog.create(kit, params)
 		box.ZIndex = z
 		box:SetAttribute("Open", isOpen)
 		box.Parent = updatesList
-		corner(box, 10)
+		corner(box, 8)
 		local boxLayout = Instance.new("UIListLayout")
 		boxLayout.SortOrder = Enum.SortOrder.LayoutOrder
 		boxLayout.Parent = box
@@ -214,8 +215,8 @@ function ChangelogDialog.create(kit, params)
 		local colors = params.getThemeColors()
 		for i, tab in ipairs(tabButtons) do
 			local selected = i == selectedMain
-			tab.BackgroundColor3 = if selected then colors.dialogButton else colors.dialogSecondary
-			tab.TextColor3 = if selected then colors.dialogButtonText else (colors.menuItemText or colors.messageText)
+			-- Roblox filter chips: the chosen one filled with the text colour
+			Foundation.button(tab, colors, if selected then "subEmphasis" else "standard")
 		end
 		for _, child in ipairs(updatesList:GetChildren()) do
 			if child:IsA("GuiObject") then

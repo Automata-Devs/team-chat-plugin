@@ -49,7 +49,7 @@ local MENTION_BAR_WIDTH = 2 -- the gold bar on the left of a message that mentio
 function Shared.setReplyAvatar(rowOrContainer: Instance, userId: number?, themeColors: any?)
 	local row = if rowOrContainer.Name == "ReplyReference"
 		then rowOrContainer
-		else rowOrContainer:FindFirstChild("ReplyReference")
+		else rowOrContainer:FindFirstChild("ReplyReference", true)
 	local miniAvatar = row and row:FindFirstChild("MiniAvatar") :: ImageLabel?
 	if not miniAvatar or type(userId) ~= "number" or userId <= 0 then
 		return
@@ -265,7 +265,7 @@ function Shared.addMessageSurface(container, themeColors)
 	container:SetAttribute("HoverHighlight", true)
 
 	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, 6)
+	corner.CornerRadius = UDim.new(0, 8)
 	corner.Parent = container
 
 	local padding = Instance.new("UIPadding")

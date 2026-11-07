@@ -78,7 +78,7 @@ local function iconButton(name: string, parent: Instance, iconKey: string, size:
 	b.TextColor3 = themeColors.messageText
 	b.TextSize = math.floor(size * 0.55)
 	Icons.apply(b, iconKey)
-	corner(b, 6)
+	corner(b, 8)
 	b.MouseEnter:Connect(function()
 		b.BackgroundTransparency = 0
 	end)

@@ -233,7 +233,7 @@ return function(t)
 			"About says it isn't affiliated with Roblox",
 			string.find(aboutText, "not made, endorsed", 1, true) ~= nil
 		)
-		t.check("About has terms of use", string.find(aboutText, "TERMS OF USE", 1, true) ~= nil)
+		t.check("About has terms of use", string.find(string.lower(aboutText), "terms of use", 1, true) ~= nil)
 
 		-- A test badge without a game pass (added to this copy only) shows
 		-- "Coming soon", whatever badges the real config has

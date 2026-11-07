@@ -74,6 +74,8 @@ Icons.NAMES = {
 	-- Conversations sidebar
 	sidebar = "sidebar",
 	pinned = "pin",
+	channel = "hashtag", -- before the team chat's name in the header
+	dmHeader = "at-sign", -- before a DM's name in the header
 	gameFallback = "cube",
 	directMessages = "two-people",
 	newMessage = "person-plus",
