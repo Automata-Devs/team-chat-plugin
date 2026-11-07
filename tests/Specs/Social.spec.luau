@@ -111,6 +111,9 @@ return function(t)
 
 		-- The widget's title counts every unread message
 		local base = Constants.PLUGIN_TITLE .. " " .. Constants.PLUGIN_VERSION
+		if Constants.DEVELOPMENT_MODE then
+			base ..= " \u{00B7} Development Mode"
+		end
 		local entries = Conversations.list()
 		local copies = {}
 		for i, entry in ipairs(entries) do

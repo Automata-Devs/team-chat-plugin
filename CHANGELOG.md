@@ -3,6 +3,19 @@
 Developer-facing history of the codebase. User-facing notes ("What's New")
 are in `src/Config/Changelog.luau`. Format: [Keep a Changelog](https://keepachangelog.com).
 
+## [1.26.1] - 2026-11-07
+
+### Changed
+- `UI/Messages/Reactions`: Roblox-style chips instead of Discord-style pills.
+  Capsules (`UICorner` 1,0) with no outline, 26px high; others' reactions on a
+  see-through tint of `messageText` (0.9, 0.84 hovered, 0.78 pressed, so they
+  suit tinted rows), yours filled with `messageText` and drawn in `scrollBack`;
+  the emoji a size up from the bold count; the add button a round icon
+  button. Hover and press states repaint from the bar's latest palette, which
+  `recolor` keeps.
+- The title checks in the Reactions and Social specs expect the
+  Development Mode tag when `DEVELOPMENT_MODE` is on.
+
 ## [1.26.0] - 2026-11-06
 
 ### Added

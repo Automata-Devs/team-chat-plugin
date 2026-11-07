@@ -90,6 +90,9 @@ return function(t)
 		local pill = row:FindFirstChild("Reactions") and row.Reactions:FindFirstChild("Reaction_1")
 		t.equal("reactions from others count too", pill and pill:GetAttribute("Count"), 2)
 		t.check("…and yours is marked", pill ~= nil and pill:GetAttribute("Mine") == true)
+		local pillCorner = pill and pill:FindFirstChildOfClass("UICorner")
+		t.check("reactions are capsules, like Roblox's chips", pillCorner and pillCorner.CornerRadius == UDim.new(1, 0))
+		t.check("…yours filled in", pill ~= nil and pill.BackgroundTransparency == 0)
 
 		-- Reacting again with it takes yours back
 		local changed, added = Reactions.toggle(target.Name, "👍")
@@ -97,6 +100,8 @@ return function(t)
 		t.check("the same emoji again removes yours", changed and added == false)
 		saved = Reactions.read(target)
 		t.check("…and leaves theirs", saved[1] ~= nil and saved[1].count == 1 and not saved[1].mine)
+		local theirs = row:FindFirstChild("Reactions") and row.Reactions:FindFirstChild("Reaction_1")
+		t.check("…which is only tinted", theirs ~= nil and theirs.BackgroundTransparency > 0)
 
 		-- Saved with the history; emoji only
 		Reactions.toggle(target.Name, "🔥")
@@ -114,6 +119,9 @@ return function(t)
 
 		-- Unread messages: in the window's title...
 		local base = Constants.PLUGIN_TITLE .. " " .. Constants.PLUGIN_VERSION
+		if Constants.DEVELOPMENT_MODE then
+			base ..= " \u{00B7} Development Mode"
+		end
 		local copies = {}
 		for i, entry in ipairs(Conversations.list()) do
 			local copy = table.clone(entry)

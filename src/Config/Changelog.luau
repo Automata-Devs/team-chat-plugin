@@ -46,6 +46,17 @@ return {
 		title = "Team Chat 1",
 		updates = {
 			{
+				version = "1.26.1",
+				date = "07/11/2026",
+				title = "Roblox-style reactions",
+				changes = {
+					{
+						type = "changed",
+						text = "Reactions look like Roblox's chips now: round capsules, yours filled in (white, or black in Light), everyone else's a soft tint that lights up when you hover or click it, and a round button to add another.",
+					},
+				},
+			},
+			{
 				version = "1.26.0",
 				date = "06/11/2026",
 				title = "Reactions & unread badge",
