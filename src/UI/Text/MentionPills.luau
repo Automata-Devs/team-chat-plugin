@@ -20,8 +20,8 @@
 		MentionPills.recolor(label, palette)   -- after a theme change
 ]]
 
-local Theme = require(script.Parent.Parent.Config.Theme)
-local Mentions = require(script.Parent.Parent.Util.Mentions)
+local Theme = require(script.Parent.Parent.Parent.Config.Theme)
+local Mentions = require(script.Parent.Parent.Parent.Util.Mentions)
 local TextLayout = require(script.Parent.TextLayout)
 
 local PILL_PADDING = 2 -- extra width on each side of the mention

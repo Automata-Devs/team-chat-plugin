@@ -18,11 +18,11 @@
 		MessageText.attachClicks(label, function(url) ... end) -- url couldn't open
 ]]
 
-local Browser = require(script.Parent.Parent.Core.Browser)
-local Markdown = require(script.Parent.Parent.Util.Markdown)
-local RichText = require(script.Parent.Parent.Util.RichText)
-local SyntaxHighlight = require(script.Parent.Parent.Util.SyntaxHighlight)
-local Theme = require(script.Parent.Parent.Config.Theme)
+local Browser = require(script.Parent.Parent.Parent.Core.Browser)
+local Markdown = require(script.Parent.Parent.Parent.Util.Markdown)
+local RichText = require(script.Parent.Parent.Parent.Util.RichText)
+local SyntaxHighlight = require(script.Parent.Parent.Parent.Util.SyntaxHighlight)
+local Theme = require(script.Parent.Parent.Parent.Config.Theme)
 local TextLayout = require(script.Parent.TextLayout)
 local MentionPills = require(script.Parent.MentionPills)
 

@@ -92,7 +92,7 @@ return function(t)
 		end
 		t.check("…with the same pill as a mention", pill ~= nil)
 
-		local MessageText = require(app.copy.UI.MessageText) :: any
+		local MessageText = require(app.copy.UI.Text.MessageText) :: any
 		Selection:Set({})
 		MessageText.onTag("Workspace.TagTestModel.TagTestDoor")
 		t.check("clicking a tag selects the object", Selection:Get()[1] == door)

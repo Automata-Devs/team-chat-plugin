@@ -23,7 +23,7 @@
 
 local TextService = game:GetService("TextService")
 
-local Markdown = require(script.Parent.Parent.Util.Markdown)
+local Markdown = require(script.Parent.Parent.Parent.Util.Markdown)
 
 type Doc = Markdown.Doc
 type TextObject = TextLabel | TextBox

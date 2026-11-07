@@ -68,8 +68,8 @@ return function(t)
 
 		-- Clicking a link inside message text finds it (UI/TextLayout hit-test),
 		-- also after bold text, which is wider
-		local MessageText = require(copy.UI.MessageText) :: any
-		local TextLayout = require(copy.UI.TextLayout) :: any
+		local MessageText = require(copy.UI.Text.MessageText) :: any
+		local TextLayout = require(copy.UI.Text.TextLayout) :: any
 		local Theme = require(copy.Config.Theme) :: any
 		local TextService = game:GetService("TextService")
 		local label = Instance.new("TextLabel")

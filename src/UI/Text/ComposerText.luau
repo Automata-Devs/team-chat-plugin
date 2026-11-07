@@ -17,7 +17,7 @@
 		composer.recolor()
 ]]
 
-local MarkdownSource = require(script.Parent.Parent.Util.MarkdownSource)
+local MarkdownSource = require(script.Parent.Parent.Parent.Util.MarkdownSource)
 local TextLayout = require(script.Parent.TextLayout)
 
 local BLINK = 0.53 -- seconds the cursor is on, then off

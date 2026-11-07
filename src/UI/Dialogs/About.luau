@@ -5,7 +5,7 @@
 -- the terms of use and what data it stores.
 --!
 
-local ModalKit = require(script.Parent.ModalKit)
+local ModalKit = require(script.Parent.Kit.ModalKit)
 local PluginConfig = require(script.Parent.Parent.Parent.Config.Constants)
 
 local Z = 32 -- above the other dialogs

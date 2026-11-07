@@ -131,7 +131,7 @@ function Harness.boot(options: { settings: { [string]: any }?, keepData: boolean
 		return button.MouseButton1Click:Connect(handler)
 	end
 	patch(
-		copy.UI.Dialogs.PurchaseDialog,
+		copy.UI.Dialogs.Purchase,
 		"continueButton%.MouseButton1Click:Connect%(",
 		"_G.__TeamChatTest.onClick(continueButton, ",
 		1
@@ -145,7 +145,7 @@ function Harness.boot(options: { settings: { [string]: any }?, keepData: boolean
 	)
 	-- Panel buttons (the admin dashboard, the developer portal)
 	patch(
-		copy.UI.Dialogs.PanelKit,
+		copy.UI.Dialogs.Kit.PanelKit,
 		"button%.MouseButton1Click:Connect%(onClick%)",
 		"_G.__TeamChatTest.onClick(button, onClick)",
 		1

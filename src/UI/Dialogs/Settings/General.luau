@@ -10,16 +10,16 @@
 -- live in UI/Preferences. Everything is listed in SECTIONS below.
 --!
 
-local Controls = require(script.Parent.Parent.Components.Controls)
-local Foundation = require(script.Parent.Parent.Foundation)
-local Language = require(script.Parent.Parent.Parent.Core.Language)
-local Icons = require(script.Parent.Parent.Parent.Config.Icons)
-local Lifetime = require(script.Parent.Parent.Parent.Core.Lifetime)
-local PluginConfig = require(script.Parent.Parent.Parent.Config.Constants)
-local Preferences = require(script.Parent.Parent.Preferences)
-local Settings = require(script.Parent.Parent.Parent.Core.Settings)
-local Theme = require(script.Parent.Parent.Parent.Config.Theme)
-local TimeFormatter = require(script.Parent.Parent.Parent.Util.TimeFormat)
+local Controls = require(script.Parent.Parent.Parent.Components.Controls)
+local Foundation = require(script.Parent.Parent.Parent.Common.Foundation)
+local Language = require(script.Parent.Parent.Parent.Parent.Core.Language)
+local Icons = require(script.Parent.Parent.Parent.Parent.Config.Icons)
+local Lifetime = require(script.Parent.Parent.Parent.Parent.Core.Lifetime)
+local PluginConfig = require(script.Parent.Parent.Parent.Parent.Config.Constants)
+local Preferences = require(script.Parent.Parent.Parent.Common.Preferences)
+local Settings = require(script.Parent.Parent.Parent.Parent.Core.Settings)
+local Theme = require(script.Parent.Parent.Parent.Parent.Config.Theme)
+local TimeFormatter = require(script.Parent.Parent.Parent.Parent.Util.TimeFormat)
 
 local FONTS = Theme.FONTS
 

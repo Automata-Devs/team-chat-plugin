@@ -14,7 +14,7 @@ local Identity = require(script.Parent.Parent.Core.Identity)
 local Mentions = require(script.Parent.Parent.Util.Mentions)
 local Markdown = require(script.Parent.Parent.Util.Markdown)
 local Profiles = require(script.Parent.Parent.Services.Profiles)
-local Preferences = require(script.Parent.Parent.UI.Preferences)
+local Preferences = require(script.Parent.Parent.UI.Common.Preferences)
 local ToolbarIcons = require(script.Parent.Parent.Config.ToolbarIcons)
 
 local NOTIFY_AFTER = 3 -- seconds after loading: the place's messages replicate in first

@@ -28,7 +28,7 @@ local VersionHistory = require(script.Parent.Parent.Parent.Services.Chat.Version
 local Identity = require(script.Parent.Parent.Parent.Core.Identity)
 local Language = require(script.Parent.Parent.Parent.Core.Language)
 local Lifetime = require(script.Parent.Parent.Parent.Core.Lifetime)
-local PanelKit = require(script.Parent.PanelKit)
+local PanelKit = require(script.Parent.Kit.PanelKit)
 
 local Z = 32
 local SLOWMODE_PRESETS = { 0, 5, 10, 30, 60 }

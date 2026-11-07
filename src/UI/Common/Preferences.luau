@@ -13,9 +13,9 @@
 		Preferences.changed:Connect(function(key) ... end)
 ]]
 
-local Constants = require(script.Parent.Parent.Config.Constants)
-local Settings = require(script.Parent.Parent.Core.Settings)
-local Signal = require(script.Parent.Parent.Util.Signal)
+local Constants = require(script.Parent.Parent.Parent.Config.Constants)
+local Settings = require(script.Parent.Parent.Parent.Core.Settings)
+local Signal = require(script.Parent.Parent.Parent.Util.Signal)
 
 export type Names = "Display name" | "Username"
 

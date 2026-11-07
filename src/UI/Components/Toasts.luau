@@ -14,7 +14,7 @@
 		toasts.recolor(palette)
 ]]
 
-local Animation = require(script.Parent.Parent.Animation)
+local Animation = require(script.Parent.Parent.Common.Animation)
 local Icons = require(script.Parent.Parent.Parent.Config.Icons)
 local Lifetime = require(script.Parent.Parent.Parent.Core.Lifetime)
 local Theme = require(script.Parent.Parent.Parent.Config.Theme)

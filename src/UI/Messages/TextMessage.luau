@@ -10,8 +10,8 @@ local AssetService = game:GetService("AssetService")
 
 local Author = require(script.Parent.Author)
 local GifPlayer = require(script.Parent.Parent.Components.GifPlayer)
-local MentionPills = require(script.Parent.Parent.MentionPills)
-local MessageText = require(script.Parent.Parent.MessageText)
+local MentionPills = require(script.Parent.Parent.Text.MentionPills)
+local MessageText = require(script.Parent.Parent.Text.MessageText)
 local Shared = require(script.Parent.Shared)
 local Theme = require(script.Parent.Parent.Parent.Config.Theme)
 

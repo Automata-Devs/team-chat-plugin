@@ -6,7 +6,7 @@
 -- answers to opts.onSubmit.
 --!
 
-local Foundation = require(script.Parent.Parent.Foundation)
+local Foundation = require(script.Parent.Parent.Common.Foundation)
 local Language = require(script.Parent.Parent.Parent.Core.Language)
 local Theme = require(script.Parent.Parent.Parent.Config.Theme)
 local Icons = require(script.Parent.Parent.Parent.Config.Icons)

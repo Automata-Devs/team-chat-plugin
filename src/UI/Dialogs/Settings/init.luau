@@ -9,7 +9,7 @@
 -- narrow panel the column shows icons only.
 --!
 
-local Animation = require(script.Parent.Parent.Animation)
+local Animation = require(script.Parent.Parent.Common.Animation)
 local Constants = require(script.Parent.Parent.Parent.Config.Constants)
 local Icons = require(script.Parent.Parent.Parent.Config.Icons)
 local Language = require(script.Parent.Parent.Parent.Core.Language)

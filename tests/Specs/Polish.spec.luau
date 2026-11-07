@@ -9,8 +9,8 @@ return function(t)
 	local app = Harness.boot({ settings = { TeamChatAboutSeen_v1 = true, TeamChatLastSeenVersion_v1 = "x" } })
 	local ok, err = pcall(function()
 		local ui, gui = app.ui, app.gui
-		local Preferences = require(app.copy.UI.Preferences) :: any
-		local Animation = require(app.copy.UI.Animation) :: any
+		local Preferences = require(app.copy.UI.Common.Preferences) :: any
+		local Animation = require(app.copy.UI.Common.Animation) :: any
 		local Conversations = app.chat.Conversations
 
 		local function toasts(): { Instance }

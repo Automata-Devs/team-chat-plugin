@@ -20,7 +20,7 @@ local Bots = require(script.Parent.Parent.Parent.Services.Bots)
 local Browser = require(script.Parent.Parent.Parent.Core.Browser)
 local Language = require(script.Parent.Parent.Parent.Core.Language)
 local Markdown = require(script.Parent.Parent.Parent.Util.Markdown)
-local PanelKit = require(script.Parent.PanelKit)
+local PanelKit = require(script.Parent.Kit.PanelKit)
 
 local Z = 32
 local MASKED = string.rep("\u{2022}", 12)

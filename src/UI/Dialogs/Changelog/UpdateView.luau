@@ -5,9 +5,9 @@
 -- version among the main versions' updates. Used by the "What's New" page.
 --!
 
-local Language = require(script.Parent.Parent.Parent.Core.Language)
-local Theme = require(script.Parent.Parent.Parent.Config.Theme)
-local Icons = require(script.Parent.Parent.Parent.Config.Icons)
+local Language = require(script.Parent.Parent.Parent.Parent.Core.Language)
+local Theme = require(script.Parent.Parent.Parent.Parent.Config.Theme)
+local Icons = require(script.Parent.Parent.Parent.Parent.Config.Icons)
 
 local FONTS = Theme.FONTS
 

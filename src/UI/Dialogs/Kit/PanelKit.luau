@@ -13,8 +13,8 @@
 		PanelKit.button(row, "Save", "primary", 1, z, colors, function() ... end)
 ]]
 
-local Foundation = require(script.Parent.Parent.Foundation)
-local Theme = require(script.Parent.Parent.Parent.Config.Theme)
+local Foundation = require(script.Parent.Parent.Parent.Common.Foundation)
+local Theme = require(script.Parent.Parent.Parent.Parent.Config.Theme)
 
 local FONTS = Theme.FONTS
 

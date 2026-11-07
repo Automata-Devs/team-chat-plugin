@@ -8,10 +8,10 @@
 -- ChatUI's other dialogs.
 --!
 
-local Animation = require(script.Parent.Parent.Animation)
+local Animation = require(script.Parent.Parent.Common.Animation)
 local Changelog = require(script.Parent.Parent.Parent.Config.Changelog)
-local Foundation = require(script.Parent.Parent.Foundation)
-local ChangelogView = require(script.Parent.ChangelogView)
+local Foundation = require(script.Parent.Parent.Common.Foundation)
+local ChangelogView = require(script.UpdateView)
 local Icons = require(script.Parent.Parent.Parent.Config.Icons)
 local Language = require(script.Parent.Parent.Parent.Core.Language)
 local Theme = require(script.Parent.Parent.Parent.Config.Theme)

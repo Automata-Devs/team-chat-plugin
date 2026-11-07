@@ -8,10 +8,10 @@
 -- shrink below their minimums only when the panel itself is smaller.
 --!
 
-local Animation = require(script.Parent.Parent.Animation)
-local Language = require(script.Parent.Parent.Parent.Core.Language)
-local Theme = require(script.Parent.Parent.Parent.Config.Theme)
-local Icons = require(script.Parent.Parent.Parent.Config.Icons)
+local Animation = require(script.Parent.Parent.Parent.Common.Animation)
+local Language = require(script.Parent.Parent.Parent.Parent.Core.Language)
+local Theme = require(script.Parent.Parent.Parent.Parent.Config.Theme)
+local Icons = require(script.Parent.Parent.Parent.Parent.Config.Icons)
 
 local FONTS = Theme.FONTS
 

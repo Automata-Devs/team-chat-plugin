@@ -7,7 +7,7 @@
 
 local Theme = require(script.Parent.Parent.Parent.Config.Theme)
 local BadgeIcons = require(script.Parent.Parent.Components.BadgeIcons)
-local Foundation = require(script.Parent.Parent.Foundation)
+local Foundation = require(script.Parent.Parent.Common.Foundation)
 local Language = require(script.Parent.Parent.Parent.Core.Language)
 local Icons = require(script.Parent.Parent.Parent.Config.Icons)
 

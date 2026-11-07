@@ -20,7 +20,7 @@
 		Foundation.stroke(card, palette, "muted")
 ]]
 
-local Theme = require(script.Parent.Parent.Config.Theme)
+local Theme = require(script.Parent.Parent.Parent.Config.Theme)
 
 type Palette = { [string]: Color3 }
 

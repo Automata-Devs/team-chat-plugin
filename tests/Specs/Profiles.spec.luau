@@ -10,7 +10,7 @@ return function(t)
 	local app = Harness.boot()
 	local ok, err = pcall(function()
 		local ui, gui, hooks = app.ui, app.gui, app.hooks
-		local Preferences = require(app.copy.UI.Preferences) :: any
+		local Preferences = require(app.copy.UI.Common.Preferences) :: any
 		local Icons = require(app.copy.Config.Icons) :: any
 		local Constants = require(app.copy.Config.Constants) :: any
 

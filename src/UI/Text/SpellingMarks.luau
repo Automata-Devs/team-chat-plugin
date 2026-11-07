@@ -16,7 +16,7 @@
 		marks.refresh()                        -- after a setting or the dictionary changed
 ]]
 
-local SpellCheck = require(script.Parent.Parent.Util.SpellCheck)
+local SpellCheck = require(script.Parent.Parent.Parent.Util.SpellCheck)
 local TextLayout = require(script.Parent.TextLayout)
 
 local DELAY = 0.25 -- seconds after typing stops before checking

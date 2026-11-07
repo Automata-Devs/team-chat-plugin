@@ -9,7 +9,7 @@ return function(t)
 	local app = Harness.boot({ settings = { TeamChatAboutSeen_v1 = true, TeamChatLastSeenVersion_v1 = "x" } })
 	local ok, err = pcall(function()
 		local ui, gui = app.ui, app.gui
-		local Preferences = require(app.copy.UI.Preferences) :: any
+		local Preferences = require(app.copy.UI.Common.Preferences) :: any
 		local Constants = require(app.copy.Config.Constants) :: any
 		ui.openSettings()
 		Harness.settle(2)

@@ -19,10 +19,10 @@
 		picker.close()
 ]]
 
-local Animation = require(script.Parent.Parent.Animation)
+local Animation = require(script.Parent.Parent.Common.Animation)
 local EmojiData = require(script.Parent.Parent.Parent.Util.EmojiData)
 local Icons = require(script.Parent.Parent.Parent.Config.Icons)
-local Foundation = require(script.Parent.Parent.Foundation)
+local Foundation = require(script.Parent.Parent.Common.Foundation)
 local Language = require(script.Parent.Parent.Parent.Core.Language)
 local Pointer = require(script.Parent.Pointer)
 local Theme = require(script.Parent.Parent.Parent.Config.Theme)

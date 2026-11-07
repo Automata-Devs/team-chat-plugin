@@ -23,8 +23,8 @@
 	cut them off.
 ]]
 
-local Animation = require(script.Parent.Parent.Animation)
-local Foundation = require(script.Parent.Parent.Foundation)
+local Animation = require(script.Parent.Parent.Common.Animation)
+local Foundation = require(script.Parent.Parent.Common.Foundation)
 local Icons = require(script.Parent.Parent.Parent.Config.Icons)
 local Theme = require(script.Parent.Parent.Parent.Config.Theme)
 

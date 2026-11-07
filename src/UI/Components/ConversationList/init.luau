@@ -15,10 +15,10 @@
 --!
 
 local Theme = require(script.Parent.Parent.Parent.Config.Theme)
-local Animation = require(script.Parent.Parent.Animation)
-local Foundation = require(script.Parent.Parent.Foundation)
+local Animation = require(script.Parent.Parent.Common.Animation)
+local Foundation = require(script.Parent.Parent.Common.Foundation)
 local BadgeIcons = require(script.Parent.BadgeIcons)
-local Preferences = require(script.Parent.Parent.Preferences)
+local Preferences = require(script.Parent.Parent.Common.Preferences)
 local Constants = require(script.Parent.Parent.Parent.Config.Constants)
 local Icons = require(script.Parent.Parent.Parent.Config.Icons)
 local Language = require(script.Parent.Parent.Parent.Core.Language)

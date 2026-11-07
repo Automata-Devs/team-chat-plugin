@@ -8,10 +8,10 @@
 --!
 
 local Browser = require(script.Parent.Parent.Parent.Core.Browser)
-local Foundation = require(script.Parent.Parent.Foundation)
+local Foundation = require(script.Parent.Parent.Common.Foundation)
 local Icons = require(script.Parent.Parent.Parent.Config.Icons)
 local Language = require(script.Parent.Parent.Parent.Core.Language)
-local ModalKit = require(script.Parent.ModalKit)
+local ModalKit = require(script.Parent.Kit.ModalKit)
 local RichText = require(script.Parent.Parent.Parent.Util.RichText)
 local Theme = require(script.Parent.Parent.Parent.Config.Theme)
 
