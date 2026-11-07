@@ -3,6 +3,14 @@
 Developer-facing history of the codebase. User-facing notes ("What's New")
 are in `src/Config/Changelog.luau`. Format: [Keep a Changelog](https://keepachangelog.com).
 
+## [1.26.2] - 2026-11-07
+
+### Changed
+- `UI/Messages/Reactions`: your own reactions are softer, filled with
+  `messageText` at 0.25 transparency (0.33 hovered, 0.4 pressed) instead of
+  solid, so they're a light gray in Dark and a dark gray in Light rather than
+  white and black.
+
 ## [1.26.1] - 2026-11-07
 
 ### Changed

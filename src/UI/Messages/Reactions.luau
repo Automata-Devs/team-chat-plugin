@@ -28,9 +28,10 @@ local COUNT_SIZE = 14
 local ICON_SIZE = 16
 
 -- How see-through each chip's background is, by state. Others' reactions
--- are a tint of the text colour; yours are filled with it.
+-- are a tint of the text colour; yours are filled with it, softened a
+-- little so it isn't glaring white (or black in Light).
 local SURFACE = { rest = 0.9, hover = 0.84, press = 0.78 }
-local SELECTED = { rest = 0, hover = 0.12, press = 0.2 }
+local SELECTED = { rest = 0.25, hover = 0.33, press = 0.4 }
 
 type Palette = { [string]: Color3 }
 
