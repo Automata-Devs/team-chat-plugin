@@ -1,6 +1,6 @@
 # Audit: Team Chat plugin v1.5.1
 
-Snapshot audited: `legacy/TeamChatPlugin` (exported unchanged from
+Snapshot audited: the v1.5.1 export (in git history before 1.27.1; exported unchanged from
 `ReplicatedStorage.TeamChatPlugin`, 112 scripts, 16,642 lines).
 Tools: Selene 0.28 (`std = "roblox"`), `tools/analyze.py` (require graph,
 cycles, dead modules, API patterns), manual review.

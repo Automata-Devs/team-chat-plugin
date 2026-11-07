@@ -3,9 +3,6 @@
 *.rbxmx
 /build/
 
-# Studio export scratch (tools/import_export.py input)
-/.export/
-
 # Tooling caches
 roblox.yml
 roblox.toml

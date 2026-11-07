@@ -107,7 +107,6 @@ history.
 | `lang/` | The languages as JSON (`tools/lang_to_json.py` makes them from `src/Config/Languages`). |
 | `tests/` | Studio test harness, runner and specs. |
 | `tools/` | Python helpers for checks and conversions. |
-| `legacy/` | The v1.5.1 code exactly as it was exported from Studio. |
 | `docs/` | `ARCHITECTURE.md` (design, rules, how to extend), `BOTS.md` (making bots) and `AUDIT.md` (findings). |
 
 Adding a command: copy `src/Commands/_Template.luau` into a category folder and
