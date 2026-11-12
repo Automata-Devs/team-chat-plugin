@@ -3,6 +3,25 @@
 Developer-facing history of the codebase. User-facing notes ("What's New")
 are in `src/Config/Changelog.luau`. Format: [Keep a Changelog](https://keepachangelog.com).
 
+## [1.28.0] - 2026-11-12
+
+A team database on your own server (`docs/DATABASE.md`).
+
+### Added
+- `Services/Database`: facade plus `Connection` (URL and token in
+  `TeamChatData.Database`), `Client` (HttpService, token header, problems,
+  swappable transport), `Outbox` (queued writes in plugin settings), `Cache`
+  (last answers for offline reads), `Store` (key/value collections),
+  `Archive` (uploads your own team chat messages in batches; history and
+  search) and `UserStats` (profiles and a `messagesSent` count).
+- `Config/Database.luau` for its keys, timings and limits.
+- `/database` (`/db`): status, connect and disconnect (admins), sync, search
+  and profile.
+- Studio bots get `ctx.db`, their own collection.
+- `server/`: a Node.js 18+ server with no dependencies (JSON file store,
+  constant-time token check, size and name limits) and its tests (`npm test`).
+- `tests/Specs/Database.spec.luau` against a fake server.
+
 ## [1.27.1] - 2026-11-12
 
 A restructure with no behaviour or visual change.

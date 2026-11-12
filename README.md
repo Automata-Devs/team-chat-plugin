@@ -5,7 +5,9 @@ place over Team Create: a team chat pinned to the game, direct messages,
 replies, @mentions, polls, images, animated GIFs, audio, file cards, link
 previews, Discord-style markdown, #tags for objects in the place, slash
 commands with Team Chat's own bot replies (`/help` lists them), and bots you
-can make yourself, in Studio or on your own server ([docs/BOTS.md](docs/BOTS.md)), plus an admin dashboard and a developer portal in Settings. Available in English,
+can make yourself, in Studio or on your own server ([docs/BOTS.md](docs/BOTS.md)), plus an admin dashboard and a developer portal in Settings. Optionally, a team
+database on your own server keeps the chat's history, profiles and bot data
+([docs/DATABASE.md](docs/DATABASE.md)). Available in English,
 Nederlands, Deutsch, Español, Français and Português.
 
 Messages are stored in `ServerStorage.TeamChatData` inside the place, so Team
@@ -99,7 +101,8 @@ history.
 | `src/Config/Languages/` | One module per language; English (`en.luau`) has every key. |
 | `src/Util/` | Pure helpers: Janitor, Signal, Duration, RichText, Links, Mentions, emoji, GIF decoding. |
 | `src/Core/` | Plugin plumbing: Lifetime, Logger, Settings, Identity, Language, PlaceStorage, Browser. |
-| `src/Services/` | Chat (messages, DMs, polls, pins, reactions, typing, backups), Admin, Bots, Badges, History (undo), ObjectTags, Profiles, StudioCollab, Usage. |
+| `src/Services/` | Chat (messages, DMs, polls, pins, reactions, typing, backups), Admin, Bots, Database (the team database), Badges, History (undo), ObjectTags, Profiles, StudioCollab, Usage. |
+| `server/` | The team database server (Node.js) and its tests. |
 | `src/Commands/` | One module per slash command, discovered automatically. |
 | `src/Controllers/` | Glue between the UI and the services. |
 | `src/UI/` | `ChatWindow/` (the dock widget, split into Feed, Composer, Sidebar...), `Messages/`, `Components/`, `Dialogs/`, `Embeds/`, `Text/` (text layout and styling) and `Common/` (animation, styling, display preferences). |
@@ -107,7 +110,7 @@ history.
 | `lang/` | The languages as JSON (`tools/lang_to_json.py` makes them from `src/Config/Languages`). |
 | `tests/` | Studio test harness, runner and specs. |
 | `tools/` | Python helpers for checks and conversions. |
-| `docs/` | `ARCHITECTURE.md` (design, rules, how to extend), `BOTS.md` (making bots) and `AUDIT.md` (findings). |
+| `docs/` | `ARCHITECTURE.md` (design, rules, how to extend), `BOTS.md` (making bots), `DATABASE.md` (the team database) and `AUDIT.md` (findings). |
 
 Adding a command: copy `src/Commands/_Template.luau` into a category folder and
 fill it in. See `docs/ARCHITECTURE.md` for everything else.

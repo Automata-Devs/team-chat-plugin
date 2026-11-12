@@ -11,6 +11,7 @@
 local HttpService = game:GetService("HttpService")
 
 local Conversations = require(script.Parent.Parent.Chat.Conversations)
+local Database = require(script.Parent.Parent.Database)
 local Identity = require(script.Parent.Parent.Parent.Core.Identity)
 local Lifetime = require(script.Parent.Parent.Parent.Core.Lifetime)
 local Logger = require(script.Parent.Parent.Parent.Core.Logger)
@@ -194,6 +195,9 @@ local function makeContext(bot: Running, request: Instance?, conversation: strin
 		local data = Manifests.decode(response.Body)
 		return if data ~= nil then data else response.Body, nil
 	end
+
+	-- The bot's own collection in the team database (Services/Database, docs/DATABASE.md)
+	ctx.db = Database.store("bot:" .. bot.id)
 
 	ctx.json = {
 		encode = function(value: any): string

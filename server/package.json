@@ -1,0 +1,12 @@
+{
+  "name": "teamchat-database",
+  "version": "1.0.0",
+  "description": "Team Chat database server: chat archive, profiles and key/value collections",
+  "private": true,
+  "main": "server.js",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test test.js"
+  }
+}

@@ -47,6 +47,29 @@ return {
 		title = "Team Chat 1",
 		updates = {
 			{
+				version = "1.28.0",
+				date = "12/11/2026",
+				title = "Team database",
+				changes = {
+					{
+						type = "added",
+						text = "Connect a place to your own server with /database connect, and Team Chat keeps the team chat's history there: it stays after /clear and can be searched with /database search.",
+					},
+					{
+						type = "added",
+						text = "Profiles that follow you across places, with how many messages you've sent: /database profile.",
+					},
+					{
+						type = "added",
+						text = "Studio bots can save data in the database with ctx.db.",
+					},
+					{
+						type = "added",
+						text = "Works offline: changes wait on your computer and are sent when the server is back.",
+					},
+				},
+			},
+			{
 				version = "1.27.1",
 				date = "12/11/2026",
 				title = "Tidier on the inside",

@@ -15,7 +15,7 @@ src/
   init.meta.json            Plugin version (`Version` attribute).
   App.luau                  Composition root: starts services, builds the UI, wires controllers.
   Config/                   Plain data: Constants, Theme, Icons, ToolbarIcons, Badges,
-                            Changelog, AllowedUsers, Languages/, Dictionary/.
+                            Changelog, AllowedUsers, Database, Languages/, Dictionary/.
   Util/                     Pure helpers: Janitor, Signal, Duration, Links, RichText,
                             Markdown, Mentions, SpellCheck, TimeFormat, EmojiData, GifDecoder...
   Core/                     Plugin plumbing: Lifetime, Logger, Settings, PlaceStorage,
@@ -27,6 +27,8 @@ src/
                             AuditLog, ChatRules.
     Bots/                   Facade (init) + Options, Manifests, Messages, Studio (bots that
                             run in Studio), Web (bots on a server), Portal (developer portal).
+    Database/               Facade (init) + Connection, Client, Outbox, Cache, Store, Archive,
+                            UserStats: the team database on your own server (DATABASE.md).
     Badges, Profiles, Usage, ObjectTags, StudioCollab, History
   Commands/                 Slash commands, auto-discovered.
     Registry.luau           Finds, registers and runs commands; built-in /help.
@@ -54,7 +56,8 @@ src/
 tests/                      Studio test harness, runner and specs (synced by dev.project.json).
 tools/                      Python helpers: analyze, build_versions, lang_to_json,
                             make_dictionary, make_badge_icons.
-docs/                       ARCHITECTURE.md, BOTS.md, AUDIT.md.
+server/                     The team database server (Node.js, no dependencies) and its tests.
+docs/                       ARCHITECTURE.md, BOTS.md, DATABASE.md, AUDIT.md.
 ```
 
 ## Dependency rules
