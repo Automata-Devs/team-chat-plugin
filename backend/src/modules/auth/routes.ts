@@ -1,0 +1,101 @@
+import { and, desc, eq, gt, isNull, sql } from "drizzle-orm";
+import { z } from "zod";
+import { sessions } from "../../db/schema.js";
+import { LIMITS } from "../../http/rateLimit.js";
+import { actorOf, type Module } from "../../http/types.js";
+import { AppError, forbidden, notFound } from "../../lib/errors.js";
+import { idParams, name, parse, username } from "../../lib/validation.js";
+import { finishRobloxLogin, pollRobloxLogin, startRobloxLogin } from "./roblox.js";
+import { changePassword, connectedAccountsOf, login, register, revokeSession } from "./service.js";
+
+const password = z.string().min(10, "At least 10 characters").max(256);
+
+const Register = z.object({ username, password, displayName: name(64).optional() });
+const Login = z.object({ username: z.string().min(1).max(64), password: z.string().min(1).max(256) });
+const ChangePassword = z.object({ currentPassword: z.string().max(256).optional(), newPassword: password });
+const Poll = z.object({ loginId: z.string().min(10).max(64), pollSecret: z.string().min(10).max(128) });
+const Callback = z.object({
+	code: z.string().min(1).max(2048).optional(),
+	state: z.string().min(1).max(256),
+	error: z.string().max(256).optional(),
+});
+
+const page = (message: string) =>
+	`<!doctype html><meta charset="utf-8"><title>Team Chat</title><body style="font:16px system-ui;padding:40px">${message
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")}</body>`;
+
+export const authModule: Module = (app, services) => {
+	app.post("/auth/register", { config: { auth: "none", limit: LIMITS.signup } }, async (request, reply) => {
+		if (!services.config.ALLOW_PASSWORD_SIGNUP) throw forbidden("Sign-up with a password is turned off; sign in with Roblox");
+		return reply.status(201).send(await register(services, request, parse(Register, request.body)));
+	});
+
+	app.post("/auth/login", { config: { auth: "none", limit: LIMITS.auth } }, async (request) =>
+		login(services, request, parse(Login, request.body)),
+	);
+
+	app.post("/auth/logout", async (request, reply) => {
+		const actor = actorOf(request);
+		if (actor.sessionId) await revokeSession(services, request, actor.userId, actor.sessionId);
+		return reply.status(204).send();
+	});
+
+	app.get("/auth/sessions", async (request) => {
+		const actor = actorOf(request);
+		const rows = await services.db
+			.select({
+				id: sessions.id,
+				createdAt: sessions.createdAt,
+				lastUsedAt: sessions.lastUsedAt,
+				expiresAt: sessions.expiresAt,
+				ip: sessions.ip,
+				userAgent: sessions.userAgent,
+			})
+			.from(sessions)
+			.where(and(eq(sessions.userId, actor.userId), isNull(sessions.revokedAt), gt(sessions.expiresAt, sql`now()`)))
+			.orderBy(desc(sessions.id))
+			.limit(100);
+		return { sessions: rows.map((row) => ({ ...row, current: row.id === actor.sessionId })) };
+	});
+
+	app.delete("/auth/sessions/:sessionId", async (request, reply) => {
+		const { sessionId } = parse(idParams("sessionId"), request.params);
+		if (!(await revokeSession(services, request, actorOf(request).userId, sessionId))) throw notFound("Session");
+		return reply.status(204).send();
+	});
+
+	app.post("/auth/password", { config: { limit: LIMITS.auth } }, async (request, reply) => {
+		const actor = actorOf(request);
+		await changePassword(services, request, actor.userId, actor.sessionId, parse(ChangePassword, request.body));
+		return reply.status(204).send();
+	});
+
+	app.get("/auth/connections", async (request) => ({ connections: await connectedAccountsOf(services, actorOf(request).userId) }));
+
+	// Signed in already, this links Roblox to the current account instead of signing in
+	app.post("/auth/roblox/start", { config: { auth: "none", limit: LIMITS.auth } }, async (request) => {
+		if (request.actor?.kind === "bot") throw forbidden("Bots can't sign in with Roblox");
+		return startRobloxLogin(services, request.actor?.userId);
+	});
+
+	app.get("/auth/roblox/callback", { config: { auth: "none", limit: LIMITS.auth } }, async (request, reply) => {
+		const query = parse(Callback, request.query);
+		reply.type("text/html; charset=utf-8").header("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'");
+		if (query.error || !query.code) return reply.status(400).send(page("Sign-in was cancelled. You can close this tab."));
+		try {
+			return reply.send(page(await finishRobloxLogin(services, request, query.code, query.state)));
+		} catch (error) {
+			const status = error instanceof AppError ? error.status : 500;
+			if (status >= 500) request.log.error({ err: error }, "Roblox sign-in failed");
+			const message = error instanceof AppError && status < 500 ? error.message : "Sign-in failed. Try again from Studio.";
+			return reply.status(status).send(page(message));
+		}
+	});
+
+	app.post("/auth/roblox/poll", { config: { auth: "none" } }, async (request, reply) => {
+		const body = parse(Poll, request.body);
+		const result = await pollRobloxLogin(services, body.loginId, body.pollSecret);
+		return reply.status(result.status === "pending" ? 202 : 200).send(result);
+	});
+};

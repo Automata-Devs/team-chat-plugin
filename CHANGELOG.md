@@ -3,6 +3,48 @@
 Developer-facing history of the codebase. User-facing notes ("What's New")
 are in `src/Config/Changelog.luau`. Format: [Keep a Changelog](https://keepachangelog.com).
 
+## [1.30.0] - 2026-11-12
+
+A Discord-style backend in `backend/` (docs in `docs/backend/`). The plugin
+doesn't use it yet; `server/` stays the team database it uses.
+
+### Added
+- `backend/`: Node.js 20+ and TypeScript, Fastify, zod, Drizzle on
+  PostgreSQL 15+, Redis (optional), S3-compatible storage.
+  - Accounts: scrypt passwords, sessions stored as SHA-256 hashes, Roblox
+    OAuth 2.0 + PKCE sign-in shaped for Studio (start, open in a browser,
+    poll), session lists and revoking, password changes signing out other
+    devices.
+  - Workspaces with @everyone and roles (Discord-style permission bits, role
+    order), members, invites (uses counted atomically), ownership transfer,
+    a per-workspace audit log.
+  - Channels: text and category, private channels with members, permission
+    overwrites, slowmode, per-user mute, notification level and archive.
+  - Conversations: one DM per pair (also when opened from both sides at
+    once), group DMs of up to 10 with owner hand-over, blocks and a
+    "who may DM me" setting.
+  - Messages: snowflake ids (worker ids leased from Redis), id-cursor
+    pagination (`before`, `after`, `around`), replies, server-parsed mentions,
+    embeds, bot buttons, edits, tombstone deletes, retry-safe `nonce`, pins,
+    read states with unread counts and mention badges.
+  - Reactions (20 emoji per message), attachments uploaded and downloaded with
+    signed S3 URLs and checked on completion, full-text search limited to
+    what the searcher can read, a notification inbox.
+  - Bots: accounts with hashed tokens and encrypted signing secrets, a managed
+    role per installation, commands and interactions, HMAC-signed event POSTs
+    with retries, and checks that refuse private addresses (SSRF).
+  - A Postgres job queue filled in the same transaction as each change:
+    notifications, bot events, channel and workspace purges, clean-up.
+  - Server-Sent Events gateway (`/api/v1/gateway`) over Redis pub/sub.
+  - Rate limits per user, bot and IP; `/health/live` and `/health/ready`;
+    `503` with `Retry-After` while the database is down, recovering by itself.
+  - Dockerfile, docker-compose (PostgreSQL, Redis, MinIO, API), `.env.example`,
+    `scripts/backup.sh` and `scripts/restore.sh`.
+  - 95 tests (Vitest) against a real PostgreSQL started by the test run
+    (embedded-postgres), including concurrency, permission and outage tests.
+- `docs/backend/`: architecture, schema with an ER diagram and the retention
+  rules, API, message ids and storage scaling, bots, operations.
+
 ## [1.29.0] - 2026-11-12
 
 The database server can keep its data in MongoDB.

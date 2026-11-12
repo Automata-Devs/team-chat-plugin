@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.env
+.test-db/
+coverage/
+backups/
+vt.txt

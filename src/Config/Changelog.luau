@@ -47,7 +47,7 @@ return {
 		title = "Team Chat 1",
 		updates = {
 			{
-				version = "1.29.0",
+				version = "1.30.0",
 				date = "12/11/2026",
 				title = "Team database",
 				changes = {
@@ -58,6 +58,10 @@ return {
 					{
 						type = "added",
 						text = "The database can live in MongoDB (a free MongoDB Atlas cluster works), through a small server you can host for free. See docs/DATABASE.md.",
+					},
+					{
+						type = "added",
+						text = "For people who host Team Chat: a full Discord-style server in backend/, with accounts and Roblox sign-in, workspaces, channels, roles, DMs, files, bots and search on PostgreSQL. Team Chat doesn't use it yet. See docs/backend.",
 					},
 					{
 						type = "added",
