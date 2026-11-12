@@ -54,6 +54,7 @@ answer has `X-RateLimit-Limit`, `-Remaining`, `-Reset-After` and `-Bucket`.
 | Sign-in and password | 10 / minute |
 | Sign-up | 5 / hour |
 | Sending messages | 10 / 10 seconds |
+| Message batches | 30 / minute |
 | Uploads | 20 / minute |
 | Search | 30 / minute |
 | Bot token and secret resets | 20 / 5 minutes |
@@ -139,6 +140,7 @@ timestampFormat), `privacy` (allowDirectMessages, showActivity),
 | `DELETE /workspaces/:id` | | Owner |
 | `POST /workspaces/:id/transfer` | | `{ userId }`, owner |
 | `GET /workspaces/:id/members?after=&limit=` | bot | Paged by user id |
+| `GET /workspaces/:id/members/roblox/:robloxUserId` | bot | The member signed in with that Roblox account, or 404 (the plugin uses it for DMs) |
 | `PATCH /workspaces/:id/members/@me` | | `{ nickname }` |
 | `DELETE /workspaces/:id/members/:userId` | | Yourself: leave. Others: `KICK_MEMBERS` and a higher role |
 | `PUT`/`DELETE /workspaces/:id/members/:userId/roles/:roleId` | | `MANAGE_ROLES`, roles below yours |
@@ -185,9 +187,10 @@ Starting a conversation respects blocks and the recipient's
 | | | |
 |---|---|---|
 | `GET /channels/:id/messages?before\|after\|around=&limit=` | bot | [Pagination](MESSAGES.md#pagination) |
-| `POST /channels/:id/messages` | bot | `{ content?, replyTo?, attachments?, embeds?, components? (bots), flags?, nonce?, interactionId? (bots) }` |
+| `POST /channels/:id/messages` | bot | `{ content?, replyTo?, attachments?, embeds?, components? (bots), flags?, nonce?, interactionId? (bots), clientData? }` |
 | `GET /channels/:id/messages/:messageId` | bot | |
-| `PATCH /channels/:id/messages/:messageId` | bot | Author only: `{ content?, embeds?, components?, flags? }` |
+| `POST /channels/:id/messages/batch` | bot | Up to 50 of your own messages: `{ messages: [{ content, nonce, flags?, clientData? }] }` → `{ messages: [{ nonce, id, created }] }`. A nonce already stored is reported, not stored again, so a batch can be retried whole. No slowmode; 30 batches a minute |
+| `PATCH /channels/:id/messages/:messageId` | bot | Author only: `{ content?, embeds?, components?, flags?, clientData? }` |
 | `DELETE /channels/:id/messages/:messageId` | bot | Author, or `MANAGE_MESSAGES` |
 | `GET /channels/:id/pins` | bot | |
 | `PUT`/`DELETE /channels/:id/pins/:messageId` | bot | `MANAGE_MESSAGES` (anyone in a conversation) |
@@ -208,6 +211,8 @@ A message:
   "nonce": null, "createdAt": "…", "editedAt": null
 }
 ```
+
+`clientData` (an object, at most 8 KB) is what the sending client wants to keep about a message, such as the plugin's sender name and Studio timestamp. It comes back as `metadata.client`. It's display data: the author, id and time that count are the server's.
 
 Mentions are written `<@userId>` and parsed by the server. `flags`:
 `4` hides link embeds, `4096` sends without notifying.

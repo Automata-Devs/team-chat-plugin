@@ -47,10 +47,14 @@ return {
 		title = "Team Chat 1",
 		updates = {
 			{
-				version = "1.30.1",
+				version = "1.31.0",
 				date = "12/11/2026",
 				title = "Team database",
 				changes = {
+					{
+						type = "added",
+						text = "Store everything on your own backend: connect a place with /backend connect and sign in with Roblox (/backend login), and everything you write is stored there under your own account. That's messages in the team chat, DMs and groups, edits, deletes and reactions, plus what you wrote before. /clear doesn't delete what's stored, and /backend restore brings the team chat back.",
+					},
 					{
 						type = "added",
 						text = "Connect a place to your team's database with /database connect, and Team Chat keeps the team chat's history there: it stays after /clear and can be searched with /database search.",

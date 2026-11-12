@@ -58,6 +58,15 @@ const embedCharacters = (embeds: EmbedInput[]) =>
 		0,
 	);
 
+/**
+ * What the sending client wants to remember about a message (the plugin's own
+ * fields: its sender name, Studio timestamp, poll, file). Display data only:
+ * the author, id and time that count are the server's.
+ */
+export const ClientData = z
+	.record(z.unknown())
+	.refine((value) => JSON.stringify(value).length <= 8192, "clientData is at most 8 KB");
+
 const clientFlags = z
 	.number()
 	.int()
@@ -75,6 +84,7 @@ export const CreateMessage = z
 		nonce: z.string().min(1).max(64).optional(),
 		/** A bot answering a command it received. */
 		interactionId: z.string().max(64).optional(),
+		clientData: ClientData.optional(),
 	})
 	.strict()
 	.refine((m) => m.content.length > 0 || m.attachments.length > 0 || m.embeds.length > 0, "A message needs text, a file or an embed")
@@ -86,9 +96,31 @@ export const EditMessage = z
 		embeds: z.array(Embed).max(10).optional(),
 		components: Components.optional(),
 		flags: clientFlags.optional(),
+		clientData: ClientData.optional(),
 	})
 	.strict()
 	.refine((m) => !m.embeds || embedCharacters(m.embeds) <= MAX_EMBED_CHARACTERS, "Embeds are too long");
+
+/** Up to 50 of the sender's own messages at once (mirroring and imports), each with a nonce. */
+export const BatchMessages = z
+	.object({
+		messages: z
+			.array(
+				z
+					.object({
+						content: text(MAX_CONTENT).default(""),
+						nonce: z.string().min(1).max(64),
+						flags: clientFlags.default(0),
+						clientData: ClientData.optional(),
+					})
+					.strict()
+					.refine((m) => m.content.length > 0 || m.clientData !== undefined, "A message needs text or clientData"),
+			)
+			.min(1)
+			.max(50),
+	})
+	.strict()
+	.refine((b) => new Set(b.messages.map((m) => m.nonce)).size === b.messages.length, "Nonces must be unique");
 
 export const ListMessages = z
 	.object({

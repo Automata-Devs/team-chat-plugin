@@ -94,64 +94,75 @@ function ChatState.init()
 	ChatState.currentUsername = Identity.username
 end
 
--- Populates the DataModel folder from a decoded array of message entries.
-local function populateFolder(folder, messages)
-	for _, entry in ipairs(messages) do
-		local msgType = entry.messageType or ChatState.MESSAGE_TYPE_TEXT
-		local message = Instance.new("Folder")
-		message.Name = (
-			msgType == ChatState.MESSAGE_TYPE_POLL and "poll_"
-			or msgType == ChatState.MESSAGE_TYPE_FILE and "file_"
-			or "msg_"
-		)
+--[=[
+	Builds a message instance from a saved entry (not parented). `name` keeps
+	its original name (a restore from the backend); otherwise a new one is made.
+]=]
+function ChatState.buildMessage(entry: { [string]: any }, name: string?): Folder
+	local msgType = entry.messageType or ChatState.MESSAGE_TYPE_TEXT
+	local message = Instance.new("Folder")
+	message.Name = name
+		or (
+			(
+				msgType == ChatState.MESSAGE_TYPE_POLL and "poll_"
+				or msgType == ChatState.MESSAGE_TYPE_FILE and "file_"
+				or "msg_"
+			)
 			.. tostring(entry.timestamp or os.time())
 			.. "_"
 			.. math.random(100000, 999999)
-		message:SetAttribute("Sender", entry.sender or "Unknown")
-		message:SetAttribute("SenderId", entry.senderId or 0)
-		message:SetAttribute("Timestamp", entry.timestamp or os.time())
-		message:SetAttribute("Content", entry.content or "")
-		message:SetAttribute("MessageType", msgType)
-		message:SetAttribute("EditedAt", entry.editedAt)
-		-- Bot messages everyone sees: who ran which command, and its card
-		message:SetAttribute("SaidBy", entry.saidBy)
-		message:SetAttribute("SaidByName", entry.saidByName)
-		message:SetAttribute("Command", entry.command)
-		message:SetAttribute("Embed", entry.embed)
-		message:SetAttribute("BotId", entry.botId)
-		message:SetAttribute("BotOwner", entry.botOwner)
-		message:SetAttribute("BotAvatar", entry.botAvatar)
-		message:SetAttribute("Components", entry.components)
-		message:SetAttribute("VisibleTo", entry.visibleTo)
-		if entry.pinned then
-			message:SetAttribute("PinnedAt", entry.pinnedAt)
-			message:SetAttribute("PinnedBy", entry.pinnedBy)
-			message:SetAttribute("PinnedByName", entry.pinnedByName)
-			message:SetAttribute("Pinned", true)
-		end
-		if type(entry.reactions) == "string" and entry.reactions ~= "" then
-			message:SetAttribute("Reactions", entry.reactions)
-		end
-		if entry.imageUrl then
-			message:SetAttribute("ImageUrl", entry.imageUrl)
-		end
-		-- Restore reply reference attributes so reply context survives reloads
-		if entry.replyToTimestamp then
-			message:SetAttribute("ReplyToTimestamp", entry.replyToTimestamp)
-			message:SetAttribute("ReplyToSender", entry.replyToSender)
-			message:SetAttribute("ReplyToSenderId", entry.replyToSenderId)
-			message:SetAttribute("ReplyToContent", entry.replyToContent)
-		end
-		if msgType == ChatState.MESSAGE_TYPE_POLL then
-			message:SetAttribute("Question", entry.question or "")
-			message:SetAttribute("Options", HttpService:JSONEncode(entry.options or {}))
-			message:SetAttribute("Votes", HttpService:JSONEncode(entry.votes or {}))
-		elseif msgType == ChatState.MESSAGE_TYPE_FILE then
-			message:SetAttribute("FileName", entry.fileName or "file")
-			message:SetAttribute("FileUrl", entry.fileUrl or "")
-			message:SetAttribute("FileType", entry.fileType or "Other")
-		end
-		message.Parent = folder
+		)
+	message:SetAttribute("Sender", entry.sender or "Unknown")
+	message:SetAttribute("SenderId", entry.senderId or 0)
+	message:SetAttribute("Timestamp", entry.timestamp or os.time())
+	message:SetAttribute("Content", entry.content or "")
+	message:SetAttribute("MessageType", msgType)
+	message:SetAttribute("EditedAt", entry.editedAt)
+	-- Bot messages everyone sees: who ran which command, and its card
+	message:SetAttribute("SaidBy", entry.saidBy)
+	message:SetAttribute("SaidByName", entry.saidByName)
+	message:SetAttribute("Command", entry.command)
+	message:SetAttribute("Embed", entry.embed)
+	message:SetAttribute("BotId", entry.botId)
+	message:SetAttribute("BotOwner", entry.botOwner)
+	message:SetAttribute("BotAvatar", entry.botAvatar)
+	message:SetAttribute("Components", entry.components)
+	message:SetAttribute("VisibleTo", entry.visibleTo)
+	if entry.pinned then
+		message:SetAttribute("PinnedAt", entry.pinnedAt)
+		message:SetAttribute("PinnedBy", entry.pinnedBy)
+		message:SetAttribute("PinnedByName", entry.pinnedByName)
+		message:SetAttribute("Pinned", true)
+	end
+	if type(entry.reactions) == "string" and entry.reactions ~= "" then
+		message:SetAttribute("Reactions", entry.reactions)
+	end
+	if entry.imageUrl then
+		message:SetAttribute("ImageUrl", entry.imageUrl)
+	end
+	-- Restore reply reference attributes so reply context survives reloads
+	if entry.replyToTimestamp then
+		message:SetAttribute("ReplyToTimestamp", entry.replyToTimestamp)
+		message:SetAttribute("ReplyToSender", entry.replyToSender)
+		message:SetAttribute("ReplyToSenderId", entry.replyToSenderId)
+		message:SetAttribute("ReplyToContent", entry.replyToContent)
+	end
+	if msgType == ChatState.MESSAGE_TYPE_POLL then
+		message:SetAttribute("Question", entry.question or "")
+		message:SetAttribute("Options", HttpService:JSONEncode(entry.options or {}))
+		message:SetAttribute("Votes", HttpService:JSONEncode(entry.votes or {}))
+	elseif msgType == ChatState.MESSAGE_TYPE_FILE then
+		message:SetAttribute("FileName", entry.fileName or "file")
+		message:SetAttribute("FileUrl", entry.fileUrl or "")
+		message:SetAttribute("FileType", entry.fileType or "Other")
+	end
+	return message
+end
+
+-- Populates the DataModel folder from a decoded array of message entries.
+local function populateFolder(folder, messages)
+	for _, entry in ipairs(messages) do
+		ChatState.buildMessage(entry).Parent = folder
 	end
 end
 
@@ -307,6 +318,12 @@ end
 	timestamp: number - The timestamp of the message to delete
 	Returns boolean - true if message was found and deleted
 ]=]
+-- Called with each message someone deletes themselves (not /clear or /purge)
+local deleteCallbacks: { (Instance) -> () } = {}
+function ChatState.onDelete(callback: (Instance) -> ())
+	table.insert(deleteCallbacks, callback)
+end
+
 function ChatState.deleteMessage(timestamp: number): boolean
 	local folder = ChatState.getActiveFolder()
 	for _, child in ipairs(folder:GetChildren()) do
@@ -322,6 +339,9 @@ function ChatState.deleteMessage(timestamp: number): boolean
 				or child:GetAttribute("VisibleTo") == ChatState.currentUserId
 			)
 		if childTimestamp and childTimestamp == timestamp and mine then
+			for _, callback in ipairs(deleteCallbacks) do
+				task.spawn(callback, child)
+			end
 			child.Parent = nil
 			ChatState.saveHistory()
 			return true

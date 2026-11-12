@@ -9,7 +9,7 @@ import { AppError, badRequest, forbidden, notFound } from "../../lib/errors.js";
 import { Permission, has } from "../../lib/permissions.js";
 import { type ChannelAccess, isConversation, requireChannelPermission } from "../access.js";
 import { audit, publish, type PublicUser, usersById } from "../shared.js";
-import type { CreateMessage, EditMessage, ListMessages } from "./shapes.js";
+import type { BatchMessages, CreateMessage, EditMessage, ListMessages } from "./shapes.js";
 import { parseMentions } from "./shapes.js";
 
 export type MessageRow = typeof messages.$inferSelect;
@@ -187,6 +187,7 @@ export async function createMessage(
 		metadata = { interaction: { id: input.interactionId, userId: interaction.userId, command: interaction.command } };
 	}
 
+	if (input.clientData) metadata = { ...metadata, client: input.clientData };
 	const mentioned = parseMentions(input.content);
 	const mentionEveryone = mentioned.everyone && !isConversation(access.channel) && has(access.permissions, Permission.MENTION_EVERYONE);
 
@@ -277,6 +278,91 @@ export async function createMessage(
 	const [message] = await serializeMessages(db, [row], actor.userId);
 	publish(services, `channel:${channelId}`, "message.create", message);
 	return message;
+}
+
+/**
+ * Stores up to 50 of the caller's own messages in one transaction (the plugin
+ * mirroring what it sent, or backfilling older messages). Each needs a nonce:
+ * one already stored is reported, not stored again, so a batch can be retried
+ * whole. No slowmode; notifications and bot events run as for single sends.
+ */
+export async function createMessageBatch(
+	services: Services,
+	actor: Actor,
+	channelId: bigint,
+	input: z.infer<typeof BatchMessages>,
+): Promise<Array<{ nonce: string; id: bigint; created: boolean }>> {
+	const db = services.db;
+	const access = await requireChannelPermission(db, channelId, actor.userId, Permission.SEND_MESSAGES);
+	if (access.channel.type === "category") throw badRequest("Categories hold channels, not messages");
+	await assertNotBlockedInDm(db, access, actor.userId);
+
+	const results = await db.transaction(async (tx) => {
+		const nonces = input.messages.map((m) => m.nonce);
+		const existing = await tx
+			.select({ id: messages.id, nonce: messages.nonce, channelId: messages.channelId })
+			.from(messages)
+			.where(and(eq(messages.authorId, actor.userId), inArray(messages.nonce, nonces)));
+		const known = new Map(existing.map((m) => [m.nonce as string, m]));
+		const out: Array<{ nonce: string; id: bigint; created: boolean }> = [];
+		let newest = 0n;
+		for (const item of input.messages) {
+			const found = known.get(item.nonce);
+			if (found) {
+				if (found.channelId !== channelId) throw badRequest("A nonce in this batch was used in another channel");
+				out.push({ nonce: item.nonce, id: found.id, created: false });
+				continue;
+			}
+			const id = services.ids.next();
+			const parsed = parseMentions(item.content);
+			const mentionIds =
+				parsed.users.length === 0
+					? []
+					: (await tx.select({ id: users.id }).from(users).where(inArray(users.id, parsed.users))).map((u) => u.id);
+			const inserted = await tx
+				.insert(messages)
+				.values({
+					id,
+					channelId,
+					authorId: actor.userId,
+					content: item.content,
+					flags: item.flags,
+					mentions: mentionIds,
+					metadata: item.clientData ? { client: item.clientData } : {},
+					nonce: item.nonce,
+				})
+				.onConflictDoNothing()
+				.returning({ id: messages.id });
+			if (inserted.length === 0) {
+				// The same nonce arrived in another request at the same moment
+				const [other] = await tx
+					.select({ id: messages.id })
+					.from(messages)
+					.where(and(eq(messages.authorId, actor.userId), eq(messages.nonce, item.nonce)));
+				out.push({ nonce: item.nonce, id: other.id, created: false });
+				continue;
+			}
+			out.push({ nonce: item.nonce, id, created: true });
+			if (id > newest) newest = id;
+			await enqueue(tx, "message.created", { messageId: id });
+		}
+		if (newest > 0n) {
+			await tx
+				.update(channels)
+				.set({ lastMessageId: sql`greatest(coalesce(${channels.lastMessageId}, 0), ${newest})` })
+				.where(eq(channels.id, channelId));
+		}
+		return out;
+	});
+
+	const createdIds = results.filter((r) => r.created).map((r) => r.id);
+	if (createdIds.length > 0) {
+		const rows = await db.select().from(messages).where(inArray(messages.id, createdIds)).orderBy(asc(messages.id));
+		for (const message of await serializeMessages(db, rows, actor.userId)) {
+			publish(services, `channel:${channelId}`, "message.create", message);
+		}
+	}
+	return results;
 }
 
 /** Messages the system writes (someone joined, a pin, a rename). */
@@ -407,6 +493,7 @@ export async function editMessage(
 				embeds,
 				components: input.components ?? current.components,
 				flags: input.flags ?? current.flags,
+				metadata: input.clientData ? { ...(current.metadata as object), client: input.clientData } : current.metadata,
 				mentions,
 				mentionEveryone,
 				editedAt: new Date(),

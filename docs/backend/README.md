@@ -12,6 +12,7 @@ notifications and a real-time event stream. It lives in [`backend/`](../../backe
 | [MESSAGES.md](MESSAGES.md) | Snowflake IDs, pagination, and how message storage scales |
 | [BOTS.md](BOTS.md) | Bot accounts, tokens, signed events, commands |
 | [OPERATIONS.md](OPERATIONS.md) | Deploying, environment variables, migrations, backups, monitoring |
+| [PLUGIN.md](PLUGIN.md) | Connecting Team Chat: what's stored, signing in, restoring |
 
 ## Architecture
 
@@ -82,34 +83,16 @@ The plugin is treated as an untrusted client:
 - Rate limits per user, bot and IP; slowmode per channel; an audit log of
   security-relevant actions, per user and per workspace.
 
-## Compatibility with the plugin today
+## The plugin
 
-The plugin doesn't use this backend yet. Connecting it means:
-
-1. **Sign-in.** Today the plugin trusts Studio's user id. The backend needs
-   a verified identity: the plugin calls `POST /auth/roblox/start`, shows
-   the URL for the person to open in a browser, and polls until it receives
-   a session token. Password accounts work too.
-2. **Where chat lives.** Today chat is kept in the place
-   (`ServerStorage.TeamChatData`) and synced by Team Create. On the backend
-   a team is a workspace, the team chat a channel, DMs are conversations.
-   Existing history would need an import, which isn't built.
-3. **64-bit ids.** Luau numbers lose precision above 2^53, so ids are
-   strings in JSON. The plugin must keep them as strings; to order two, compare
-   their length, then the strings.
-4. **Live updates.** `GET /api/v1/gateway` is Server-Sent Events, which
-   Studio's `HttpService:CreateWebStreamClient` can read. Without it, poll
-   `GET /channels/:id/messages?after=<last id>`.
-5. **Bots.** The plugin's Studio bots run inside Studio, and its web bots are
-   called by each person's plugin with `X-TeamChat-Token`. Backend bots are
-   accounts with their own token that get signed event POSTs from the
-   server ([BOTS.md](BOTS.md)). The protocols differ, so a bridge or a port of
-   the plugin's bot runtime is needed.
-6. **HTTP permission.** Studio asks each person to allow the plugin's
-   requests to the backend's domain, as it does for the existing team database.
+Team Chat stores everything people write on the backend once a place is
+connected and they've signed in with Roblox: [PLUGIN.md](PLUGIN.md). Chat
+still travels through the place in Team Create; the backend is the safe,
+searchable copy, and restores the team chat. Live updates over `/gateway` and
+reading history from the backend instead of the place are the next steps.
 
 The simpler team database in [`server/`](../../server) ([../DATABASE.md](../DATABASE.md))
-keeps working, and is what the plugin uses today.
+keeps working next to it.
 
 ## Known limits
 

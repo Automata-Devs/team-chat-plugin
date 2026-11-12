@@ -9,8 +9,9 @@ can make yourself, in Studio or on your own server ([docs/BOTS.md](docs/BOTS.md)
 database in MongoDB (or a JSON file), behind a small server, keeps the chat's
 history, profiles and bot data
 ([docs/DATABASE.md](docs/DATABASE.md)). A full Discord-style server for Team Chat
-(PostgreSQL, accounts, workspaces, bots) is in [backend/](backend) and
-[docs/backend](docs/backend/README.md). Available in English,
+(PostgreSQL, accounts, workspaces, bots) is in [backend/](backend): connect a place
+with `/backend connect` and everything people write is stored there
+([docs/backend/PLUGIN.md](docs/backend/PLUGIN.md)). Available in English,
 Nederlands, Deutsch, Español, Français and Português.
 
 Messages are stored in `ServerStorage.TeamChatData` inside the place, so Team

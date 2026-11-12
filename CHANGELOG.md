@@ -3,6 +3,37 @@
 Developer-facing history of the codebase. User-facing notes ("What's New")
 are in `src/Config/Changelog.luau`. Format: [Keep a Changelog](https://keepachangelog.com).
 
+## [1.31.0] - 2026-11-12
+
+Team Chat stores everything on the backend (`docs/backend/PLUGIN.md`).
+
+### Added
+- `Services/Backend` (`Connection`, `Session`, `Client`, `Channels`, `Mirror`,
+  `Outbox`, `Restore`) and `/backend status | connect | login | logout | sync |
+  restore | disconnect`.
+  - Sign in with Roblox from Studio: the link goes to the Output window, the
+    plugin polls, and the Roblox account must be Studio's own
+    (`/auth/connections`), else it's signed out again. Sessions are kept per
+    server in plugin settings, never in the place.
+  - An admin's first sign-in creates the place's workspace (#general as the
+    team chat) and saves the server, workspace, channel and an invite in
+    `TeamChatData.Backend`; teammates join with the invite.
+  - Each plugin stores its own user's messages (team chat, DMs, groups) in
+    batches of 50, with `readEntry`'s fields as client data and the message's
+    name as the nonce, and keeps the backend's id on it (`BackendId`). Older
+    messages are flagged not to notify. Edits, deletes (`ChatState.onDelete`,
+    so not `/clear`) and reactions go through a persisted outbox. A rescan every
+    2 minutes finds anything not stored yet.
+  - DMs and groups map to backend conversations (groups keep `BackendChannel`
+    on their folder); teammates without an account are retried every 5 minutes.
+  - `Restore.teamChat` rebuilds missing messages with their original names.
+- `ChatState.buildMessage(entry, name?)` and `ChatState.onDelete`.
+- Backend: `clientData` on messages (`metadata.client`, at most 8 KB),
+  `POST /channels/:id/messages/batch` (up to 50 own messages, retry-safe),
+  `GET /workspaces/:id/members/roblox/:robloxUserId`.
+- Specs: `Backend.spec` (against a fake backend); backend tests for the batch
+  endpoint, the lookup, and the plugin's exact request sequence.
+
 ## [1.30.1] - 2026-11-12
 
 ### Changed

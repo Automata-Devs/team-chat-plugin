@@ -2,13 +2,23 @@ import { and, asc, eq, gt, inArray, isNull, or, sql } from "drizzle-orm";
 import type { FastifyRequest } from "fastify";
 import type { Actor, Services } from "../../context.js";
 import type { Tx } from "../../db/client.js";
-import { botInstallations, channels, invites, memberRoles, roles, users, workspaceMembers, workspaces } from "../../db/schema.js";
+import {
+	botInstallations,
+	channels,
+	connectedAccounts,
+	invites,
+	memberRoles,
+	roles,
+	users,
+	workspaceMembers,
+	workspaces,
+} from "../../db/schema.js";
 import { enqueue } from "../../infra/jobs.js";
 import { randomToken } from "../../lib/crypto.js";
 import { AppError, badRequest, conflict, forbidden, notFound } from "../../lib/errors.js";
 import { ALL_PERMISSIONS, DEFAULT_EVERYONE_PERMISSIONS, Permission, has, isValidRoleBits } from "../../lib/permissions.js";
 import { outranks, requireWorkspacePermission, type WorkspaceAccess, workspaceAccess } from "../access.js";
-import { audit, publish, usersById } from "../shared.js";
+import { audit, publicUser, publish, usersById } from "../shared.js";
 
 const MAX_WORKSPACES_OWNED = 100;
 const MAX_ROLES = 250;
@@ -182,6 +192,19 @@ export async function listMembers(services: Services, actor: Actor, workspaceId:
 		joinedAt: m.joinedAt,
 		roles: roleRows.filter((r) => r.userId === m.userId).map((r) => r.roleId),
 	}));
+}
+
+/** The workspace member signed in with this Roblox account (for DMs between teammates), or 404. */
+export async function memberByRobloxId(services: Services, actor: Actor, workspaceId: bigint, robloxUserId: string) {
+	await workspaceAccess(services.db, workspaceId, actor.userId);
+	const [row] = await services.db
+		.select({ user: users })
+		.from(connectedAccounts)
+		.innerJoin(users, eq(users.id, connectedAccounts.userId))
+		.innerJoin(workspaceMembers, and(eq(workspaceMembers.userId, users.id), eq(workspaceMembers.workspaceId, workspaceId)))
+		.where(and(eq(connectedAccounts.provider, "roblox"), eq(connectedAccounts.providerUserId, robloxUserId), eq(users.status, "active")));
+	if (!row) throw notFound("Member");
+	return publicUser(row.user);
 }
 
 export async function setNickname(services: Services, actor: Actor, workspaceId: bigint, nickname: string | null) {

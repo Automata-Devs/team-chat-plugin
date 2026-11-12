@@ -15,6 +15,7 @@ import {
 	listMembers,
 	listMyWorkspaces,
 	listRoles,
+	memberByRobloxId,
 	previewInvite,
 	setMemberRole,
 	setNickname,
@@ -31,6 +32,7 @@ const UpdateWorkspace = z
 	.strict();
 const Transfer = z.object({ userId: snowflake }).strict();
 const Members = z.object({ after: snowflake.optional(), limit: limit(100, 1000) });
+const RobloxMember = z.object({ workspaceId: snowflake, robloxUserId: z.string().regex(/^[0-9]{1,20}$/) });
 const Nickname = z.object({ nickname: name(32).nullable() }).strict();
 const Invite = z
 	.object({
@@ -84,6 +86,11 @@ export const workspacesModule: Module = (app, services) => {
 	app.get("/workspaces/:workspaceId/members", { config: { auth: "any" } }, async (request) => {
 		const { workspaceId } = parse(idParams("workspaceId"), request.params);
 		return { members: await listMembers(services, actorOf(request), workspaceId, parse(Members, request.query)) };
+	});
+
+	app.get("/workspaces/:workspaceId/members/roblox/:robloxUserId", { config: { auth: "any" } }, async (request) => {
+		const params = parse(RobloxMember, request.params);
+		return { user: await memberByRobloxId(services, actorOf(request), params.workspaceId, params.robloxUserId) };
 	});
 
 	app.patch("/workspaces/:workspaceId/members/@me", async (request, reply) => {

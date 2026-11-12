@@ -19,6 +19,7 @@ local Settings = require(script.Parent.Core.Settings)
 local AdminNetwork = require(script.Parent.Services.Admin)
 local ChatNetwork = require(script.Parent.Services.Chat)
 local Bots = require(script.Parent.Services.Bots)
+local Backend = require(script.Parent.Services.Backend)
 local Database = require(script.Parent.Services.Database)
 local ObjectTags = require(script.Parent.Services.ObjectTags)
 local StudioCollab = require(script.Parent.Services.StudioCollab)
@@ -57,6 +58,7 @@ function App.start(plugin: Plugin): Started
 	CommandRegistry.init() -- discovers every command module under Commands/
 	ChatNetwork.init() -- chat folders, typing, conversations
 	Database.init(ChatNetwork) -- the team database server (archive, profiles), once connected
+	Backend.init(ChatNetwork) -- stores everything you write on the Team Chat backend, once connected
 	Bots.init() -- runs the bots you own; others' bots answer through requests
 
 	-- The UI never requires Services: it gets the ones it uses here

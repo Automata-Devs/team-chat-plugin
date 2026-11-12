@@ -16,6 +16,7 @@ export const LIMITS = {
 	auth: { bucket: "auth", max: 10, windowSeconds: 60 },
 	signup: { bucket: "signup", max: 5, windowSeconds: 3600 },
 	sendMessage: { bucket: "send", max: 10, windowSeconds: 10 },
+	batch: { bucket: "batch", max: 30, windowSeconds: 60 },
 	upload: { bucket: "upload", max: 20, windowSeconds: 60 },
 	search: { bucket: "search", max: 30, windowSeconds: 60 },
 	botAdmin: { bucket: "bot-admin", max: 20, windowSeconds: 300 },

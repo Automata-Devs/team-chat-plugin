@@ -5,6 +5,7 @@ import { idParams, parse, snowflake } from "../../lib/validation.js";
 import {
 	acknowledge,
 	createMessage,
+	createMessageBatch,
 	deleteMessage,
 	editMessage,
 	getMessage,
@@ -13,7 +14,7 @@ import {
 	pinMessage,
 	unpinMessage,
 } from "./service.js";
-import { CreateMessage, EditMessage, ListMessages } from "./shapes.js";
+import { BatchMessages, CreateMessage, EditMessage, ListMessages } from "./shapes.js";
 
 const Ack = z.object({ messageId: snowflake.optional() }).strict();
 
@@ -29,6 +30,12 @@ export const messagesModule: Module = (app, services) => {
 		const { channelId } = parse(idParams("channelId"), request.params);
 		const message = await createMessage(services, actorOf(request), channelId, parse(CreateMessage, request.body));
 		return reply.status(201).send({ message });
+	});
+
+	/** The caller's own messages in bulk (the plugin's mirror and backfill); safe to retry whole. */
+	app.post("/channels/:channelId/messages/batch", { config: { ...any, limit: LIMITS.batch } }, async (request) => {
+		const { channelId } = parse(idParams("channelId"), request.params);
+		return { messages: await createMessageBatch(services, actorOf(request), channelId, parse(BatchMessages, request.body)) };
 	});
 
 	app.get("/channels/:channelId/messages/:messageId", { config: any }, async (request) => {
