@@ -3,6 +3,18 @@
 Developer-facing history of the codebase. User-facing notes ("What's New")
 are in `src/Config/Changelog.luau`. Format: [Keep a Changelog](https://keepachangelog.com).
 
+## [1.30.1] - 2026-11-12
+
+### Changed
+- `backend/docker-compose.yml`: a `DATABASE_URL` in `.env` (a hosted
+  PostgreSQL such as Neon or Supabase) is used instead of the bundled
+  PostgreSQL; empty, it falls back to the bundled one. `.env.example` leaves
+  `DATABASE_URL` empty and says to use the direct, non-pooled string.
+
+### Fixed
+- `backend`: empty values in `.env` (`S3_ENDPOINT=`, `WORKER_ID=`, ...) were
+  validated as given and stopped the server starting; they now count as not set.
+
 ## [1.30.0] - 2026-11-12
 
 A Discord-style backend in `backend/` (docs in `docs/backend/`). The plugin

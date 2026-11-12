@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+import { loadConfig } from "../src/config.js";
 import { SecretBox, hashPassword, verifyPassword } from "../src/lib/crypto.js";
 import { ALL_PERMISSIONS, DEFAULT_EVERYONE_PERMISSIONS, Permission, channelPermissions, type MemberContext } from "../src/lib/permissions.js";
 import { EPOCH, SnowflakeGenerator, snowflakeAt, timestampOf, workerOf } from "../src/lib/snowflake.js";
@@ -144,5 +145,17 @@ describe("input handling", () => {
 		const reset = applyPatch(overrides, { appearance: { theme: null } });
 		expect(reset).toEqual({ language: "nl" });
 		expect(withDefaults({ gone: true, appearance: { theme: "light", removed: 1 } }).appearance.theme).toBe("light");
+	});
+});
+
+describe("configuration", () => {
+	test("empty values from a .env file count as not set; bad ones are refused", () => {
+		const base = { DATABASE_URL: "postgres://x", ENCRYPTION_KEY: Buffer.alloc(32).toString("base64") };
+		const config = loadConfig({ ...base, S3_ENDPOINT: "", REDIS_URL: "", WORKER_ID: "", PORT: " " });
+		expect(config.S3_ENDPOINT).toBeUndefined();
+		expect(config.WORKER_ID).toBeUndefined();
+		expect(config.PORT).toBe(8080);
+		expect(() => loadConfig({ ...base, S3_ENDPOINT: "not a url" })).toThrow(/S3_ENDPOINT/);
+		expect(() => loadConfig({ DATABASE_URL: "postgres://x" })).toThrow(/ENCRYPTION_KEY/);
 	});
 });

@@ -62,7 +62,8 @@ services:
       redis: { condition: service_healthy }
     env_file: .env
     environment:
-      DATABASE_URL: postgres://teamchat:${POSTGRES_PASSWORD}@postgres:5432/teamchat
+      # DATABASE_URL in .env (a hosted PostgreSQL like Neon) wins; otherwise the bundled one
+      DATABASE_URL: ${DATABASE_URL:-postgres://teamchat:${POSTGRES_PASSWORD}@postgres:5432/teamchat}
       REDIS_URL: redis://redis:6379
       S3_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-http://localhost:9000}
       S3_BUCKET: teamchat

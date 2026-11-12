@@ -47,7 +47,7 @@ return {
 		title = "Team Chat 1",
 		updates = {
 			{
-				version = "1.30.0",
+				version = "1.30.1",
 				date = "12/11/2026",
 				title = "Team database",
 				changes = {
@@ -62,6 +62,10 @@ return {
 					{
 						type = "added",
 						text = "For people who host Team Chat: a full Discord-style server in backend/, with accounts and Roblox sign-in, workspaces, channels, roles, DMs, files, bots and search on PostgreSQL. Team Chat doesn't use it yet. See docs/backend.",
+					},
+					{
+						type = "changed",
+						text = "The new server can use a hosted PostgreSQL like Neon (free), also with Docker, and settings left empty in its .env no longer stop it from starting.",
 					},
 					{
 						type = "added",
