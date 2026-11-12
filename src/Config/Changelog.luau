@@ -47,13 +47,17 @@ return {
 		title = "Team Chat 1",
 		updates = {
 			{
-				version = "1.28.0",
+				version = "1.29.0",
 				date = "12/11/2026",
 				title = "Team database",
 				changes = {
 					{
 						type = "added",
-						text = "Connect a place to your own server with /database connect, and Team Chat keeps the team chat's history there: it stays after /clear and can be searched with /database search.",
+						text = "Connect a place to your team's database with /database connect, and Team Chat keeps the team chat's history there: it stays after /clear and can be searched with /database search.",
+					},
+					{
+						type = "added",
+						text = "The database can live in MongoDB (a free MongoDB Atlas cluster works), through a small server you can host for free. See docs/DATABASE.md.",
 					},
 					{
 						type = "added",

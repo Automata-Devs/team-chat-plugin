@@ -3,6 +3,33 @@
 Developer-facing history of the codebase. User-facing notes ("What's New")
 are in `src/Config/Changelog.luau`. Format: [Keep a Changelog](https://keepachangelog.com).
 
+## [1.29.0] - 2026-11-12
+
+The database server can keep its data in MongoDB.
+
+### Added
+- `server/stores/mongo.js`: a MongoDB store, used when `MONGODB_URI` is set
+  (`MONGODB_DB`, default `teamchat`). Collections `kv`, `archive` and
+  `profiles` with their indexes are created on start. Key/value values are
+  kept as JSON text and stat names escape `.`, so any value or stat name
+  works.
+- `render.yaml`: a Render Blueprint for the server (free plan, generated
+  token, `MONGODB_URI` to fill in).
+- `GET /` answers `{ ok: true }` without a token, for hosts' health checks.
+  `/v1/health` also returns `store` (`mongodb`, `file` or `memory`).
+
+### Changed
+- The JSON-file store moved to `server/stores/file.js`. Route handlers
+  validate input and call a store (`kvList`, `kvGet`, `kvPut`, `kvDelete`,
+  `archivePut`, `archiveHistory`, `archiveSearch`, `profileGet`,
+  `profileUpdate`, `close`); `createServer({ token, store })`.
+- `server/` depends on the `mongodb` driver (`npm install`).
+- `ifVersion` must be a number (400 otherwise); search text is capped at 200
+  characters.
+- Server tests run against each store; set `MONGODB_TEST_URI` to include
+  MongoDB.
+- `docs/DATABASE.md`: MongoDB Atlas setup and hosting.
+
 ## [1.28.0] - 2026-11-12
 
 A team database on your own server (`docs/DATABASE.md`).

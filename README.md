@@ -6,7 +6,8 @@ replies, @mentions, polls, images, animated GIFs, audio, file cards, link
 previews, Discord-style markdown, #tags for objects in the place, slash
 commands with Team Chat's own bot replies (`/help` lists them), and bots you
 can make yourself, in Studio or on your own server ([docs/BOTS.md](docs/BOTS.md)), plus an admin dashboard and a developer portal in Settings. Optionally, a team
-database on your own server keeps the chat's history, profiles and bot data
+database in MongoDB (or a JSON file), behind a small server, keeps the chat's
+history, profiles and bot data
 ([docs/DATABASE.md](docs/DATABASE.md)). Available in English,
 Nederlands, Deutsch, Español, Français and Português.
 
