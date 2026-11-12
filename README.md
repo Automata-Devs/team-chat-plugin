@@ -99,10 +99,10 @@ history.
 | `src/Config/Languages/` | One module per language; English (`en.luau`) has every key. |
 | `src/Util/` | Pure helpers: Janitor, Signal, Duration, RichText, Links, Mentions, emoji, GIF decoding. |
 | `src/Core/` | Plugin plumbing: Lifetime, Logger, Settings, Identity, Language, PlaceStorage, Browser. |
-| `src/Services/` | Chat (messages, DMs, polls, pins, reactions, typing, history), Admin, Badges, History (undo), Profiles, StudioCollab, Usage. |
+| `src/Services/` | Chat (messages, DMs, polls, pins, reactions, typing, backups), Admin, Bots, Badges, History (undo), ObjectTags, Profiles, StudioCollab, Usage. |
 | `src/Commands/` | One module per slash command, discovered automatically. |
 | `src/Controllers/` | Glue between the UI and the services. |
-| `src/UI/` | The chat window, message rows, components, dialogs, embeds and command cards. |
+| `src/UI/` | `ChatWindow/` (the dock widget, split into Feed, Composer, Sidebar...), `Messages/`, `Components/`, `Dialogs/`, `Embeds/`, `Text/` (text layout and styling) and `Common/` (animation, styling, display preferences). |
 | `src/Packages/` | Vendored third-party code (Abbreviate). |
 | `lang/` | The languages as JSON (`tools/lang_to_json.py` makes them from `src/Config/Languages`). |
 | `tests/` | Studio test harness, runner and specs. |

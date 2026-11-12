@@ -85,7 +85,6 @@ local function registerCommand(cmdModule)
 	commands[name] = cmdModule
 	table.insert(commandOrder, name)
 
-	-- Register aliases
 	if cmdModule.Aliases then
 		for _, alias in ipairs(cmdModule.Aliases) do
 			commands[alias:lower()] = cmdModule
@@ -255,7 +254,6 @@ function CommandHandler.tryParse(text, context)
 		return true
 	end
 
-	-- Rank check
 	local myRank = AdminNetwork.getMyRank()
 	local requiredRank = cmd.Rank or 0
 	if myRank < requiredRank then
@@ -267,7 +265,6 @@ function CommandHandler.tryParse(text, context)
 		return true
 	end
 
-	-- Build speaker info
 	local speaker = {
 		userId = AdminNetwork.getUserId(),
 		username = AdminNetwork.getUsername(),

@@ -151,17 +151,14 @@ local function escape(text: string): string
 	return text
 end
 
--- Check if a word is a keyword
 local function isKeyword(word: string): boolean
 	return KEYWORDS[word] == true
 end
 
--- Check if a word is a builtin
 local function isBuiltin(word: string): boolean
 	return BUILTINS[word] == true
 end
 
--- Check if a word is a type
 local function isType(word: string): boolean
 	return TYPES[word] == true
 end

@@ -1,7 +1,7 @@
 --!strict
 -- Restore the chat history from a saved version snapshot
 
-local VersionHistory = require(script.Parent.Parent.Parent.Services.Chat.VersionHistory)
+local VersionHistory = require(script.Parent.Parent.Parent.Services.Chat).VersionHistory
 local Language = require(script.Parent.Parent.Parent.Core.Language)
 
 local function resolveId(key: string): string?

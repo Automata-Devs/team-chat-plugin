@@ -47,6 +47,17 @@ return {
 		title = "Team Chat 1",
 		updates = {
 			{
+				version = "1.27.1",
+				date = "12/11/2026",
+				title = "Tidier on the inside",
+				changes = {
+					{
+						type = "changed",
+						text = "Team Chat's code is reorganised into smaller, clearer parts. Nothing changes in how it looks or works.",
+					},
+				},
+			},
+			{
 				version = "1.27.0",
 				date = "07/11/2026",
 				title = "A Roblox look",

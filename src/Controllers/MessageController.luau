@@ -170,7 +170,6 @@ end
 	commandHandler: The CommandHandler module
 ]=]
 function MessageController.init(ui, chatNetwork, commandHandler)
-	-- Send on button click
 	ui.sendButton.MouseButton1Click:Connect(function()
 		sendMessage(ui, chatNetwork, commandHandler)
 	end)

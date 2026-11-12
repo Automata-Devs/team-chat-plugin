@@ -11,7 +11,6 @@ local AdminState = require(script.Parent.AdminState)
 
 local RankManager = {}
 
--- Rank constants
 RankManager.RANK_USER = 0
 RankManager.RANK_MODERATOR = 1
 RankManager.RANK_ADMIN = 2

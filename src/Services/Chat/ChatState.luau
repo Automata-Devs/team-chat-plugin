@@ -19,7 +19,6 @@ local Settings = require(script.Parent.Parent.Parent.Core.Settings)
 
 local ChatState = {}
 
--- Constants
 ChatState.MESSAGE_TYPE_TEXT = "Text"
 ChatState.MESSAGE_TYPE_POLL = "Poll"
 ChatState.MESSAGE_TYPE_FILE = "File"

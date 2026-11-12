@@ -1,7 +1,7 @@
 --!strict
 -- Backup the chat history as a version snapshot
 
-local VersionHistory = require(script.Parent.Parent.Parent.Services.Chat.VersionHistory)
+local VersionHistory = require(script.Parent.Parent.Parent.Services.Chat).VersionHistory
 local Language = require(script.Parent.Parent.Parent.Core.Language)
 
 return {

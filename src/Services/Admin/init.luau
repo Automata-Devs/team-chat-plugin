@@ -26,7 +26,6 @@ local ChatRules = require(script.ChatRules)
 
 local AdminNetwork = {}
 
--- Re-export rank constants
 AdminNetwork.RANK_USER = RankManager.RANK_USER
 AdminNetwork.RANK_MODERATOR = RankManager.RANK_MODERATOR
 AdminNetwork.RANK_ADMIN = RankManager.RANK_ADMIN

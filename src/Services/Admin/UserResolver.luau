@@ -20,7 +20,6 @@ function UserResolver.resolveUserId(input: string): number?
 		return numId
 	end
 
-	-- Try GetUserIdFromNameAsync
 	local ok, userId = pcall(function()
 		return Players:GetUserIdFromNameAsync(input)
 	end)

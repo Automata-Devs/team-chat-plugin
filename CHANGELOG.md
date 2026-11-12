@@ -3,6 +3,42 @@
 Developer-facing history of the codebase. User-facing notes ("What's New")
 are in `src/Config/Changelog.luau`. Format: [Keep a Changelog](https://keepachangelog.com).
 
+## [1.27.1] - 2026-11-12
+
+A restructure with no behaviour or visual change.
+
+### Changed
+- `UI/ChatWindow` is a composition root (about 420 lines, was about 3,200)
+  over `Feed`, `Composer`, `Suggestions`, `Attachments`, `Sidebar` and
+  `Dialogs`, which share one context table (`ctx`). Parts are created in the
+  old order, so equal ZIndexes still draw the same.
+- The UI no longer requires Services: `App` passes
+  `{ admin, bots, chat, objectTags, usage }` into `ChatWindow.create`, and
+  the Admin and Developer dialogs take them as `params.services`.
+- Split by section: `Dialogs/Admin` (Overview, Members, Moderation, Audit,
+  Tools, Shared), `Dialogs/Developer` (BotList, NewBot, Docs, Shared,
+  `BotPage/` with Overview, Console, Logs, Edit),
+  `Components/ConversationList` (Row, Footer, Tooltip, Shared).
+- `Services/Bots` is a facade over Options, Manifests, Messages, Studio, Web
+  and Portal, with the same `Bots.*` API; the chat window hooks are set with
+  `Bots.setUi` instead of assigning `Bots.ui`.
+- `Services/Chat` exposes `Stats` and `VersionHistory`; the backup commands
+  and the admin dashboard use them through the facade.
+- Folders: `UI/Common` (Animation, Foundation, Preferences), `UI/Text`
+  (ComposerText, MentionPills, MessageText, SpellingMarks, TextLayout),
+  `Dialogs/Kit` (ModalKit, PanelKit), `Dialogs/Settings` (the tabbed window,
+  `General` page), `Dialogs/Changelog` (`UpdateView`); the other dialogs drop
+  their `Dialog` suffix (`About`, `Badges`, `CreatePoll`, `NewMessage`,
+  `Purchase`). GUI instance names are unchanged.
+- One comment style: `--[[ Name ]]` headers and `--[=[ ]=]` docs on public
+  functions; comments that restated code or named old modules are gone.
+- `tests/Harness.luau` patches the new modules; `docs/ARCHITECTURE.md` and
+  the README describe the new layout.
+
+### Removed
+- `legacy/` (the v1.5.1 export) and the one-off migration tools
+  (`migrate.py`, `split_messages.py`, `section_deps.py`, `import_export.py`).
+
 ## [1.27.0] - 2026-11-07
 
 ### Added

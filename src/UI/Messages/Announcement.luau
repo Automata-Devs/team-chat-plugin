@@ -117,7 +117,6 @@ function Announcement.create(sender, timestamp, content, themeColors, replyRef)
 
 	layoutOrder = layoutOrder + 1
 
-	-- Message body
 	local body = Instance.new("TextLabel")
 	body.Name = "Body"
 	body.Size = UDim2.new(1, 0, 0, 0)
