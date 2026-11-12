@@ -1,11 +1,12 @@
---!
--- Autocomplete
--- The command / emoji / member suggestion menu above the message box: a small
--- title (COMMANDS, EMOJI or MEMBERS), the suggestion rows and a hint, styled like the chat's
--- other menus. ChatUI fills it (updateAutocomplete) and shows the highlighted
--- row with setSelected. While a command's arguments are typed, the same menu
--- lists them (createArgItem), with the one being typed highlighted.
---!
+--[[
+	Autocomplete
+
+	The command / emoji / member suggestion menu above the message box: a small
+	title (COMMANDS, EMOJI or MEMBERS), the suggestion rows and a hint, styled like the chat's
+	other menus. ChatUI fills it (updateAutocomplete) and shows the highlighted
+	row with setSelected. While a command's arguments are typed, the same menu
+	lists them (createArgItem), with the one being typed highlighted.
+]]
 
 local Theme = require(script.Parent.Parent.Parent.Config.Theme)
 local Icons = require(script.Parent.Parent.Parent.Config.Icons)
@@ -38,9 +39,9 @@ local function roundCorners(gui: GuiObject, radius: UDim)
 	corner.Parent = gui
 end
 
---!
--- Creates the (hidden) menu inside container.
---!
+--[=[
+	Creates the (hidden) menu inside container.
+]=]
 function Autocomplete.create(themeColors, container)
 	local frame = Instance.new("Frame")
 	frame.Name = "Autocomplete"
@@ -112,16 +113,16 @@ function Autocomplete.create(themeColors, container)
 	return frame
 end
 
---!
--- The usual hint under the rows, in the current language.
---!
+--[=[
+	The usual hint under the rows, in the current language.
+]=]
 function Autocomplete.defaultHint(): string
 	return Language.t("autocomplete.hint")
 end
 
---!
--- Sets the line under the rows (rich text; defaultHint() normally).
---!
+--[=[
+	Sets the line under the rows (rich text; defaultHint() normally).
+]=]
 function Autocomplete.setHint(frame, text: string)
 	local hint = frame:FindFirstChild("Hint")
 	if hint then
@@ -129,9 +130,9 @@ function Autocomplete.setHint(frame, text: string)
 	end
 end
 
---!
--- Sets the small title above the rows ("Commands" / "Emoji").
---!
+--[=[
+	Sets the small title above the rows ("Commands" / "Emoji").
+]=]
 function Autocomplete.setTitle(frame, text: string)
 	local title = frame:FindFirstChild("Title")
 	if title then
@@ -167,11 +168,11 @@ local function createRow(index: number, themeColors): TextButton
 	return item
 end
 
---!
--- Creates a command row: code icon, "/name", muted description and, for
--- commands that need a rank, a small rank pill on the right.
--- cmd: { name, description, rank, aliases }
---!
+--[=[
+	Creates a command row: code icon, "/name", muted description and, for
+	commands that need a rank, a small rank pill on the right.
+	cmd: { name, description, rank, aliases }
+]=]
 function Autocomplete.createItem(index, cmd, themeColors, getRankName)
 	local item = createRow(index, themeColors)
 
@@ -248,11 +249,11 @@ function Autocomplete.createItem(index, cmd, themeColors, getRankName)
 	return item
 end
 
---!
--- Creates an argument row for the command being typed: its name, an
--- "optional" pill when it can be left out, and its description on the right.
--- arg: { name, description, optional }
---!
+--[=[
+	Creates an argument row for the command being typed: its name, an
+	"optional" pill when it can be left out, and its description on the right.
+	arg: { name, description, optional }
+]=]
 function Autocomplete.createArgItem(index, arg, themeColors)
 	local item = createRow(index, themeColors)
 	item.AutoButtonColor = false
@@ -310,10 +311,10 @@ function Autocomplete.createArgItem(index, arg, themeColors)
 	return item
 end
 
---!
--- Creates an emoji row: the emoji and its ":name:".
--- entry: { name, emoji }
---!
+--[=[
+	Creates an emoji row: the emoji and its ":name:".
+	entry: { name, emoji }
+]=]
 function Autocomplete.createEmojiItem(index, entry, themeColors)
 	local item = createRow(index, themeColors)
 
@@ -346,12 +347,12 @@ function Autocomplete.createEmojiItem(index, entry, themeColors)
 	return item
 end
 
---!
--- Creates a member row for @mentions: their avatar (with a green dot when
--- they're here), display name, and @username on the right. The @everyone row
--- has an "@" tile and says what it does.
--- member: { userId, username, displayName, online } or { everyone = true }
---!
+--[=[
+	Creates a member row for @mentions: their avatar (with a green dot when
+	they're here), display name, and @username on the right. The @everyone row
+	has an "@" tile and says what it does.
+	member: { userId, username, displayName, online } or { everyone = true }
+]=]
 function Autocomplete.createMemberItem(index, member, themeColors)
 	local item = createRow(index, themeColors)
 
@@ -438,10 +439,10 @@ function Autocomplete.createMemberItem(index, member, themeColors)
 	return item
 end
 
---!
--- Creates an object row for #tags: Studio's icon for its class, its name,
--- and where it is on the right (e.g. "Workspace.Map").
---!
+--[=[
+	Creates an object row for #tags: Studio's icon for its class, its name,
+	and where it is on the right (e.g. "Workspace.Map").
+]=]
 function Autocomplete.createObjectItem(index, instance: Instance, themeColors)
 	local item = createRow(index, themeColors)
 
@@ -493,9 +494,9 @@ function Autocomplete.createObjectItem(index, instance: Instance, themeColors)
 	return item
 end
 
---!
--- Highlights row number index (the others are transparent).
---!
+--[=[
+	Highlights row number index (the others are transparent).
+]=]
 function Autocomplete.setSelected(frame, index: number?)
 	for _, child in ipairs(frame:GetChildren()) do
 		if child:IsA("TextButton") and child.Name:match("^Item_%d+$") then
@@ -504,9 +505,9 @@ function Autocomplete.setSelected(frame, index: number?)
 	end
 end
 
---!
--- Re-applies the current palette to the menu and its rows.
---!
+--[=[
+	Re-applies the current palette to the menu and its rows.
+]=]
 function Autocomplete.recolor(frame, themeColors)
 	frame.BackgroundColor3 = themeColors.menuBack
 	local stroke = frame:FindFirstChild("AutoStroke")

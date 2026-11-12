@@ -1,16 +1,17 @@
---!
--- GifPlayer
--- Animated GIFs for chat images. Roblox images can't animate, so a GIF is
--- decoded (GifDecoder), its frames are packed into one sprite sheet image and
--- uploaded like any other chat image. The image URL carries the sheet layout:
---
---   rbxassetid://123#gif=cols,rows,frameWidth,frameHeight,d1.d2.d3...
---
--- (d = each frame's delay in ms). GifPlayer.apply shows any image URL on an
--- ImageLabel and, for GIF URLs, steps ImageRectOffset through the frames.
--- If the upload fails, the sheet stays a local EditableImage that only the
--- sender can see.
---!
+--[[
+	GifPlayer
+
+	Animated GIFs for chat images. Roblox images can't animate, so a GIF is
+	decoded (GifDecoder), its frames are packed into one sprite sheet image and
+	uploaded like any other chat image. The image URL carries the sheet layout:
+
+	  rbxassetid://123#gif=cols,rows,frameWidth,frameHeight,d1.d2.d3...
+
+	(d = each frame's delay in ms). GifPlayer.apply shows any image URL on an
+	ImageLabel and, for GIF URLs, steps ImageRectOffset through the frames.
+	If the upload fails, the sheet stays a local EditableImage that only the
+	sender can see.
+]]
 
 local AssetService = game:GetService("AssetService")
 
@@ -31,9 +32,9 @@ type Animation = { offsets: { Vector2 }, delays: { number }, frame: number, next
 local animations: { [ImageLabel]: Animation } = setmetatable({}, { __mode = "k" }) :: any
 local loopRunning = false
 
---!
--- Splits an image URL into its image part and GIF layout (nil for normal images).
---!
+--[=[
+	Splits an image URL into its image part and GIF layout (nil for normal images).
+]=]
 function GifPlayer.parse(url: string?)
 	if type(url) ~= "string" then
 		return url, nil
@@ -60,9 +61,9 @@ function GifPlayer.parse(url: string?)
 		}
 end
 
---!
--- True when the URL is a GIF sprite sheet.
---!
+--[=[
+	True when the URL is a GIF sprite sheet.
+]=]
 function GifPlayer.isGif(url: string?): boolean
 	local _, layout = GifPlayer.parse(url)
 	return layout ~= nil
@@ -91,10 +92,10 @@ local function runLoop()
 	end)
 end
 
---!
--- Shows an image URL on an ImageLabel, animating it when it's a GIF.
--- Also resets a label that showed a GIF before.
---!
+--[=[
+	Shows an image URL on an ImageLabel, animating it when it's a GIF.
+	Also resets a label that showed a GIF before.
+]=]
 function GifPlayer.apply(label: ImageLabel, url: string?)
 	animations[label] = nil
 	label.ImageRectOffset = Vector2.zero
@@ -134,9 +135,7 @@ function GifPlayer.apply(label: ImageLabel, url: string?)
 	end
 end
 
---!
 -- Picks the frame size and grid so every frame fits on one sheet.
---!
 local function planSheet(width: number, height: number, frames: number)
 	local scale = math.min(1, MAX_FRAME_SIDE / math.max(width, height))
 	while true do
@@ -152,10 +151,10 @@ local function planSheet(width: number, height: number, frames: number)
 	end
 end
 
---!
--- Decodes GIF bytes into a sprite sheet. Returns the EditableImage and the
--- "#gif=..." layout suffix.
---!
+--[=[
+	Decodes GIF bytes into a sprite sheet. Returns the EditableImage and the
+	"#gif=..." layout suffix.
+]=]
 function GifPlayer.buildSheet(data: string): (EditableImage, string)
 	-- Read the frame count first so the sheet can be planned before decoding.
 	local width, height = 0, 0
@@ -211,11 +210,11 @@ function GifPlayer.buildSheet(data: string): (EditableImage, string)
 		string.format("#gif=%d,%d,%d,%d,%s", cols, rows, frameWidth, frameHeight, table.concat(delayText, "."))
 end
 
---!
--- Turns a GIF file from the file picker into a chat image URL. Uploads the
--- sheet so everyone can see it; falls back to a local-only sheet.
--- Returns the URL and whether it was uploaded.
---!
+--[=[
+	Turns a GIF file from the file picker into a chat image URL. Uploads the
+	sheet so everyone can see it; falls back to a local-only sheet.
+	Returns the URL and whether it was uploaded.
+]=]
 function GifPlayer.fromFile(file: File): (string, boolean)
 	local image, suffix = GifPlayer.buildSheet(file:GetBinaryContents())
 

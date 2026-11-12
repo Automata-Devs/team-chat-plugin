@@ -1,8 +1,9 @@
---!
--- MessageStore
--- Handles message collection, text message sending, and file message sending.
--- Operates on the shared ChatState module.
---!
+--[[
+	MessageStore
+
+	Handles message collection, text message sending, and file message sending.
+	Operates on the shared ChatState module.
+]]
 
 local HttpService = game:GetService("HttpService")
 
@@ -11,10 +12,10 @@ local ChatState = require(script.Parent.ChatState)
 
 local MessageStore = {}
 
---!
--- Reads one message folder into an entry table (sender, timestamp, content,
--- messageType and the reply/poll/file fields).
---!
+--[=[
+	Reads one message folder into an entry table (sender, timestamp, content,
+	messageType and the reply/poll/file fields).
+]=]
 function MessageStore.readEntry(child: Instance): table
 	local msgType = child:GetAttribute("MessageType") or ChatState.MESSAGE_TYPE_TEXT
 	local entry = {
@@ -66,10 +67,10 @@ function MessageStore.readEntry(child: Instance): table
 	return entry
 end
 
---!
--- Collects all messages in a conversation folder (the team chat by
--- default), sorted by timestamp ascending.
---!
+--[=[
+	Collects all messages in a conversation folder (the team chat by
+	default), sorted by timestamp ascending.
+]=]
 function MessageStore.collect(folder: Folder?): { table }
 	local messages = {}
 	for _, child in ipairs((folder or ChatState.getFolder()):GetChildren()) do
@@ -81,19 +82,19 @@ function MessageStore.collect(folder: Folder?): { table }
 	return messages
 end
 
---!
--- Initializes the message store: restores from settings if needed,
--- then collects and returns all existing messages.
---!
+--[=[
+	Initializes the message store: restores from settings if needed,
+	then collects and returns all existing messages.
+]=]
 function MessageStore.init(): { table }
 	ChatState.restoreFromSettings()
 	return MessageStore.collect()
 end
 
---!
--- Sends a text chat message to the open conversation, optionally as a reply
--- to another message.
---!
+--[=[
+	Sends a text chat message to the open conversation, optionally as a reply
+	to another message.
+]=]
 function MessageStore.sendMessage(
 	content: string,
 	imageUrl: string?,
@@ -184,9 +185,9 @@ function MessageStore.sendNotice(content: string, kind: string)
 	ChatState.saveHistory()
 end
 
---!
--- Sends a file message with file metadata to the open conversation.
---!
+--[=[
+	Sends a file message with file metadata to the open conversation.
+]=]
 function MessageStore.sendFile(fileName: string, fileUrl: string, fileType: string, content: string?)
 	local folder = ChatState.getActiveFolder()
 	local message = Instance.new("Folder")
@@ -227,9 +228,9 @@ function MessageStore.editMessage(timestamp: number, content: string): boolean
 	return false
 end
 
---!
--- Deletes a message by timestamp.
---!
+--[=[
+	Deletes a message by timestamp.
+]=]
 function MessageStore.deleteMessage(timestamp: number)
 	ChatState.deleteMessage(timestamp)
 end

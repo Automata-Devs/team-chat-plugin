@@ -17,11 +17,11 @@ local FONTS = Theme.FONTS
 
 local Announcement = {}
 
---!
--- Builds the header line of an announcement card: megaphone +
--- "Announcement" (bold, in Roblox blue) + sender + the time, like the
--- author line of a message.
---!
+--[=[
+	Builds the header line of an announcement card: megaphone +
+	"Announcement" (bold, in Roblox blue) + sender + the time, like the
+	author line of a message.
+]=]
 function Announcement.buildHeader(sender, timestamp, themeColors)
 	local time = TimeFormatter.formatPlain(timestamp)
 	return string.format(
@@ -37,9 +37,9 @@ function Announcement.buildHeader(sender, timestamp, themeColors)
 	)
 end
 
---!
--- Creates a highlighted announcement card (Discord-style broadcast).
---!
+--[=[
+	Creates a highlighted announcement card (Discord-style broadcast).
+]=]
 function Announcement.create(sender, timestamp, content, themeColors, replyRef)
 	local card = Instance.new("Frame")
 	card.Name = "Announcement_" .. tostring(timestamp)

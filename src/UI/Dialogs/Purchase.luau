@@ -1,11 +1,12 @@
---!
--- PurchaseDialog
--- Checkout for a badge (opened from Badges > Buy): the badge, its price in
--- Robux and how buying works. Plugins can't show Roblox's purchase prompt,
--- so "Continue to Roblox" opens the game pass page; the dialog then waits
--- for the purchase (handlers.watchPurchase checks ownership every few
--- seconds) and shows when it's done.
---!
+--[[
+	Purchase
+
+	Checkout for a badge (opened from Badges > Buy): the badge, its price in
+	Robux and how buying works. Plugins can't show Roblox's purchase prompt,
+	so "Continue to Roblox" opens the game pass page; the dialog then waits
+	for the purchase (handlers.watchPurchase checks ownership every few
+	seconds) and shows when it's done.
+]]
 
 local Browser = require(script.Parent.Parent.Parent.Core.Browser)
 local Foundation = require(script.Parent.Parent.Common.Foundation)
@@ -34,18 +35,18 @@ local function corner(gui: GuiObject, radius: number)
 	c.Parent = gui
 end
 
---!
--- kit: a ModalKit. params: {
---   getThemeColors: () -> palette,
---   getHandlers: () -> {
---     purchaseUrl: (gamePassId) -> string,
---     watchPurchase: (badgeId, onStatus: ("waiting" | "owned" | "timeout") -> ()) -> (),
---   }?,
---   onPurchased: ((badgeId) -> ())?,   -- e.g. reload the Badges dialog
--- }
--- Returns { open(item), close(), isVisible(), recolor() }; item is a store
--- item { badge, gamePassId, price, owned, forSale }.
---!
+--[=[
+	kit: a ModalKit. params: {
+	  getThemeColors: () -> palette,
+	  getHandlers: () -> {
+	    purchaseUrl: (gamePassId) -> string,
+	    watchPurchase: (badgeId, onStatus: ("waiting" | "owned" | "timeout") -> ()) -> (),
+	  }?,
+	  onPurchased: ((badgeId) -> ())?,   -- e.g. reload the Badges dialog
+	}
+	Returns { open(item), close(), isVisible(), recolor() }; item is a store
+	item { badge, gamePassId, price, owned, forSale }.
+]=]
 function PurchaseDialog.create(kit, params)
 	local colors = params.getThemeColors()
 	local modal = kit.createModal({ name = "PurchaseDialog", title = "Checkout", iconKey = "shop", zIndex = Z })

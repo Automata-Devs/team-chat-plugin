@@ -1,12 +1,13 @@
---!
--- CommandHandler
--- Auto-discovers command modules from src/Commands and its subfolders.
--- Each command module returns a table following the template format:
---   { Name, Aliases, Prefixes, Enabled, Rank, RankLock, Loopable, Tags, Description, Contributors, Args, Function }
--- Commands with Enabled = false are not registered: they are hidden from /help
--- and autocomplete, and typing one reports that it is disabled. A missing
--- Enabled field counts as enabled.
---!
+--[[
+	Registry
+
+	Auto-discovers command modules from src/Commands and its subfolders.
+	Each command module returns a table following the template format:
+	  { Name, Aliases, Prefixes, Enabled, Rank, RankLock, Loopable, Tags, Description, Contributors, Args, Function }
+	Commands with Enabled = false are not registered: they are hidden from /help
+	and autocomplete, and typing one reports that it is disabled. A missing
+	Enabled field counts as enabled.
+]]
 
 local AdminNetwork = require(script.Parent.Parent.Services.Admin)
 local Language = require(script.Parent.Parent.Core.Language)
@@ -19,26 +20,20 @@ local commands = {} -- [lowercaseName] = commandModule
 local commandOrder = {} -- ordered list of canonical names
 local disabledCommands = {} -- [lowercaseName or alias] = command module with Enabled = false
 
---!
 -- A command's description in the current language: "command.<name>.description"
 -- in Config/Languages, or the module's own English Description.
---!
 local function describe(cmdModule): string
 	return Language.tOr("command." .. string.lower(cmdModule.Name) .. ".description", cmdModule.Description or "")
 end
 
---!
 -- A rank's name in the current language ("rank.<n>").
---!
 local function rankName(rank: number): string
 	return Language.tOr("rank." .. tostring(rank), AdminNetwork.getRankName(rank))
 end
 
---!
 -- A command's arguments as { name, description, optional }. Args entries are
 -- tables ({ name = "user", description = "...", optional = true }) or, in the
 -- older style, strings: "<name>" is required, "[name]" optional.
---!
 local function normalizeArgs(cmdModule)
 	local list = {}
 	for _, arg in ipairs(cmdModule.Args or {}) do
@@ -63,9 +58,7 @@ local function normalizeArgs(cmdModule)
 	return list
 end
 
---!
 -- "/ban <user> [reason]"
---!
 local function usageOf(cmdModule): string
 	local parts = { "/" .. cmdModule.Name }
 	for _, arg in ipairs(normalizeArgs(cmdModule)) do
@@ -74,9 +67,7 @@ local function usageOf(cmdModule): string
 	return table.concat(parts, " ")
 end
 
---!
 -- Registers a single command module into the registry.
---!
 local function registerCommand(cmdModule)
 	if not cmdModule or not cmdModule.Name or not cmdModule.Function then
 		return
@@ -102,9 +93,7 @@ local function registerCommand(cmdModule)
 	end
 end
 
---!
 -- Recursively scans a folder for ModuleScripts and registers them.
---!
 local function scanFolder(folder)
 	for _, child in ipairs(folder:GetChildren()) do
 		-- Modules starting with "_" (like _Template) aren't commands.
@@ -121,9 +110,9 @@ local function scanFolder(folder)
 	end
 end
 
---!
--- Initializes the CommandHandler by scanning the Commands folder.
---!
+--[=[
+	Initializes the CommandHandler by scanning the Commands folder.
+]=]
 function CommandHandler.init()
 	local commandsFolder = script.Parent
 	if commandsFolder then
@@ -217,13 +206,13 @@ function CommandHandler.init()
 		end,
 	})
 end
---!
--- Parses a raw text string and, if it starts with "/", runs the matching command
--- after checking rank permissions via AdminNetwork.
--- @param text The raw message text
--- @param context Table of context functions
--- @return boolean true if a command was executed, false if not a command
---!
+--[=[
+	Parses a raw text string and, if it starts with "/", runs the matching command
+	after checking rank permissions via AdminNetwork.
+	text: The raw message text
+	context: Table of context functions
+	Returns boolean true if a command was executed, false if not a command
+]=]
 function CommandHandler.tryParse(text, context)
 	if text == "" or #text < 2 then
 		return false
@@ -302,9 +291,9 @@ function CommandHandler.tryParse(text, context)
 	return true
 end
 
---!
--- Returns a list of all registered command names.
---!
+--[=[
+	Returns a list of all registered command names.
+]=]
 function CommandHandler.getCommandNames()
 	local names = {}
 	for _, name in ipairs(commandOrder) do
@@ -313,13 +302,13 @@ function CommandHandler.getCommandNames()
 	return names
 end
 
---!
--- Returns a list of all registered commands with metadata for autocomplete,
--- sorted by how often the local user has used them (most used first).
--- Commands with the same usage count are sorted alphabetically.
--- Returns array of { name, description, rank, aliases, uses, args, usage }
--- (args: { name, description, optional }, see normalizeArgs)
---!
+--[=[
+	Returns a list of all registered commands with metadata for autocomplete,
+	sorted by how often the local user has used them (most used first).
+	Commands with the same usage count are sorted alphabetically.
+	Returns array of { name, description, rank, aliases, uses, args, usage }
+	(args: { name, description, optional }, see normalizeArgs)
+]=]
 function CommandHandler.getCommandList()
 	local list = {}
 	local seen = {}

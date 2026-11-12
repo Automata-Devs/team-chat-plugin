@@ -1,15 +1,14 @@
---!
--- Theme
--- Centralized color palettes, fonts, and layout constants for the
--- TeamChat plugin UI. Detects Studio's light/dark mode automatically.
---!
+--[[
+	Theme
+
+	Centralized color palettes, fonts, and layout constants for the
+	TeamChat plugin UI. Detects Studio's light/dark mode automatically.
+]]
 
 local Theme = {}
 
---!
 -- Color palettes for each Studio theme mode, from Roblox's Foundation design
 -- tokens (the ones roblox.com and the Roblox app use).
---!
 Theme.PALETTES = {
 	-- Roblox's Foundation dark theme: blue-tinted near-blacks (surface 0-300),
 	-- #F7F7F8 / #D5D7DD / #BCBEC8 text, Roblox blue #335FFF. Its see-through
@@ -54,7 +53,7 @@ Theme.PALETTES = {
 		danger = Color3.fromRGB(240, 68, 51), -- alert actions (Delete)
 		success = Color3.fromRGB(57, 197, 130), -- changelog "Added"
 		warning = Color3.fromRGB(242, 186, 42), -- changelog "Fixed"
-		-- @mentions: text under a see-through rounded tint (UI/MentionPills), so
+		-- @mentions: text under a see-through rounded tint (UI/Text/MentionPills), so
 		-- the text is brighter than it ends up looking (Roblox's soft emphasis)
 		mentionText = Color3.fromRGB(235, 241, 255),
 		mentionBack = Color3.fromRGB(51, 95, 255),
@@ -108,7 +107,7 @@ Theme.PALETTES = {
 		danger = Color3.fromRGB(217, 28, 21), -- alert actions (Delete)
 		success = Color3.fromRGB(2, 136, 73), -- changelog "Added" (darker than Roblox's, to read on white)
 		warning = Color3.fromRGB(194, 121, 0), -- changelog "Fixed"
-		mentionText = Color3.fromRGB(0, 20, 92), -- @mentions, under the tint (UI/MentionPills)
+		mentionText = Color3.fromRGB(0, 20, 92), -- @mentions, under the tint (UI/Text/MentionPills)
 		mentionBack = Color3.fromRGB(51, 95, 255),
 		mentionRow = Color3.fromRGB(242, 186, 42), -- messages that mention you
 		codeBack = Color3.fromRGB(247, 247, 248),
@@ -119,9 +118,7 @@ Theme.PALETTES = {
 	},
 }
 
---!
 -- Shared font and layout constants.
---!
 Theme.FONT = Enum.Font.BuilderSans
 
 -- Roblox's Builder type family: Sans for UI text, Extended for display
@@ -132,11 +129,9 @@ Theme.FONT_FAMILIES = {
 	mono = "rbxasset://fonts/families/BuilderMono.json",
 }
 
---!
 -- Font roles, applied with label.FontFace = Theme.FONTS.<role>.
--- Message lines stay on Theme.FONT: UI/TextLayout measures them (links,
+-- Message lines stay on Theme.FONT: UI/Text/TextLayout measures them (links,
 -- @mentions, markdown) in the label's own font.
---!
 Theme.FONTS = {
 	body = Font.new(Theme.FONT_FAMILIES.sans, Enum.FontWeight.Regular),
 	medium = Font.new(Theme.FONT_FAMILIES.sans, Enum.FontWeight.Medium),
@@ -149,10 +144,10 @@ Theme.FONTS = {
 	mono = Font.new(Theme.FONT_FAMILIES.mono, Enum.FontWeight.Regular), -- times, counts, file types, /commands
 }
 
---!
--- Opening RichText tag for a font family, e.g. Theme.richFont("mono") .. text .. "</font>".
--- Optional weight is a RichText weight name ("medium", "semibold", "bold").
---!
+--[=[
+	Opening RichText tag for a font family, e.g. Theme.richFont("mono") .. text .. "</font>".
+	Optional weight is a RichText weight name ("medium", "semibold", "bold").
+]=]
 function Theme.richFont(family: string, weight: string?): string
 	local weightAttr = weight and string.format(' weight="%s"', weight) or ""
 	return string.format('<font family="%s"%s>', Theme.FONT_FAMILIES[family], weightAttr)
@@ -183,12 +178,10 @@ Theme.FILE_EXTENSIONS = {
 	csv = "Text",
 }
 
---!
 -- Roblox Foundation's corner radii (on a 4px grid): xsmall for hairline
 -- marks, small for tags and badges, medium for buttons, inputs, cards and
 -- menus, large for dialogs and panels, circle for avatars, chips and icon
 -- buttons.
---!
 Theme.RADIUS = {
 	xsmall = UDim.new(0, 2),
 	small = UDim.new(0, 4),
@@ -197,10 +190,8 @@ Theme.RADIUS = {
 	circle = UDim.new(1, 0),
 }
 
---!
 -- See-through overlays of the palette's `tint`, as BackgroundTransparency:
 -- STATE for hover and press layers, STROKE for borders and dividers.
---!
 Theme.STATE = { hover = 0.92, press = 0.88 }
 Theme.STROKE = { muted = 0.92, default = 0.88, emphasis = 0.84 }
 
@@ -211,10 +202,10 @@ Theme.MENU_WIDTH = 160
 Theme.MENU_ITEM_HEIGHT = 34
 Theme.MAX_POLL_OPTIONS = 10
 
---!
--- Detects the current Roblox Studio theme.
--- @return string "Dark" or "Light"
---!
+--[=[
+	Detects the current Roblox Studio theme.
+	Returns string "Dark" or "Light"
+]=]
 function Theme.detect(): string
 	local ok, theme = pcall(function()
 		return settings().Studio.Theme
@@ -229,17 +220,17 @@ function Theme.detect(): string
 	return "Dark"
 end
 
---!
--- Returns the color palette for the current Studio theme.
--- @return table
---!
+--[=[
+	Returns the color palette for the current Studio theme.
+	Returns table
+]=]
 function Theme.getColors()
 	return Theme.PALETTES[Theme.detect()]
 end
 
---!
--- Converts a Color3 to a hex string for use in RichText <font color> tags.
---!
+--[=[
+	Converts a Color3 to a hex string for use in RichText <font color> tags.
+]=]
 function Theme.toHex(color: Color3): string
 	return string.format(
 		"#%02X%02X%02X",

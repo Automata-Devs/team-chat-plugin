@@ -1,11 +1,12 @@
 --!nonstrict
---!
--- EmbedTypes
--- Shared type definitions for the embed system. Contains no runtime logic.
---
--- A provider is a ModuleScript placed in UI/Embeds/Providers that returns a
--- table with this shape. EmbedManager discovers providers automatically.
---!
+--[[
+	EmbedTypes
+
+	Shared type definitions for the embed system. Contains no runtime logic.
+
+	A provider is a ModuleScript placed in UI/Embeds/Providers that returns a
+	table with this shape. EmbedManager discovers providers automatically.
+]]
 
 export type ThemeColors = { [string]: any }
 

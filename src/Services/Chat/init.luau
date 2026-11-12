@@ -1,14 +1,18 @@
---!
--- ChatNetwork (Facade)
--- Public API for the chat subsystem. Delegates to focused sub-modules:
---   Chat/ChatState     – shared state, folder management, persistence
---   Chat/MessageStore  – message collection and text/file sending
---   Chat/PollManager    – poll creation and vote casting
---   Chat/MessageEvents – event listeners for incoming messages
---   Chat/Conversations – the pinned team chat plus direct messages
---   Chat/Pins          – pinned messages
---   Chat/Reactions     – emoji reactions on messages
---!
+--[[
+	Chat
+
+	The chat's public API. Controllers and Commands use this facade; its
+	sub-modules are internal:
+	  ChatState      shared state, folders and the local history backup
+	  MessageStore   reading and sending messages and files
+	  Polls          polls and votes
+	  Typing         who is typing
+	  Conversations  the pinned team chat and direct messages
+	  Pins           pinned messages
+	  Reactions      emoji reactions
+	  Stats          the admin dashboard's numbers and exports
+	  VersionHistory backups of the team chat
+]]
 
 local PluginConfig = require(script.Parent.Parent.Config.Constants)
 
@@ -19,14 +23,16 @@ local TypingIndicator = require(script.Typing)
 local Conversations = require(script.Conversations)
 local Pins = require(script.Pins)
 local Reactions = require(script.Reactions)
+local Stats = require(script.Stats)
+local VersionHistory = require(script.VersionHistory)
 
 local AdminNetwork = require(script.Parent.Admin)
 
 local ChatNetwork = {}
 
---!
--- Initializes the chat network and returns message history.
---!
+--[=[
+	Initializes the chat network and returns message history.
+]=]
 function ChatNetwork.init(): { any }
 	ChatState.init()
 	TypingIndicator.init()
@@ -35,14 +41,12 @@ function ChatNetwork.init(): { any }
 	return history
 end
 
--- ── Message Sending (MessageStore) ──
-
+-- Message Sending
 ChatNetwork.sendMessage = MessageStore.sendMessage
 ChatNetwork.sendMessageAs = MessageStore.sendMessageAs
 ChatNetwork.sendFile = MessageStore.sendFile
 
--- ── Poll Management (PollManager) ──
-
+-- Poll Management
 ChatNetwork.sendPoll = PollManager.sendPoll
 ChatNetwork.castVote = PollManager.castVote
 ChatNetwork.deleteMessage = MessageStore.deleteMessage
@@ -54,27 +58,24 @@ ChatNetwork.getActiveFolder = ChatState.getActiveFolder
 ChatNetwork.readEntry = MessageStore.readEntry
 ChatNetwork.collect = MessageStore.collect
 
--- ── Conversations (team chat + DMs) ──
-
+-- Conversations (team chat + DMs)
 ChatNetwork.Conversations = Conversations
 
--- ── Pinned messages (Pins) ──
-
+-- Pinned messages
 ChatNetwork.Pins = Pins
 
--- ── Emoji reactions (Reactions) ──
-
+-- Emoji reactions
 ChatNetwork.Reactions = Reactions
+ChatNetwork.Stats = Stats
+ChatNetwork.VersionHistory = VersionHistory
 
--- ── Typing Indicator (TypingIndicator) ──
-
+-- Typing Indicator
 ChatNetwork.setTyping = TypingIndicator.setTyping
 ChatNetwork.onTypingChanged = TypingIndicator.onTypingChanged
 ChatNetwork.getTypingUsers = TypingIndicator.getTypingUsers
 ChatNetwork.simulateTyping = TypingIndicator.simulateTyping
 
--- ── Online Users ──
-
+-- Online Users
 function ChatNetwork.getOnlineUsers(): { table }
 	local Players = game:GetService("Players")
 	local users = {}
@@ -88,11 +89,10 @@ function ChatNetwork.getOnlineUsers(): { table }
 	return users
 end
 
--- ── Whisper ──
-
---!
--- Sends a direct message (it shows up in your DMs with that person).
---!
+-- Whisper
+--[=[
+	Sends a direct message (it shows up in your DMs with that person).
+]=]
 function ChatNetwork.sendWhisper(targetUserId: number, message: string): boolean
 	if ChatState.currentUserId <= 0 or targetUserId == ChatState.currentUserId then
 		return false
@@ -112,8 +112,7 @@ function ChatNetwork.sendWhisper(targetUserId: number, message: string): boolean
 	return true
 end
 
--- ── Broadcast ──
-
+-- Broadcast
 function ChatNetwork.broadcast(message: string)
 	local folder = ChatState.getFolder()
 	local msg = Instance.new("Folder")
@@ -128,8 +127,7 @@ function ChatNetwork.broadcast(message: string)
 	ChatState.saveHistory()
 end
 
--- ── User Info ──
-
+-- User Info
 function ChatNetwork.getUsername(): string
 	return ChatState.currentUsername
 end

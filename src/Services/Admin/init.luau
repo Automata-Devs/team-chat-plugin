@@ -1,15 +1,16 @@
---!
--- AdminNetwork (Facade)
--- Public API for the admin subsystem. Delegates to focused sub-modules:
---   Admin/RankManager       – ranks, user identity, permissions
---   Admin/ModerationManager – mutes, bans, kicks, blacklists, whitelists
---   Admin/UserResolver       – username-to-userId resolution
---   Admin/AdminState         – shared state and persistence
---   Admin/AuditLog           – every moderation action, kept in the place
---   Admin/ChatRules          – blocked words and automatic backups
--- Every moderation action through this facade is written to the audit log
--- and announced to onAdminEvent listeners (the admin dashboard).
---!
+--[[
+	Admin
+
+	The admin system's public API, over these internal sub-modules:
+	  Ranks        ranks, the signed-in user, permissions
+	  Moderation   mutes, bans, kicks, blacklists, whitelists
+	  UserResolver usernames to user ids
+	  AdminState   shared state and persistence
+	  AuditLog     every moderation action, kept in the place
+	  ChatRules    blocked words and automatic backups
+	Every moderation action through this facade is written to the audit log
+	and announced to onAdminEvent listeners (the admin dashboard).
+]]
 
 local Players = game:GetService("Players")
 
@@ -31,10 +32,10 @@ AdminNetwork.RANK_MODERATOR = RankManager.RANK_MODERATOR
 AdminNetwork.RANK_ADMIN = RankManager.RANK_ADMIN
 AdminNetwork.RANK_OWNER = RankManager.RANK_OWNER
 
---!
--- Initializes the admin system: restores state, assigns default ranks
--- to allowed users, and grants Owner rank to the current user.
---!
+--[=[
+	Initializes the admin system: restores state, assigns default ranks
+	to allowed users, and grants Owner rank to the current user.
+]=]
 function AdminNetwork.init()
 	RankManager.resolveCurrentUser()
 	AdminState.restore()
@@ -71,8 +72,7 @@ end
 AdminNetwork.AuditLog = AuditLog
 AdminNetwork.ChatRules = ChatRules
 
--- ── Admin Events ──
-
+-- Admin Events
 local adminEventCallbacks: { (string, { [string]: any }) -> () } = {}
 
 --[=[
@@ -135,8 +135,7 @@ local function forUser(userId: number, username: string?, reason: string?): Audi
 	}
 end
 
--- ── Rank & Identity (RankManager) ──
-
+-- Rank & Identity
 AdminNetwork.getRank = RankManager.getRank
 AdminNetwork.getRankName = RankManager.getRankName
 AdminNetwork.setRank = logged("setRank", RankManager.setRank, function(userId: number, rank: number)
@@ -166,8 +165,7 @@ function AdminNetwork.getRankedUsers(): { { userId: number, rank: number } }
 	return list
 end
 
--- ── Moderation (ModerationManager) ──
-
+-- Moderation
 AdminNetwork.canUserSend = ModerationManager.canUserSend
 
 -- Mute
@@ -242,8 +240,7 @@ end)
 AdminNetwork.isWhitelistEnabled = ModerationManager.isWhitelistEnabled
 AdminNetwork.getWhitelistedUsers = ModerationManager.getWhitelistedUsers
 
--- ── User Resolution (UserResolver) ──
-
+-- User Resolution
 AdminNetwork.resolveUserId = UserResolver.resolveUserId
 
 return AdminNetwork

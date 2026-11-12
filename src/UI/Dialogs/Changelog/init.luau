@@ -1,12 +1,13 @@
---!
--- ChangelogDialog
--- The "What's New" page, Minecraft-style: the MAIN versions (1.0.0, 2.0.0,
--- ...) are the tabs, and the selected one lists its updates (1.13.1, 1.12.4,
--- ...) as cards, newest first. Each card shows its version, date and title;
--- click it to fold its notes open or shut (drawn by ChangelogView). Opening
--- the page for a version unfolds that update. In a ModalKit modal like
--- ChatUI's other dialogs.
---!
+--[[
+	Changelog
+
+	The "What's New" page, Minecraft-style: the MAIN versions (1.0.0, 2.0.0,
+	...) are the tabs, and the selected one lists its updates (1.13.1, 1.12.4,
+	...) as cards, newest first. Each card shows its version, date and title;
+	click it to fold its notes open or shut (drawn by ChangelogView). Opening
+	the page for a version unfolds that update. In a ModalKit modal like
+	ChatUI's other dialogs.
+]]
 
 local Animation = require(script.Parent.Parent.Common.Animation)
 local Changelog = require(script.Parent.Parent.Parent.Config.Changelog)
@@ -28,21 +29,19 @@ local function corner(gui: GuiObject, radius: number)
 	c.Parent = gui
 end
 
---!
 -- "1.0.0" -> "1.0" for tab labels (main versions read like Minecraft's 1.21)
---!
 local function mainLabel(version: string): string
 	local major, minor = string.match(version, "^(%d+)%.(%d+)")
 	return if major then major .. "." .. minor else version
 end
 
---!
--- kit: a ModalKit. params: {
---   getThemeColors: () -> palette,  -- the current palette
---   onClosed: (() -> ())?,           -- e.g. remember the version as seen
--- }
--- Returns { open(version?), close(), isVisible(), recolor(), hasNotesFor(version), modal }
---!
+--[=[
+	kit: a ModalKit. params: {
+	  getThemeColors: () -> palette,  -- the current palette
+	  onClosed: (() -> ())?,           -- e.g. remember the version as seen
+	}
+	Returns { open(version?), close(), isVisible(), recolor(), hasNotesFor(version), modal }
+]=]
 function ChangelogDialog.create(kit, params)
 	local themeColors = params.getThemeColors()
 	local modal =
@@ -280,10 +279,10 @@ function ChangelogDialog.create(kit, params)
 
 	local self = { modal = modal } -- modal: joined into the Settings tabs
 
-	--!
-	-- Opens on the main version holding `version`, with that update unfolded
-	-- (the newest update when the version has no notes).
-	--!
+	--[=[
+		Opens on the main version holding `version`, with that update unfolded
+		(the newest update when the version has no notes).
+	]=]
 	function self.open(version: string?)
 		local mainIndex, updateIndex = ChangelogView.find(Changelog, version)
 		selectedMain = mainIndex or 1
@@ -313,17 +312,17 @@ function ChangelogDialog.create(kit, params)
 		return modal.isVisible()
 	end
 
-	--!
-	-- Whether an update with exactly this version has notes (only those pop up).
-	--!
+	--[=[
+		Whether an update with exactly this version has notes (only those pop up).
+	]=]
 	function self.hasNotesFor(version: string?): boolean
 		return (ChangelogView.find(Changelog, version)) ~= nil
 	end
 
-	--!
-	-- Re-applies the current palette to the tabs and notes (the shell is
-	-- recolored by the ModalKit).
-	--!
+	--[=[
+		Re-applies the current palette to the tabs and notes (the shell is
+		recolored by the ModalKit).
+	]=]
 	function self.recolor()
 		tabsRow.ScrollBarImageColor3 = params.getThemeColors().scrollBar
 		render()

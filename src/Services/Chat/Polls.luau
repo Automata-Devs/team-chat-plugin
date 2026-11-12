@@ -1,8 +1,9 @@
---!
--- PollManager
--- Handles poll creation and vote casting for the chat system.
--- Operates on the shared ChatState module.
---!
+--[[
+	Polls
+
+	Handles poll creation and vote casting for the chat system.
+	Operates on the shared ChatState module.
+]]
 
 local HttpService = game:GetService("HttpService")
 
@@ -11,9 +12,9 @@ local ChatState = require(script.Parent.ChatState)
 
 local PollManager = {}
 
---!
--- Sends a poll message with the given question and options.
---!
+--[=[
+	Sends a poll message with the given question and options.
+]=]
 function PollManager.sendPoll(question: string, options: { string })
 	local folder = ChatState.getActiveFolder()
 	local message = Instance.new("Folder")
@@ -36,10 +37,10 @@ function PollManager.sendPoll(question: string, options: { string })
 	ChatState.saveHistory()
 end
 
---!
--- Casts a vote on a poll message. Removes the voter's previous vote if any.
--- Clicking the current choice again toggles the vote off.
---!
+--[=[
+	Casts a vote on a poll message. Removes the voter's previous vote if any.
+	Clicking the current choice again toggles the vote off.
+]=]
 function PollManager.castVote(timestamp: number, optionIndex: number)
 	local folder = ChatState.getActiveFolder()
 	for _, child in ipairs(folder:GetChildren()) do

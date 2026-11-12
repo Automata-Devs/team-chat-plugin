@@ -1,14 +1,15 @@
---!
--- SettingsDialog
--- The General page of Settings, in the Roblox style: a search box, then
--- sections of setting cards (title, control on the right, description)
--- with toggles, sliders and dropdowns (UI/Components/Controls).
---
--- Settings it owns (theme, clock, timestamps, Enter to send, text size) are
--- saved in plugin settings and applied through the callbacks ChatUI passes
--- in; the display preferences (names, badges, animations, notifications...)
--- live in UI/Preferences. Everything is listed in SECTIONS below.
---!
+--[[
+	General
+
+	The General page of Settings, in the Roblox style: a search box, then
+	sections of setting cards (title, control on the right, description)
+	with toggles, sliders and dropdowns (UI/Components/Controls).
+
+	Settings it owns (theme, clock, timestamps, Enter to send, text size) are
+	saved in plugin settings and applied through the callbacks ChatUI passes
+	in; the display preferences (names, badges, animations, notifications...)
+	live in UI/Preferences. Everything is listed in SECTIONS below.
+]]
 
 local Controls = require(script.Parent.Parent.Parent.Components.Controls)
 local Foundation = require(script.Parent.Parent.Parent.Common.Foundation)
@@ -27,7 +28,7 @@ local FONTS = Theme.FONTS
 local LEGACY_TEXT_SIZES = { Small = 12, Default = 14, Large = 16 }
 
 -- Every setting on the page. kind: "toggle" | "dropdown" | "slider".
--- `own = true`: saved and applied here; otherwise it's a UI/Preferences key
+-- `own = true`: saved and applied here; otherwise it's a UI/Common/Preferences key
 -- ("language" is Core/Language). Titles and descriptions are translated:
 -- "setting.<key>.title" / "setting.<key>.description" in Config/Languages,
 -- section headings "section.<id>", dropdown choices OPTION_KEYS below.
@@ -164,18 +165,18 @@ end
 
 local SettingsDialog = {}
 
---!
--- kit: a ModalKit. opts: {
---   getThemeColors: () -> palette,
---   detectTheme: () -> "Light" | "Dark",      -- Studio's own theme
---   onThemeChanged: (paletteName) -> (),         -- apply a palette
---   onDisplayChanged: () -> (),                  -- clock/timestamps/text size changed
---   onTextSizeChanged: (pixels) -> (),           -- message text size
--- }
--- Returns { open, close, toggle, isVisible,
---           onVisibilityChanged, isEnterToSendEnabled, resolveTheme,
---           restore, recolor, set(key, value), get(key), modal }
---!
+--[=[
+	kit: a ModalKit. opts: {
+	  getThemeColors: () -> palette,
+	  detectTheme: () -> "Light" | "Dark",      -- Studio's own theme
+	  onThemeChanged: (paletteName) -> (),         -- apply a palette
+	  onDisplayChanged: () -> (),                  -- clock/timestamps/text size changed
+	  onTextSizeChanged: (pixels) -> (),           -- message text size
+	}
+	Returns { open, close, toggle, isVisible,
+	          onVisibilityChanged, isEnterToSendEnabled, resolveTheme,
+	          restore, recolor, set(key, value), get(key), modal }
+]=]
 function SettingsDialog.create(kit, opts)
 	local modal = kit.createModal({ name = "SettingsDialog", title = "Settings", iconKey = "settings", zIndex = 24 })
 	local card = modal.card
@@ -232,10 +233,10 @@ function SettingsDialog.create(kit, opts)
 		end
 	end
 
-	--!
-	-- Changes a setting as if picked on the page: saves it, applies it and
-	-- moves its control. Keys are the ones in SECTIONS.
-	--!
+	--[=[
+		Changes a setting as if picked on the page: saves it, applies it and
+		moves its control. Keys are the ones in SECTIONS.
+	]=]
 	function self.set(key: string, value: any)
 		if key == "language" then
 			Language.set(value) -- saved; everything re-labels
@@ -416,9 +417,9 @@ function SettingsDialog.create(kit, opts)
 	end
 	card:GetPropertyChangedSignal("CanvasPosition"):Connect(closeDropdowns)
 
-	--!
-	-- The palette to use: Studio's own theme for "Auto", otherwise the choice.
-	--!
+	--[=[
+		The palette to use: Studio's own theme for "Auto", otherwise the choice.
+	]=]
 	function self.resolveTheme(): string
 		return if own.theme == "Auto" then opts.detectTheme() else own.theme
 	end
@@ -445,9 +446,9 @@ function SettingsDialog.create(kit, opts)
 		return modal.isVisible()
 	end
 
-	--!
-	-- Opens or closes Settings (toolbar button). Returns true if it opened.
-	--!
+	--[=[
+		Opens or closes Settings (toolbar button). Returns true if it opened.
+	]=]
 	function self.toggle(): boolean
 		if modal.isVisible() then
 			modal.close()
@@ -465,10 +466,10 @@ function SettingsDialog.create(kit, opts)
 		return own.enterToSend
 	end
 
-	--!
-	-- Re-applies the current palette to the page (the shell is recolored by
-	-- the ModalKit).
-	--!
+	--[=[
+		Re-applies the current palette to the page (the shell is recolored by
+		the ModalKit).
+	]=]
 	function self.recolor()
 		colors = opts.getThemeColors()
 		for _, heading in ipairs(headings) do
@@ -486,10 +487,10 @@ function SettingsDialog.create(kit, opts)
 	end
 	self.recolor()
 
-	--!
-	-- Loads the saved settings (invalid or missing values keep the defaults)
-	-- and applies the non-theme ones. The caller then applies resolveTheme().
-	--!
+	--[=[
+		Loads the saved settings (invalid or missing values keep the defaults)
+		and applies the non-theme ones. The caller then applies resolveTheme().
+	]=]
 	function self.restore()
 		local savedTheme = Settings.get(OWN_KEYS.theme)
 		if savedTheme == "Auto" or savedTheme == "Light" or savedTheme == "Dark" then

@@ -1,14 +1,15 @@
---!
--- AttachmentCards
--- The card under a file message for anything that isn't audio: a tinted
--- type icon, the file name, a type line and a download button. (Audio cards
--- are built in ChatUI and wired by AudioPlayback.)
---
--- Videos use this card too: Studio doesn't decode video in edit mode
--- (VideoFrame and VideoPlayer report playing but show no picture and play no
--- sound), so a player can't work inside a plugin. Download opens an uploaded
--- video's Roblox page, where it does play.
---!
+--[[
+	AttachmentCards
+
+	The card under a file message for anything that isn't audio: a tinted
+	type icon, the file name, a type line and a download button. (Audio cards
+	are built in ChatUI and wired by AudioPlayback.)
+
+	Videos use this card too: Studio doesn't decode video in edit mode
+	(VideoFrame and VideoPlayer report playing but show no picture and play no
+	sound), so a player can't work inside a plugin. Download opens an uploaded
+	video's Roblox page, where it does play.
+]]
 
 local Theme = require(script.Parent.Parent.Parent.Config.Theme)
 local Icons = require(script.Parent.Parent.Parent.Config.Icons)
@@ -113,10 +114,10 @@ local function download(fileUrl: string?)
 	Browser.open(if assetId then "https://www.roblox.com/library/" .. assetId else fileUrl)
 end
 
---!
--- Compact card for any file: tinted type icon, name, type line and a
--- download button.
---!
+--[=[
+	Compact card for any file: tinted type icon, name, type line and a
+	download button.
+]=]
 function AttachmentCards.createFile(
 	container: Frame,
 	fileName: string,
@@ -184,9 +185,9 @@ function AttachmentCards.createFile(
 	return card
 end
 
---!
--- Re-themes the attachment cards inside a file message container.
---!
+--[=[
+	Re-themes the attachment cards inside a file message container.
+]=]
 function AttachmentCards.recolor(container: Instance, themeColors)
 	for _, name in ipairs({ "FileCard", "AudioPlayerCard" }) do
 		local card = container:FindFirstChild(name)

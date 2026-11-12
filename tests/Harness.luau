@@ -97,6 +97,12 @@ function Harness.boot(options: { settings: { [string]: any }?, keepData: boolean
 	end
 
 	local window = copy.UI.ChatWindow
+	local windowModules = { window }
+	for _, module in ipairs(window:GetChildren()) do
+		if module:IsA("ModuleScript") then
+			table.insert(windowModules, module)
+		end
+	end
 	patch(
 		window,
 		'pluginInstance:CreateDockWidgetPluginGui%("TeamChatWidget", widgetInfo%)',
@@ -105,21 +111,21 @@ function Harness.boot(options: { settings: { [string]: any }?, keepData: boolean
 	)
 	for _, event in ipairs({ "PluginDragEntered", "PluginDragLeft", "PluginDragDropped", "WindowFocusReleased" }) do
 		hooks.events[event] = Instance.new("BindableEvent")
-		patch(window, "widget%." .. event, "_G.__TeamChatTest.events." .. event .. ".Event")
 	end
-	patch(window, "widget%.Title = ", "_G.__TeamChatTest.title = ")
-	-- The test window is a ScreenGui: no GetRelativeMousePosition
-	for _, module in ipairs({ window, window:FindFirstChild("ContextMenu"), window:FindFirstChild("Pointer") }) do
-		if module then
-			patch(module :: ModuleScript, "widget:GetRelativeMousePosition%(%)", "Vector2.zero")
+	for _, module in ipairs(windowModules) do
+		for event in pairs(hooks.events) do
+			patch(module, "widget%." .. event, "_G.__TeamChatTest.events." .. event .. ".Event")
 		end
+		patch(module, "widget%.Title = ", "_G.__TeamChatTest.title = ")
+		-- The test window is a ScreenGui: no GetRelativeMousePosition
+		patch(module, "widget:GetRelativeMousePosition%(%)", "Vector2.zero")
 	end
 
 	-- Expose message editing and the context menu (right-clicks can't be simulated)
 	patch(
 		window,
-		"contextMenu%.handlers%.edit = editing%.start",
-		"contextMenu.handlers.edit = editing.start; _G.__TeamChatTest.editing = editing; _G.__TeamChatTest.contextMenu = contextMenu",
+		"contextMenu%.handlers%.edit = composer%.startEdit",
+		"contextMenu.handlers.edit = composer.startEdit; _G.__TeamChatTest.editing = { start = composer.startEdit }; _G.__TeamChatTest.contextMenu = contextMenu",
 		1
 	)
 
@@ -138,9 +144,9 @@ function Harness.boot(options: { settings: { [string]: any }?, keepData: boolean
 	)
 	-- Autocomplete rows: pick one by number, as a click would
 	patch(
-		window,
+		window.Suggestions,
 		"\tlocal function renderAutocompleteItems%(%)\n",
-		"\t_G.__TeamChatTest.pickAutocomplete = function(i) applyAutocompleteItem(autocompleteItems[i]) end\n\tlocal function renderAutocompleteItems()\n",
+		"\t_G.__TeamChatTest.pickAutocomplete = function(i) applyAutocompleteItem(items[i]) end\n\tlocal function renderAutocompleteItems()\n",
 		1
 	)
 	-- Panel buttons (the admin dashboard, the developer portal)
@@ -152,13 +158,13 @@ function Harness.boot(options: { settings: { [string]: any }?, keepData: boolean
 	)
 	-- The sidebar overlay: expose its toggle and scrim, and fake a narrow panel
 	patch(
-		window,
+		window.Sidebar,
 		"scrim%.MouseButton1Click:Connect%(",
 		"_G.__TeamChatTest.setSidebarExpanded = setExpanded; _G.__TeamChatTest.onClick(scrim, ",
 		1
 	)
 	if opts.narrow then
-		patch(window, "local MIN_CHAT_WIDTH = 360", "local MIN_CHAT_WIDTH = 100000", 1)
+		patch(window.Sidebar, "local MIN_CHAT_WIDTH = 360", "local MIN_CHAT_WIDTH = 100000", 1)
 	end
 	-- Never open the real browser from tests: record the link instead
 	patch(

@@ -1,10 +1,11 @@
---!
--- BadgesDialog
--- The "Badges" modal (sidebar): the badges you have, the badges you can buy
--- (Roblox game passes; Buy opens the checkout, PurchaseDialog) and a
--- Refresh purchases button to check again. The badge data comes from handlers ChatWindow is
--- given by the controller (UI doesn't require services).
---!
+--[[
+	Badges
+
+	The "Badges" modal (sidebar): the badges you have, the badges you can buy
+	(Roblox game passes; Buy opens the checkout, PurchaseDialog) and a
+	Refresh purchases button to check again. The badge data comes from handlers ChatWindow is
+	given by the controller (UI doesn't require services).
+]]
 
 local Foundation = require(script.Parent.Parent.Common.Foundation)
 local Icons = require(script.Parent.Parent.Parent.Config.Icons)
@@ -28,19 +29,19 @@ local function corner(gui: GuiObject, radius: number)
 	c.Parent = gui
 end
 
---!
--- kit: a ModalKit. params: {
---   getThemeColors: () -> palette,
---   onBuy: ((StoreItem) -> ())?,        -- open the checkout for a badge
---   getHandlers: () -> {
---     myBadges: () -> { Badge },          -- your badges now
---     getStore: () -> { StoreItem },      -- yields; badges for sale
---     purchaseUrl: (gamePassId) -> string,
---     refresh: () -> (),                  -- look up your badges again
---   }?,
--- }
--- Returns { open(), close(), isVisible(), recolor() }
---!
+--[=[
+	kit: a ModalKit. params: {
+	  getThemeColors: () -> palette,
+	  onBuy: ((StoreItem) -> ())?,        -- open the checkout for a badge
+	  getHandlers: () -> {
+	    myBadges: () -> { Badge },          -- your badges now
+	    getStore: () -> { StoreItem },      -- yields; badges for sale
+	    purchaseUrl: (gamePassId) -> string,
+	    refresh: () -> (),                  -- look up your badges again
+	  }?,
+	}
+	Returns { open(), close(), isVisible(), recolor() }
+]=]
 function BadgesDialog.create(kit, params)
 	local colors = params.getThemeColors()
 	local modal = kit.createModal({ name = "BadgesDialog", title = "Badges", iconKey = "badges", zIndex = Z })
@@ -274,18 +275,18 @@ function BadgesDialog.create(kit, params)
 		return modal.isVisible()
 	end
 
-	--!
-	-- Loads the store again (e.g. after a purchase) if the dialog is open.
-	--!
+	--[=[
+		Loads the store again (e.g. after a purchase) if the dialog is open.
+	]=]
 	function self.reload()
 		if modal.isVisible() then
 			load()
 		end
 	end
 
-	--!
-	-- Re-renders with the current palette, or after your badges changed.
-	--!
+	--[=[
+		Re-renders with the current palette, or after your badges changed.
+	]=]
 	function self.recolor()
 		if modal.isVisible() then
 			render()

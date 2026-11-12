@@ -1,8 +1,9 @@
 --!nonstrict
---!
--- EmbedStyle
--- Layout constants for embed cards. Change sizes, spacing, and limits here.
---!
+--[[
+	EmbedStyle
+
+	Layout constants for embed cards. Change sizes, spacing, and limits here.
+]]
 
 return {
 	-- Behavior

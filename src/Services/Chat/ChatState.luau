@@ -1,13 +1,14 @@
---!
--- ChatState
--- Shared state module for the chat subsystem.
--- Holds the chat folder reference, current user info, plugin reference,
--- and provides message serialization / deserialization for persistence.
---
--- Persistence: the chat folder lives in the place (see PlaceStorage), so it
--- is shared over Team Create and saved with the place. A per-place backup in
--- plugin settings restores it if the place's copy is missing.
---!
+--[[
+	ChatState
+
+	Shared state module for the chat subsystem.
+	Holds the chat folder reference, current user info, plugin reference,
+	and provides message serialization / deserialization for persistence.
+
+	Persistence: the chat folder lives in the place (see PlaceStorage), so it
+	is shared over Team Create and saved with the place. A per-place backup in
+	plugin settings restores it if the place's copy is missing.
+]]
 
 local HttpService = game:GetService("HttpService")
 
@@ -30,10 +31,10 @@ ChatState.chatFolder = nil
 ChatState.currentUsername = "Unknown"
 ChatState.currentUserId = 0
 
---!
--- Finds or creates the chat messages folder in the place
--- (ServerStorage.TeamChatData._TeamChatData).
---!
+--[=[
+	Finds or creates the chat messages folder in the place
+	(ServerStorage.TeamChatData._TeamChatData).
+]=]
 function ChatState.getFolder(): Folder
 	if ChatState.chatFolder and ChatState.chatFolder.Parent then
 		return ChatState.chatFolder
@@ -55,9 +56,7 @@ function ChatState.getActiveFolder(): Folder
 	return ChatState.getFolder()
 end
 
---!
 -- Plugin setting key holding this place's local chat backup.
---!
 local function historySettingKey(): string
 	return PlaceStorage.settingKey(PluginConfig.SETTING_KEY_HISTORY)
 end
@@ -65,12 +64,10 @@ end
 local getSetting = Settings.get
 local setSetting = Settings.set
 
---!
 -- One-time import of pre-0.4 data, which was stored in plugin settings shared
 -- by every place. It goes to the first place opened after updating (so it is
 -- not copied into every place), along with its version-history index.
--- @return the legacy history JSON, or nil if it was already imported / absent
---!
+-- Returns the legacy history JSON, or nil if it was already imported / absent
 local function takeLegacyHistory(): string?
 	if getSetting(PluginConfig.SETTING_KEY_LEGACY_MIGRATED) then
 		return nil
@@ -90,17 +87,15 @@ local function takeLegacyHistory(): string?
 	return nil
 end
 
---!
--- Initializes chat state with the current user (Core/Identity must be initialized).
---!
+--[=[
+	Initializes chat state with the current user (Core/Identity must be initialized).
+]=]
 function ChatState.init()
 	ChatState.currentUserId = Identity.userId
 	ChatState.currentUsername = Identity.username
 end
 
---!
 -- Populates the DataModel folder from a decoded array of message entries.
---!
 local function populateFolder(folder, messages)
 	for _, entry in ipairs(messages) do
 		local msgType = entry.messageType or ChatState.MESSAGE_TYPE_TEXT
@@ -161,9 +156,9 @@ local function populateFolder(folder, messages)
 	end
 end
 
---!
--- Serializes all messages from the DataModel folder to a JSON string.
---!
+--[=[
+	Serializes all messages from the DataModel folder to a JSON string.
+]=]
 function ChatState.serializeMessages(): string?
 	local folder = ChatState.getFolder()
 	local serialized = {}
@@ -229,9 +224,9 @@ function ChatState.serializeMessages(): string?
 	return nil
 end
 
---!
--- Writes this place's local chat backup (the place itself is saved by Studio).
---!
+--[=[
+	Writes this place's local chat backup (the place itself is saved by Studio).
+]=]
 function ChatState.saveHistory()
 	local json = ChatState.serializeMessages()
 	if json then
@@ -239,9 +234,9 @@ function ChatState.saveHistory()
 	end
 end
 
---!
--- Removes all messages from the DataModel folder.
---!
+--[=[
+	Removes all messages from the DataModel folder.
+]=]
 function ChatState.clearFolder()
 	local folder = ChatState.getFolder()
 	for _, child in ipairs(folder:GetChildren()) do
@@ -249,11 +244,11 @@ function ChatState.clearFolder()
 	end
 end
 
---!
--- Replaces the current chat history with the given serialized JSON.
--- Clears the DataModel folder, repopulates it, and persists the result.
--- @return true on success
---!
+--[=[
+	Replaces the current chat history with the given serialized JSON.
+	Clears the DataModel folder, repopulates it, and persists the result.
+	Returns true on success
+]=]
 function ChatState.applyHistory(json: string): boolean
 	if not json or json == "" then
 		return false
@@ -272,14 +267,14 @@ function ChatState.applyHistory(json: string): boolean
 	return true
 end
 
---!
--- Loads the chat for this place. The copy saved in the place wins (it is
--- what every collaborator shares), even when empty: an empty folder means
--- the chat was cleared, so a stale local backup must not bring it back.
--- Only when the place has no chat folder at all (new place, or the folder
--- was deleted) is this place's local backup restored, or else the pre-0.4
--- shared history imported once.
---!
+--[=[
+	Loads the chat for this place. The copy saved in the place wins (it is
+	what every collaborator shares), even when empty: an empty folder means
+	the chat was cleared, so a stale local backup must not bring it back.
+	Only when the place has no chat folder at all (new place, or the folder
+	was deleted) is this place's local backup restored, or else the pre-0.4
+	shared history imported once.
+]=]
 function ChatState.restoreFromSettings()
 	local placeHasChat = PlaceStorage.getRoot():FindFirstChild(CHAT_FOLDER_NAME) ~= nil
 	local folder = ChatState.getFolder()
@@ -307,12 +302,12 @@ function ChatState.restoreFromSettings()
 	ChatState.saveHistory()
 end
 
---!
--- Deletes a message from the open conversation by timestamp.
--- Finds the message with the matching timestamp and removes it.
--- @param timestamp number - The timestamp of the message to delete
--- @return boolean - true if message was found and deleted
---!
+--[=[
+	Deletes a message from the open conversation by timestamp.
+	Finds the message with the matching timestamp and removes it.
+	timestamp: number - The timestamp of the message to delete
+	Returns boolean - true if message was found and deleted
+]=]
 function ChatState.deleteMessage(timestamp: number): boolean
 	local folder = ChatState.getActiveFolder()
 	for _, child in ipairs(folder:GetChildren()) do

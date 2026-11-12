@@ -18,9 +18,9 @@ local Shared = require(script.Parent.Shared)
 
 local Recolor = {}
 
---!
--- Re-renders an existing message container with new theme colors.
---!
+--[=[
+	Re-renders an existing message container with new theme colors.
+]=]
 function Recolor.apply(container, themeColors)
 	local reply = container:FindFirstChild("ReplyReference", true)
 	if reply then

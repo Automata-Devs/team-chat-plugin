@@ -1,14 +1,15 @@
---!
--- AudioPlayback
--- Makes the audio card in a file message playable: play/pause, a progress
--- waveform, the playback time and click-to-seek.
---
--- Sound doesn't play in Studio's edit mode, so this uses the audio API
--- (AudioPlayer wired to an AudioDeviceOutput), which does. Everything lives
--- under the card inside the plugin widget; the widget isn't part of the place,
--- so nothing replicates and only the person who pressed play hears it.
--- Only one card plays at a time; see MediaFocus.
---!
+--[[
+	AudioPlayback
+
+	Makes the audio card in a file message playable: play/pause, a progress
+	waveform, the playback time and click-to-seek.
+
+	Sound doesn't play in Studio's edit mode, so this uses the audio API
+	(AudioPlayer wired to an AudioDeviceOutput), which does. Everything lives
+	under the card inside the plugin widget; the widget isn't part of the place,
+	so nothing replicates and only the person who pressed play hears it.
+	Only one card plays at a time; see MediaFocus.
+]]
 
 local Icons = require(script.Parent.Parent.Parent.Config.Icons)
 local MediaFocus = require(script.Parent.MediaFocus)
@@ -22,10 +23,10 @@ local function formatTime(seconds: number): string
 	return string.format("%d:%02d", whole // 60, whole % 60)
 end
 
---!
--- Wires up an audio card built by ChatUI (PlayPauseButton, Waveform with
--- WaveBar_n children, PlaybackTime).
---!
+--[=[
+	Wires up an audio card built by ChatUI (PlayPauseButton, Waveform with
+	WaveBar_n children, PlaybackTime).
+]=]
 function AudioPlayback.wire(card: Frame, fileUrl: string, themeColors)
 	local playButton = card:FindFirstChild("PlayPauseButton") :: TextButton
 	local waveform = card:FindFirstChild("Waveform") :: Frame

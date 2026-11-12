@@ -1,15 +1,16 @@
 --!nonstrict
---!
--- LinkEmbed (provider)
--- Generic fallback embed for any http(s) / www link: a compact one-row
--- preview with a globe tile, the site's name (a friendly name for well-known
--- sites, otherwise the domain), the short address below it, and an "open"
--- arrow. Matches every URL at the lowest priority, so more specific
--- providers (added later) will take precedence.
---
--- To add a new embed type, copy this file, change Name/Priority/matches, and
--- build different content inside the card body. No other file needs editing.
---!
+--[[
+	LinkEmbed
+
+	Generic fallback embed for any http(s) / www link: a compact one-row
+	preview with a globe tile, the site's name (a friendly name for well-known
+	sites, otherwise the domain), the short address below it, and an "open"
+	arrow. Matches every URL at the lowest priority, so more specific
+	providers (added later) will take precedence.
+
+	To add a new embed type, copy this file, change Name/Priority/matches, and
+	build different content inside the card body. No other file needs editing.
+]]
 
 local Browser = require(script.Parent.Parent.Parent.Parent.Core.Browser)
 local Style = require(script.Parent.Parent.EmbedStyle)
@@ -35,10 +36,8 @@ local SITE_NAMES = {
 	["twitter.com"] = "X",
 }
 
---!
 -- Splits a URL into the site's display name and a short address
 -- (no scheme, no "www.", no trailing slash).
---!
 local function describeUrl(url: string): (string, string)
 	local withoutScheme = string.gsub(url, "^%a+://", "")
 	withoutScheme = string.gsub(withoutScheme, "^www%.", "")

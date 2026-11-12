@@ -66,7 +66,7 @@ return function(t)
 		StudioCollab.unclaim(target)
 		t.check("unclaim frees it", (StudioCollab.claim(target, 2, nil)) == true)
 
-		-- Clicking a link inside message text finds it (UI/TextLayout hit-test),
+		-- Clicking a link inside message text finds it (UI/Text/TextLayout hit-test),
 		-- also after bold text, which is wider
 		local MessageText = require(copy.UI.Text.MessageText) :: any
 		local TextLayout = require(copy.UI.Text.TextLayout) :: any

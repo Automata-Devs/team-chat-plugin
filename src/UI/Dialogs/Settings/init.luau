@@ -1,13 +1,14 @@
---!
--- SettingsTabs
--- Joins several dialogs into one Settings window with its tabs on the left,
--- like Discord's settings: one window, a tab column in its own shade on the
--- left, a divider, and the open dialog's card as the page. Tabs come in
--- groups under small headings (Team Chat, Manage, Info) and the plugin's
--- version sits at the bottom of the column. Picking a tab swaps the page
--- without re-opening the window (Animation fades the new page in). In a
--- narrow panel the column shows icons only.
---!
+--[[
+	Settings
+
+	Joins several dialogs into one Settings window with its tabs on the left,
+	like Discord's settings: one window, a tab column in its own shade on the
+	left, a divider, and the open dialog's card as the page. Tabs come in
+	groups under small headings (Team Chat, Manage, Info) and the plugin's
+	version sits at the bottom of the column. Picking a tab swaps the page
+	without re-opening the window (Animation fades the new page in). In a
+	narrow panel the column shows icons only.
+]]
 
 local Animation = require(script.Parent.Parent.Common.Animation)
 local Constants = require(script.Parent.Parent.Parent.Config.Constants)
@@ -35,15 +36,15 @@ local function corner(parent: Instance, radius: number)
 	object.Parent = parent
 end
 
---!
--- tabs: { { name: string, icon: string, labelKey: string?, titleKey: string?,
---          group: string?, dialog: { modal, open(...), close(), isVisible() } } }
--- name identifies the tab; labelKey / titleKey are Core/Language keys for
--- its name in the column and its window title; group puts it under the
--- heading "tab.group.<group>" (tabs of a group are listed together).
--- getThemeColors: () -> palette
--- Returns { open(name?, ...), close(), toggle(), isOpen(), current(), recolor() }
---!
+--[=[
+	tabs: { { name: string, icon: string, labelKey: string?, titleKey: string?,
+	         group: string?, dialog: { modal, open(...), close(), isVisible() } } }
+	name identifies the tab; labelKey / titleKey are Core/Language keys for
+	its name in the column and its window title; group puts it under the
+	heading "tab.group.<group>" (tabs of a group are listed together).
+	getThemeColors: () -> palette
+	Returns { open(name?, ...), close(), toggle(), isOpen(), current(), recolor() }
+]=]
 function SettingsTabs.create(tabs, getThemeColors)
 	-- per dialog: { window, frame, fill, divider, footer, stroke, headings, items, owner }
 	local navs = {}
@@ -110,10 +111,10 @@ function SettingsTabs.create(tabs, getThemeColors)
 		return self.current() ~= nil
 	end
 
-	--!
-	-- Opens a tab (General when none is given). From another tab it swaps
-	-- the page in place; extra arguments go to the dialog's open().
-	--!
+	--[=[
+		Opens a tab (General when none is given). From another tab it swaps
+		the page in place; extra arguments go to the dialog's open().
+	]=]
 	function self.open(name: string?, ...)
 		local target = find(name)
 		local switching = false
@@ -143,9 +144,9 @@ function SettingsTabs.create(tabs, getThemeColors)
 		end
 	end
 
-	--!
-	-- Closes the window if it's open, otherwise opens it on General.
-	--!
+	--[=[
+		Closes the window if it's open, otherwise opens it on General.
+	]=]
 	function self.toggle()
 		if self.isOpen() then
 			self.close()

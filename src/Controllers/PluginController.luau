@@ -1,9 +1,10 @@
---!
--- PluginController
--- Handles plugin initialization, dockable widget visibility,
--- toolbar buttons, conversations (team chat + DMs), and
--- ChatNetwork <-> ChatUI wiring.
---!
+--[[
+	PluginController
+
+	Handles plugin initialization, dockable widget visibility,
+	toolbar buttons, conversations (team chat + DMs), and
+	ChatNetwork <-> ChatUI wiring.
+]]
 
 local HttpService = game:GetService("HttpService")
 
@@ -132,7 +133,7 @@ function PluginController.init(pluginRef, ui, chatNetwork, commandHandler)
 
 	-- Bots show answers that are never saved (a web bot's ephemeral ones)
 	-- and short notes straight in this chat
-	Bots.ui = {
+	Bots.setUi({
 		showLocal = function(entry)
 			return ui.addBotMessage(entry)
 		end,
@@ -142,7 +143,7 @@ function PluginController.init(pluginRef, ui, chatNetwork, commandHandler)
 		say = function(text: string)
 			ui.addSystemMessage(text)
 		end,
-	}
+	})
 
 	local function renderEntry(msg)
 		local replyRef

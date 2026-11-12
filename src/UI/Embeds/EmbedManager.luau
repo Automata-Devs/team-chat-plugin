@@ -1,18 +1,19 @@
 --!nonstrict
---!
--- EmbedManager
--- Single entry point for all chat embeds. ChatUI only talks to this module.
---
---   EmbedManager.attach(messageContainer, urls, theme, ctx)  -- on new message
---   EmbedManager.recolor(messageContainer, theme)            -- on theme change
---   EmbedManager.register(provider)                          -- optional manual add
---
--- Providers are ModuleScripts in UI/Embeds/Providers and are discovered
--- automatically (see EmbedTypes for the provider shape). The highest
--- priority provider whose matches() returns true renders the URL.
--- A provider that errors is skipped, so one broken embed can never stop a
--- chat message from rendering.
---!
+--[[
+	EmbedManager
+
+	Single entry point for all chat embeds. ChatUI only talks to this module.
+
+	  EmbedManager.attach(messageContainer, urls, theme, ctx)  -- on new message
+	  EmbedManager.recolor(messageContainer, theme)            -- on theme change
+	  EmbedManager.register(provider)                          -- optional manual add
+
+	Providers are ModuleScripts in UI/Embeds/Providers and are discovered
+	automatically (see EmbedTypes for the provider shape). The highest
+	priority provider whose matches() returns true renders the URL.
+	A provider that errors is skipped, so one broken embed can never stop a
+	chat message from rendering.
+]]
 
 local Types = require(script.Parent.EmbedTypes)
 local Style = require(script.Parent.EmbedStyle)
@@ -40,9 +41,9 @@ local function sortProviders()
 	end)
 end
 
---!
--- Registers a provider. Registering a name that already exists replaces it.
---!
+--[=[
+	Registers a provider. Registering a name that already exists replaces it.
+]=]
 function EmbedManager.register(provider: EmbedProvider)
 	assert(type(provider) == "table", "EmbedManager.register: provider must be a table")
 	assert(type(provider.Name) == "string", "EmbedManager.register: provider.Name must be a string")
@@ -79,10 +80,10 @@ local function loadProviders()
 	end
 end
 
---!
--- Builds an embed for a single URL using the best matching provider.
--- @return the embed root GuiObject, or nil if no provider could build it
---!
+--[=[
+	Builds an embed for a single URL using the best matching provider.
+	Returns the embed root GuiObject, or nil if no provider could build it
+]=]
 function EmbedManager.createEmbed(url: string, theme: ThemeColors, ctx: EmbedContext?): GuiObject?
 	for _, provider in ipairs(providers) do
 		local okMatch, matched = pcall(provider.matches, url)
@@ -100,11 +101,11 @@ function EmbedManager.createEmbed(url: string, theme: ThemeColors, ctx: EmbedCon
 	return nil
 end
 
---!
--- Adds embeds for the URLs found in a message (up to MAX_EMBEDS_PER_MESSAGE,
--- duplicates ignored) and keeps any image attachment below them.
--- @return number of embeds added
---!
+--[=[
+	Adds embeds for the URLs found in a message (up to MAX_EMBEDS_PER_MESSAGE,
+	duplicates ignored) and keeps any image attachment below them.
+	Returns number of embeds added
+]=]
 function EmbedManager.attach(messageContainer: Frame, urls: { string }, theme: ThemeColors, ctx: EmbedContext?): number
 	local seen = {}
 	local count = 0
@@ -134,9 +135,9 @@ function EmbedManager.attach(messageContainer: Frame, urls: { string }, theme: T
 	return count
 end
 
---!
--- Re-applies theme colors to every embed in a message container.
---!
+--[=[
+	Re-applies theme colors to every embed in a message container.
+]=]
 function EmbedManager.recolor(messageContainer: Instance, theme: ThemeColors)
 	for _, child in ipairs(messageContainer:GetChildren()) do
 		local providerName = child:GetAttribute("EmbedProvider")

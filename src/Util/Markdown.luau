@@ -84,7 +84,7 @@ local Markdown = {}
 local HEADER_SCALE = { 1.6, 1.35, 1.15 }
 local SUBTEXT_SCALE = 0.8
 -- A thin space each side of `code`, so its box (and the rounded outline
--- UI/MentionPills draws) doesn't touch the text
+-- UI/Text/MentionPills draws) doesn't touch the text
 local CODE_PAD = "\u{2009}"
 
 local function escape(text: string): string

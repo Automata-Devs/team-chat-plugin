@@ -1,9 +1,10 @@
---!
--- AboutDialog
--- The "About" modal (info button in the sidebar): what the plugin is, its
--- version and author, the disclaimer that it isn't affiliated with Roblox,
--- the terms of use and what data it stores.
---!
+--[[
+	About
+
+	The "About" modal (info button in the sidebar): what the plugin is, its
+	version and author, the disclaimer that it isn't affiliated with Roblox,
+	the terms of use and what data it stores.
+]]
 
 local ModalKit = require(script.Parent.Kit.ModalKit)
 local PluginConfig = require(script.Parent.Parent.Parent.Config.Constants)
@@ -22,10 +23,10 @@ local SECTIONS = {
 
 local AboutDialog = {}
 
---!
--- kit: a ModalKit. params: { getThemeColors: () -> palette }
--- Returns { open(), close(), isVisible(), recolor() }
---!
+--[=[
+	kit: a ModalKit. params: { getThemeColors: () -> palette }
+	Returns { open(), close(), isVisible(), recolor() }
+]=]
 function AboutDialog.create(kit, params)
 	local colors = params.getThemeColors()
 	local modal = kit.createModal({ name = "AboutDialog", title = "About Team Chat", iconKey = "about", zIndex = Z })

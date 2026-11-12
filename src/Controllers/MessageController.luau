@@ -1,8 +1,9 @@
---!
--- MessageController
--- Handles message sending, command parsing, and input event wiring.
--- Extracted from the main entry point for separation of concerns.
---!
+--[[
+	MessageController
+
+	Handles message sending, command parsing, and input event wiring.
+	Extracted from the main entry point for separation of concerns.
+]]
 
 local HttpService = game:GetService("HttpService")
 
@@ -13,10 +14,8 @@ local UsageTracker = require(script.Parent.Parent.Services.Usage)
 
 local MessageController = {}
 
---!
--- Builds the command context table that is passed to CommandHandler.tryParse.
+-- Builds the command context table that is passed to Commands/Registry.tryParse.
 -- This provides commands with access to UI callbacks and network helpers.
---!
 -- A card spec as JSON (its colour as hex), to save with a public message
 local function encodeEmbed(spec): string
 	local copy = table.clone(spec)
@@ -78,9 +77,7 @@ local function buildCommandContext(ui, chatNetwork)
 	return context
 end
 
---!
 -- Sends a message or parses a command from the UI text box.
---!
 local function sendMessage(ui, chatNetwork, commandHandler)
 	if ui.isUploading and ui.isUploading() then
 		return -- Wait for upload to finish
@@ -88,7 +85,7 @@ local function sendMessage(ui, chatNetwork, commandHandler)
 
 	-- Note: Enter intentionally does NOT accept autocomplete suggestions anymore.
 	-- Suggestions (commands and emojis) are accepted with Tab or a click, see
-	-- ChatUI's updateAutocomplete. Enter always sends / runs what was typed.
+	-- ChatWindow/Suggestions. Enter always sends / runs what was typed.
 
 	-- Drop leading/trailing blank lines and spaces (the box is multi-line)
 	local text = string.match(ui.textBox.Text, "^%s*(.-)%s*$")
@@ -166,12 +163,12 @@ local function sendMessage(ui, chatNetwork, commandHandler)
 	end
 end
 
---!
--- Initializes the message controller by wiring up input events.
--- @param ui The ChatUI instance
--- @param chatNetwork The ChatNetwork module
--- @param commandHandler The CommandHandler module
---!
+--[=[
+	Initializes the message controller by wiring up input events.
+	ui: The ChatUI instance
+	chatNetwork: The ChatNetwork module
+	commandHandler: The CommandHandler module
+]=]
 function MessageController.init(ui, chatNetwork, commandHandler)
 	-- Send on button click
 	ui.sendButton.MouseButton1Click:Connect(function()

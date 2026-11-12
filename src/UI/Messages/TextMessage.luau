@@ -54,9 +54,9 @@ end
 
 local TextMessage = {}
 
---!
--- Creates a message container (Frame) with optional inline image.
---!
+--[=[
+	Creates a message container (Frame) with optional inline image.
+]=]
 function TextMessage.create(sender, timestamp, content, imageUrl, themeColors, replyRef, senderId)
 	local container = Instance.new("Frame")
 	container.Name = "Message_" .. tostring(timestamp)
@@ -103,7 +103,7 @@ function TextMessage.create(sender, timestamp, content, imageUrl, themeColors, r
 	textLabel.LayoutOrder = 1
 	textLabel.BorderSizePixel = 0
 	textLabel.Parent = container
-	-- Markdown, links, @mentions and #tags (UI/MessageText)
+	-- Markdown, links, @mentions and #tags (UI/Text/MessageText)
 	MessageText.set(textLabel, content, themeColors)
 	textLabel.Visible = content ~= "" -- image-only messages show just the image
 	MentionPills.attach(textLabel, themeColors)

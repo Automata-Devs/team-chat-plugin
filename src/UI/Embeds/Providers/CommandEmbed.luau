@@ -1,22 +1,23 @@
 --!nonstrict
---!
--- CommandEmbed (provider)
--- The card a command replies with, like a Discord bot embed: a coloured
--- edge, a title, a short description, an optional avatar on the right,
--- labelled fields (inline ones sit three to a row) and a small footer.
--- It never matches a link; commands build it from a spec through
--- ctx.addEmbed (see Commands/_Template). Registered as a provider so theme
--- changes recolor it like any other embed.
---
--- spec = {
---     title = "builderman",
---     description = "@builderman",          -- optional
---     thumbnailUserId = 156,                 -- optional: their avatar on the right
---     color = Color3?,                       -- optional: the edge (default: Roblox blue)
---     fields = { { name = "User ID", value = "156", inline = true }, ... },
---     footer = "Requested by …",             -- optional
--- }
---!
+--[[
+	CommandEmbed
+
+	The card a command replies with, like a Discord bot embed: a coloured
+	edge, a title, a short description, an optional avatar on the right,
+	labelled fields (inline ones sit three to a row) and a small footer.
+	It never matches a link; commands build it from a spec through
+	ctx.addEmbed (see Commands/_Template). Registered as a provider so theme
+	changes recolor it like any other embed.
+
+	spec = {
+	    title = "builderman",
+	    description = "@builderman",          -- optional
+	    thumbnailUserId = 156,                 -- optional: their avatar on the right
+	    color = Color3?,                       -- optional: the edge (default: Roblox blue)
+	    fields = { { name = "User ID", value = "156", inline = true }, ... },
+	    footer = "Requested by …",             -- optional
+	}
+]]
 
 local Style = require(script.Parent.Parent.EmbedStyle)
 local CardFrame = require(script.Parent.Parent.CardFrame)
@@ -52,9 +53,9 @@ local function label(parent: Instance, name: string, text: string, font: Font, s
 	})
 end
 
---!
--- Builds the card for a spec.
---!
+--[=[
+	Builds the card for a spec.
+]=]
 function CommandEmbed.fromSpec(spec, theme): GuiObject
 	local holder, _card, body = CardFrame.create(theme, spec.color or theme.sendButton)
 	holder.Name = "Embed"

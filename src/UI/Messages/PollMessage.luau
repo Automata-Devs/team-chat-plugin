@@ -28,9 +28,9 @@ function PollMessage.cardOf(container: Instance): Frame?
 	return container:FindFirstChild("PollCard") :: Frame?
 end
 
---!
--- Creates a poll row: author header and the poll card.
---!
+--[=[
+	Creates a poll row: author header and the poll card.
+]=]
 function PollMessage.create(sender, timestamp, pollData, themeColors, replyRef, senderId)
 	local container = Instance.new("Frame")
 	container.Name = "Poll_" .. tostring(timestamp)

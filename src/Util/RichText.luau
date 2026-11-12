@@ -55,7 +55,7 @@ function RichText.toHex(color: Color3): string
 end
 
 -- Escaped text with each @mention in the mention colour. The rounded tint
--- behind it is drawn by UI/MentionPills (RichText can't round a <mark>).
+-- behind it is drawn by UI/Text/MentionPills (RichText can't round a <mark>).
 -- Only the colour changes, never the font, so measuring the text (link
 -- hit-testing, the pills) still matches what's shown.
 local function styleMentions(text: string, palette: Palette?): string

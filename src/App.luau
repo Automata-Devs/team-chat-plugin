@@ -19,6 +19,7 @@ local Settings = require(script.Parent.Core.Settings)
 local AdminNetwork = require(script.Parent.Services.Admin)
 local ChatNetwork = require(script.Parent.Services.Chat)
 local Bots = require(script.Parent.Services.Bots)
+local ObjectTags = require(script.Parent.Services.ObjectTags)
 local StudioCollab = require(script.Parent.Services.StudioCollab)
 local Usage = require(script.Parent.Services.Usage)
 local CommandRegistry = require(script.Parent.Commands.Registry)
@@ -56,7 +57,14 @@ function App.start(plugin: Plugin): Started
 	ChatNetwork.init() -- chat folders, typing, conversations
 	Bots.init() -- runs the bots you own; others' bots answer through requests
 
-	local ui = ChatWindow.create(plugin)
+	-- The UI never requires Services: it gets the ones it uses here
+	local ui = ChatWindow.create(plugin, {
+		admin = AdminNetwork,
+		bots = Bots,
+		chat = ChatNetwork,
+		objectTags = ObjectTags,
+		usage = Usage,
+	})
 	PluginController.init(plugin, ui, ChatNetwork, CommandRegistry)
 	MessageController.init(ui, ChatNetwork, CommandRegistry)
 

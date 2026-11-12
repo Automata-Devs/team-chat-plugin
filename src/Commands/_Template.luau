@@ -1,7 +1,7 @@
 --!strict
 -- Command template
 -- Copy this module and modify the fields below to create a new command.
--- The CommandHandler auto-discovers ModuleScripts in this folder and subfolders.
+-- Commands/Registry auto-discovers ModuleScripts in this folder and subfolders.
 return {
 	Name = "commandName",
 	Aliases = { "alias1", "alias2" },

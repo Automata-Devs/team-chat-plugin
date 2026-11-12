@@ -1,36 +1,37 @@
---!
--- Changelog
--- What's new, Minecraft-style: MAIN VERSIONS (1.0.0, 2.0.0, ...) each hold
--- their SUBVERSIONS (1.13.1, 1.12.4, ...), newest first. A version x.y.z
--- belongs to main version x.0.0. Shown in the "What's New" tab: the main
--- versions as tabs, their subversions under them. It pops up once after an
--- update that has notes.
---
--- To add an update: bump the plugin's Version attribute, then in its main
--- version's `updates`:
---   - same day and theme as the top update: set its version to the new one
---     and add your changes to its list;
---   - otherwise add a new update at the TOP of `updates`:
---
---   {
---       version = "1.14.0",             -- must match the Version attribute exactly
---       date = "02/11/2026",            -- DD/MM/YYYY
---       title = "Short headline",       -- optional
---       changes = {
---           { type = "added",   text = "A new feature." },
---           { type = "changed", text = "Something that works differently." },
---           { type = "fixed",   text = "A bug that was fixed." },
---           { type = "removed", text = "Something that is gone." },
---       },
---   },
---
--- A new main version (2.0.0) is a new block at the TOP of the returned list,
--- with its own title, date and `updates`.
---
--- Change types follow Keep a Changelog (https://keepachangelog.com).
--- Only big updates get an entry; small version bumps don't, and What's New
--- then keeps showing the last big update.
---!
+--[[
+	Changelog
+
+	What's new, Minecraft-style: MAIN VERSIONS (1.0.0, 2.0.0, ...) each hold
+	their SUBVERSIONS (1.13.1, 1.12.4, ...), newest first. A version x.y.z
+	belongs to main version x.0.0. Shown in the "What's New" tab: the main
+	versions as tabs, their subversions under them. It pops up once after an
+	update that has notes.
+
+	To add an update: bump the plugin's Version attribute, then in its main
+	version's `updates`:
+	  - same day and theme as the top update: set its version to the new one
+	    and add your changes to its list;
+	  - otherwise add a new update at the TOP of `updates`:
+
+	  {
+	      version = "1.14.0",             -- must match the Version attribute exactly
+	      date = "02/11/2026",            -- DD/MM/YYYY
+	      title = "Short headline",       -- optional
+	      changes = {
+	          { type = "added",   text = "A new feature." },
+	          { type = "changed", text = "Something that works differently." },
+	          { type = "fixed",   text = "A bug that was fixed." },
+	          { type = "removed", text = "Something that is gone." },
+	      },
+	  },
+
+	A new main version (2.0.0) is a new block at the TOP of the returned list,
+	with its own title, date and `updates`.
+
+	Change types follow Keep a Changelog (https://keepachangelog.com).
+	Only big updates get an entry; small version bumps don't, and What's New
+	then keeps showing the last big update.
+]]
 
 -- UNRELEASED: every change since the last published entry (bugs, fixes,
 -- tweaks), newest first, tagged with the version it went into. Not shown in

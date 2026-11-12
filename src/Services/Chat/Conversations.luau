@@ -1,22 +1,23 @@
---!
--- Conversations
--- The team chat for this place (always pinned first) plus one direct-message
--- conversation per pair of collaborators.
---
--- DMs use the same message folders as the team chat, one folder per pair:
--- ServerStorage.TeamChatData.DirectMessages.dm_<lowUserId>_<highUserId>.
--- The folder is created with the first message. Like the team chat, DMs are
--- saved in the place, so anyone who can open the place in Studio could read
--- them in ServerStorage; the plugin only shows them to the two people in them.
---
--- Read state (for unread badges) is kept per person in plugin settings.
---
--- A new DM can be started with anyone (from your Roblox friends or by
--- username); they see it when they open this place with Team Chat.
---
--- Closing a DM only hides it from your list (like Discord): it comes back
--- when a newer message arrives or you start it again. Messages are kept.
---!
+--[[
+	Conversations
+
+	The team chat for this place (always pinned first) plus one direct-message
+	conversation per pair of collaborators.
+
+	DMs use the same message folders as the team chat, one folder per pair:
+	ServerStorage.TeamChatData.DirectMessages.dm_<lowUserId>_<highUserId>.
+	The folder is created with the first message. Like the team chat, DMs are
+	saved in the place, so anyone who can open the place in Studio could read
+	them in ServerStorage; the plugin only shows them to the two people in them.
+
+	Read state (for unread badges) is kept per person in plugin settings.
+
+	A new DM can be started with anyone (from your Roblox friends or by
+	username); they see it when they open this place with Team Chat.
+
+	Closing a DM only hides it from your list (like Discord): it comes back
+	when a newer message arrives or you start it again. Messages are kept.
+]]
 
 local Players = game:GetService("Players")
 local MarketplaceService = game:GetService("MarketplaceService")
@@ -76,17 +77,17 @@ local function fireChanged()
 	end)
 end
 
---!
--- Conversation id for a DM between two users ("dm_<low>_<high>").
---!
+--[=[
+	Conversation id for a DM between two users ("dm_<low>_<high>").
+]=]
 function Conversations.dmId(userA: number, userB: number): string
 	return string.format("dm_%d_%d", math.min(userA, userB), math.max(userA, userB))
 end
 
---!
--- The other person in one of my DM conversations (nil for the team chat or
--- a DM between two other people).
---!
+--[=[
+	The other person in one of my DM conversations (nil for the team chat or
+	a DM between two other people).
+]=]
 function Conversations.otherUserId(id: string): number?
 	local a, b = string.match(id, "^dm_(%d+)_(%d+)$")
 	local userA, userB = tonumber(a), tonumber(b)
@@ -102,10 +103,10 @@ local function dmRoot(): Folder
 	return PlaceStorage.getFolder(Constants.DM_FOLDER_NAME)
 end
 
---!
--- Display name for a user id. Unknown names are looked up in the background
--- and the list refreshes once they arrive.
---!
+--[=[
+	Display name for a user id. Unknown names are looked up in the background
+	and the list refreshes once they arrive.
+]=]
 function Conversations.nameOf(userId: number): string
 	if names[userId] then
 		return names[userId]
@@ -132,10 +133,10 @@ local function rememberName(userId: any, name: any)
 	end
 end
 
---!
--- The folder holding a conversation's messages. DM folders only exist after
--- the first message; pass create = true to make it.
---!
+--[=[
+	The folder holding a conversation's messages. DM folders only exist after
+	the first message; pass create = true to make it.
+]=]
 function Conversations.getFolder(id: string, create: boolean?): Folder?
 	if id == Conversations.MAIN then
 		return ChatState.getFolder()
@@ -176,10 +177,10 @@ local function newestMessage(folder: Folder): Instance?
 	return newest
 end
 
---!
--- Marks everything currently in a conversation as read. Uses the newest
--- message's own timestamp, so collaborators' clocks don't matter.
---!
+--[=[
+	Marks everything currently in a conversation as read. Uses the newest
+	message's own timestamp, so collaborators' clocks don't matter.
+]=]
 function Conversations.markRead(id: string)
 	local folder = Conversations.getFolder(id, false)
 	local newest = folder and newestMessage(folder)
@@ -192,9 +193,9 @@ function Conversations.markRead(id: string)
 	fireChanged()
 end
 
---!
--- Timestamp of the oldest message from others I haven't read (nil if none).
---!
+--[=[
+	Timestamp of the oldest message from others I haven't read (nil if none).
+]=]
 function Conversations.firstUnread(id: string): number?
 	local folder = Conversations.getFolder(id, false)
 	if not folder then
@@ -217,9 +218,9 @@ function Conversations.firstUnread(id: string): number?
 	return first
 end
 
---!
--- Messages from others newer than what I've read.
---!
+--[=[
+	Messages from others newer than what I've read.
+]=]
 function Conversations.unreadCount(id: string): number
 	local folder = Conversations.getFolder(id, false)
 	if not folder then
@@ -258,11 +259,11 @@ local function previewOf(message: Instance): string
 	return text
 end
 
---!
--- The pinned team chat entry followed by a DM entry for every collaborator
--- I know of (online now, in an existing DM, or seen in the team chat),
--- most recent conversation first.
---!
+--[=[
+	The pinned team chat entry followed by a DM entry for every collaborator
+	I know of (online now, in an existing DM, or seen in the team chat),
+	most recent conversation first.
+]=]
 function Conversations.list(): { table }
 	local entries = {}
 	local onlineCount = 0
@@ -348,10 +349,10 @@ local function saveClosed()
 	Settings.setJson(CLOSED_KEY, closed)
 end
 
---!
--- Opens a DM with someone new: it shows in the list right away, and its
--- folder is made when the first message is sent.
---!
+--[=[
+	Opens a DM with someone new: it shows in the list right away, and its
+	folder is made when the first message is sent.
+]=]
 function Conversations.startDm(userId: number, name: string?): string?
 	if myId() <= 0 or userId <= 0 or userId == myId() then
 		return nil
@@ -367,10 +368,10 @@ function Conversations.startDm(userId: number, name: string?): string?
 	return id
 end
 
---!
--- Removes a DM from my list until a newer message arrives or I start it
--- again. Nothing is deleted.
---!
+--[=[
+	Removes a DM from my list until a newer message arrives or I start it
+	again. Nothing is deleted.
+]=]
 function Conversations.closeDm(id: string)
 	local other = Conversations.otherUserId(id)
 	if not other then
@@ -384,10 +385,10 @@ function Conversations.closeDm(id: string)
 	fireChanged()
 end
 
---!
--- Calls back with my Roblox friends ({ userId, username, displayName },
--- sorted by display name). Loaded once, up to MAX_FRIENDS.
---!
+--[=[
+	Calls back with my Roblox friends ({ userId, username, displayName },
+	sorted by display name). Loaded once, up to MAX_FRIENDS.
+]=]
 function Conversations.getFriends(callback: ({ table }) -> ())
 	if friends then
 		task.spawn(callback, friends)
@@ -430,9 +431,9 @@ function Conversations.getFriends(callback: ({ table }) -> ())
 	end)
 end
 
---!
--- Looks up a username; calls back with (userId, exact username) or nil.
---!
+--[=[
+	Looks up a username; calls back with (userId, exact username) or nil.
+]=]
 function Conversations.resolveUser(username: string, callback: (number?, string?) -> ())
 	task.spawn(function()
 		local ok, userId = pcall(function()
@@ -448,9 +449,9 @@ function Conversations.resolveUser(username: string, callback: (number?, string?
 	end)
 end
 
---!
--- Header/empty-state text for a conversation.
---!
+--[=[
+	Header/empty-state text for a conversation.
+]=]
 function Conversations.describe(id: string): table
 	if id == Conversations.MAIN then
 		return { id = id, kind = "place", name = placeName }
@@ -465,25 +466,25 @@ function Conversations.describe(id: string): table
 	}
 end
 
---!
--- Called (batched, once per frame) whenever the list or unread counts may
--- have changed: new or deleted messages, new DMs, people joining or leaving.
---!
+--[=[
+	Called (batched, once per frame) whenever the list or unread counts may
+	have changed: new or deleted messages, new DMs, people joining or leaving.
+]=]
 function Conversations.onChanged(callback: () -> ())
 	table.insert(changedCallbacks, callback)
 end
 
---!
--- Called when one of my DM folders appears (its first message was sent).
---!
+--[=[
+	Called when one of my DM folders appears (its first message was sent).
+]=]
 function Conversations.onFolderAdded(callback: (string, Folder) -> ())
 	table.insert(folderAddedCallbacks, callback)
 end
 
---!
--- Called with (conversation id, message) for every message added to any
--- conversation (team chat or DM) while the plugin runs.
---!
+--[=[
+	Called with (conversation id, message) for every message added to any
+	conversation (team chat or DM) while the plugin runs.
+]=]
 function Conversations.onMessage(callback: (string, Instance) -> ())
 	table.insert(messageCallbacks, callback)
 end
@@ -504,10 +505,10 @@ local function watchFolder(folder: Instance, id: string)
 	Lifetime.connect(folder.ChildRemoved, fireChanged)
 end
 
---!
--- Loads read state, routes new messages to the open conversation, and
--- watches the place for anything that changes the list.
---!
+--[=[
+	Loads read state, routes new messages to the open conversation, and
+	watches the place for anything that changes the list.
+]=]
 function Conversations.init()
 	local savedRead = Settings.getJson(READ_KEY, {})
 	lastRead = if type(savedRead) == "table" then savedRead else {}

@@ -1,18 +1,19 @@
---!
--- ModerationManager
--- Manages mutes, bans, kicks, blacklists, and whitelists for the
--- Team Chat plugin. Operates on the shared AdminState module.
---!
+--[[
+	Moderation
+
+	Manages mutes, bans, kicks, blacklists, and whitelists for the
+	Team Chat plugin. Operates on the shared AdminState module.
+]]
 
 local AdminState = require(script.Parent.AdminState)
 local ChatState = require(script.Parent.Parent.Chat.ChatState)
 
 local ModerationManager = {}
 
---!
--- Checks if a user can send messages (not muted, banned, blacklisted,
--- or if whitelist is off / user is whitelisted).
---!
+--[=[
+	Checks if a user can send messages (not muted, banned, blacklisted,
+	or if whitelist is off / user is whitelisted).
+]=]
 function ModerationManager.canUserSend(userId: number): boolean
 	if ModerationManager.isMuted(userId) then
 		return false
@@ -29,8 +30,7 @@ function ModerationManager.canUserSend(userId: number): boolean
 	return true
 end
 
--- ── Mute / Unmute ──
-
+-- Mute / Unmute
 function ModerationManager.mute(userId: number, username: string?, reason: string?, expiry: number?)
 	AdminState.mutedUsers[userId] = {
 		userId = userId,
@@ -68,8 +68,7 @@ function ModerationManager.getMutedUsers(): { table }
 	return list
 end
 
--- ── Ban / Unban ──
-
+-- Ban / Unban
 function ModerationManager.ban(userId: number, username: string?, reason: string?)
 	AdminState.bannedUsers[userId] = {
 		userId = userId,
@@ -96,8 +95,7 @@ function ModerationManager.getBannedUsers(): { table }
 	return list
 end
 
--- ── Kick (temporary ban until rejoin) ──
-
+-- Kick (temporary ban until rejoin)
 function ModerationManager.kick(userId: number, username: string?, reason: string?)
 	AdminState.bannedUsers[userId] = {
 		userId = userId,
@@ -107,8 +105,7 @@ function ModerationManager.kick(userId: number, username: string?, reason: strin
 	AdminState.save()
 end
 
--- ── Blacklist / Unblacklist ──
-
+-- Blacklist / Unblacklist
 function ModerationManager.blacklist(userId: number, username: string?, reason: string?)
 	AdminState.blacklistedUsers[userId] = {
 		userId = userId,
@@ -135,8 +132,7 @@ function ModerationManager.getBlacklistedUsers(): { table }
 	return list
 end
 
--- ── Warnings ──
-
+-- Warnings
 function ModerationManager.warn(userId: number, moderatorId: number, reason: string, moderatorName: string?)
 	if not AdminState.warnedUsers[userId] then
 		AdminState.warnedUsers[userId] = {}
@@ -156,8 +152,7 @@ function ModerationManager.getWarnings(userId: number): { table }
 	return AdminState.warnedUsers[userId] or {}
 end
 
--- ── Slowmode ──
-
+-- Slowmode
 function ModerationManager.setSlowmode(seconds: number)
 	AdminState.slowmodeSeconds = seconds
 	AdminState.save()
@@ -167,8 +162,7 @@ function ModerationManager.getSlowmode(): number
 	return AdminState.slowmodeSeconds or 0
 end
 
--- ── Purge (delete recent messages) ──
-
+-- Purge (delete recent messages)
 function ModerationManager.purge(amount: number, userId: number?): number
 	local folder = ChatState.getFolder()
 	local messages = {}
@@ -196,8 +190,7 @@ function ModerationManager.purge(amount: number, userId: number?): number
 	return removed
 end
 
--- ── Whitelist / Unwhitelist / Toggle / List ──
-
+-- Whitelist / Unwhitelist / Toggle / List
 function ModerationManager.whitelist(userId: number, username: string?)
 	AdminState.whitelistedUsers[userId] = {
 		userId = userId,

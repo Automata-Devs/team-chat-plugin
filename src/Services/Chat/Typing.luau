@@ -1,13 +1,14 @@
---!
--- TypingIndicator
--- Syncs "user is typing" presence across Team Create collaborators.
--- Each collaborator maintains a single entry in a shared TeamChatTyping
--- folder (a sibling of the chat messages folder). Entries carry a
--- LastActivity timestamp that is refreshed while the user types and
--- expire after a short timeout, so stale entries never linger.
--- Each entry also names the conversation it's for (Conversation: "main" or a
--- DM's id), so a DM's typing only shows in that DM.
---!
+--[[
+	Typing
+
+	Syncs "user is typing" presence across Team Create collaborators.
+	Each collaborator maintains a single entry in a shared TeamChatTyping
+	folder (a sibling of the chat messages folder). Entries carry a
+	LastActivity timestamp that is refreshed while the user types and
+	expire after a short timeout, so stale entries never linger.
+	Each entry also names the conversation it's for (Conversation: "main" or a
+	DM's id), so a DM's typing only shows in that DM.
+]]
 
 local ChatState = require(script.Parent.ChatState)
 local Conversations = require(script.Parent.Conversations)
@@ -28,9 +29,7 @@ local lastPublish = 0
 local changedCallback: (({ string }) -> ())? = nil
 local lastNotifiedKey = ""
 
---!
 -- Finds or creates the shared typing-status folder.
---!
 local function getTypingFolder(): Folder
 	if typingFolder and typingFolder.Parent then
 		return typingFolder
@@ -47,9 +46,7 @@ local function getTypingFolder(): Folder
 	return folder
 end
 
---!
 -- Publishes or refreshes this user's typing entry.
---!
 local function publish()
 	local folder = getTypingFolder()
 	local entryName = "typing_" .. tostring(ChatState.currentUserId)
@@ -66,9 +63,7 @@ local function publish()
 	lastPublish = os.clock()
 end
 
---!
 -- Removes this user's typing entry.
---!
 local function removeOwnEntry()
 	if not typingFolder then
 		return
@@ -79,10 +74,10 @@ local function removeOwnEntry()
 	end
 end
 
---!
--- Returns the usernames of collaborators currently typing (excluding self)
--- in a conversation (default: the open one).
---!
+--[=[
+	Returns the usernames of collaborators currently typing (excluding self)
+	in a conversation (default: the open one).
+]=]
 function TypingIndicator.getTypingUsers(conversation: string?): { string }
 	conversation = conversation or Conversations.getActiveId()
 	local folder = getTypingFolder()
@@ -107,9 +102,7 @@ function TypingIndicator.getTypingUsers(conversation: string?): { string }
 	return users
 end
 
---!
 -- Notifies the subscriber when the set of visible typers changes.
---!
 local function notifyIfChanged()
 	if not changedCallback then
 		return
@@ -122,10 +115,10 @@ local function notifyIfChanged()
 	end
 end
 
---!
--- Updates whether the local user is typing, and in which conversation
--- (default: the team chat).
---!
+--[=[
+	Updates whether the local user is typing, and in which conversation
+	(default: the team chat).
+]=]
 function TypingIndicator.setTyping(active: boolean, conversation: string?)
 	active = active == true
 	conversation = conversation or Conversations.MAIN
@@ -142,21 +135,21 @@ function TypingIndicator.setTyping(active: boolean, conversation: string?)
 	notifyIfChanged()
 end
 
---!
--- Registers a callback fired with the list of currently typing usernames
--- whenever that list changes (including expiry of stale entries).
---!
+--[=[
+	Registers a callback fired with the list of currently typing usernames
+	whenever that list changes (including expiry of stale entries).
+]=]
 function TypingIndicator.onTypingChanged(callback: ({ string }) -> ())
 	changedCallback = callback
 end
 
---!
--- Simulates a remote user typing for the given duration (testing aid for
--- the /typing command). Creates a fake entry under a negative UserId so it
--- is never confused with a real collaborator, refreshes it while active,
--- and removes it when the duration elapses. It types in the open
--- conversation unless `conversation` says otherwise.
---!
+--[=[
+	Simulates a remote user typing for the given duration (testing aid for
+	the /typing command). Creates a fake entry under a negative UserId so it
+	is never confused with a real collaborator, refreshes it while active,
+	and removes it when the duration elapses. It types in the open
+	conversation unless `conversation` says otherwise.
+]=]
 function TypingIndicator.simulateTyping(username: string, duration: number, conversation: string?)
 	duration = math.clamp(duration or 5, 1, 60)
 	conversation = conversation or Conversations.getActiveId()
@@ -185,10 +178,10 @@ function TypingIndicator.simulateTyping(username: string, duration: number, conv
 	end)
 end
 
---!
--- Initializes the typing indicator: prepares the shared folder and starts
--- the background refresh / cleanup / expiry loop.
---!
+--[=[
+	Initializes the typing indicator: prepares the shared folder and starts
+	the background refresh / cleanup / expiry loop.
+]=]
 function TypingIndicator.init()
 	local folder = getTypingFolder()
 

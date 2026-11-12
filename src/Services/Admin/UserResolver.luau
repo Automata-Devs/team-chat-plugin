@@ -1,17 +1,18 @@
---!
--- UserResolver
--- Resolves usernames to userIds and vice versa via Roblox API.
---!
+--[[
+	UserResolver
+
+	Resolves usernames to userIds and vice versa via Roblox API.
+]]
 
 local Players = game:GetService("Players")
 
 local UserResolver = {}
 
---!
--- Resolves a username string or numeric ID to a userId.
--- @param input A numeric string or username
--- @return number? The resolved userId, or nil if not found
---!
+--[=[
+	Resolves a username string or numeric ID to a userId.
+	input: A numeric string or username
+	Returns number? The resolved userId, or nil if not found
+]=]
 function UserResolver.resolveUserId(input: string): number?
 	-- If it's all digits, treat as userId
 	local numId = tonumber(input)

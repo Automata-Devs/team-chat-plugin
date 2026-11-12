@@ -1,9 +1,10 @@
---!
--- NewMessageDialog
--- The "New message" modal: search your Roblox friends or type any username
--- to start a direct message. People see DMs when they open this place with
--- Team Chat, since messages are shared through the place.
---!
+--[[
+	NewMessage
+
+	The "New message" modal: search your Roblox friends or type any username
+	to start a direct message. People see DMs when they open this place with
+	Team Chat, since messages are shared through the place.
+]]
 
 local Theme = require(script.Parent.Parent.Parent.Config.Theme)
 local BadgeIcons = require(script.Parent.Parent.Components.BadgeIcons)
@@ -20,17 +21,17 @@ local function trim(text: string): string
 	return (string.gsub(text, "^%s*@?(.-)%s*$", "%1"))
 end
 
---!
--- kit: a ModalKit. opts: {
---   getThemeColors: () -> palette,
---   getHandlers: () -> { getFriends, resolveUser, onPick }?,
---     getFriends(callback({ {userId, username, displayName} }))
---     resolveUser(username, callback(userId?, exactName?))
---     onPick(userId, username)
---     isVerified(userId) -> boolean   -- optional: shows the verified badge
--- }
--- Returns { open, close, isVisible, recolor }
---!
+--[=[
+	kit: a ModalKit. opts: {
+	  getThemeColors: () -> palette,
+	  getHandlers: () -> { getFriends, resolveUser, onPick }?,
+	    getFriends(callback({ {userId, username, displayName} }))
+	    resolveUser(username, callback(userId?, exactName?))
+	    onPick(userId, username)
+	    isVerified(userId) -> boolean   -- optional: shows the verified badge
+	}
+	Returns { open, close, isVisible, recolor }
+]=]
 function NewMessageDialog.create(kit, opts)
 	local modal =
 		kit.createModal({ name = "NewMessageDialog", title = "New message", iconKey = "newMessage", zIndex = 20 })

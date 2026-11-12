@@ -1,9 +1,10 @@
---!
--- ChangelogView
--- Renders one Config.Changelog update (version, date, optional title and its
--- changes with a colored type badge) into a container frame, and finds a
--- version among the main versions' updates. Used by the "What's New" page.
---!
+--[[
+	UpdateView
+
+	Renders one Config.Changelog update (version, date, optional title and its
+	changes with a colored type badge) into a container frame, and finds a
+	version among the main versions' updates. Used by the "What's New" page.
+]]
 
 local Language = require(script.Parent.Parent.Parent.Parent.Core.Language)
 local Theme = require(script.Parent.Parent.Parent.Parent.Config.Theme)
@@ -29,10 +30,10 @@ for i, info in ipairs(ChangelogView.TYPES) do
 	TYPE_INFO[info.key] = info
 end
 
---!
--- Finds a version in the changelog (main versions holding their `updates`):
--- returns the main version's index and the update's index, or nil.
---!
+--[=[
+	Finds a version in the changelog (main versions holding their `updates`):
+	returns the main version's index and the update's index, or nil.
+]=]
 function ChangelogView.find(changelog: { any }, version: string?): (number?, number?)
 	for mainIndex, main in ipairs(changelog) do
 		for subIndex, update in ipairs(main.updates or {}) do
@@ -55,10 +56,10 @@ local function textLabel(props): TextLabel
 	return label
 end
 
---!
--- Clears container (keeping its layout) and draws entry into it.
--- container should have a vertical UIListLayout and AutomaticSize Y.
---!
+--[=[
+	Clears container (keeping its layout) and draws entry into it.
+	container should have a vertical UIListLayout and AutomaticSize Y.
+]=]
 function ChangelogView.render(container: GuiObject, entry: any, themeColors: any, zIndex: number)
 	for _, child in ipairs(container:GetChildren()) do
 		if child:IsA("GuiObject") then

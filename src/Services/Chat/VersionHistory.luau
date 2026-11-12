@@ -1,10 +1,11 @@
---!
--- VersionHistory
--- Versioned snapshots of the chat history for easy backup, restore, and
--- revert. Snapshots are stored in plugin settings: a JSON index per place
--- (SETTING_KEY_VERSIONS + PlaceId) plus one content key per version. The
--- newest versions are kept first and the list is capped at MAX_VERSIONS.
---!
+--[[
+	VersionHistory
+
+	Versioned snapshots of the chat history for easy backup, restore, and
+	revert. Snapshots are stored in plugin settings: a JSON index per place
+	(SETTING_KEY_VERSIONS + PlaceId) plus one content key per version. The
+	newest versions are kept first and the list is capped at MAX_VERSIONS.
+]]
 
 local HttpService = game:GetService("HttpService")
 
@@ -21,26 +22,22 @@ end
 local CONTENT_KEY_PREFIX = PluginConfig.SETTING_KEY_VERSION_CONTENT_PREFIX
 local MAX_VERSIONS = 20
 
---!
 -- Loads the version index (array of version metadata, newest first).
---!
 local function loadIndex(): { table }
 	local versions = Settings.getJson(indexKey(), {})
 	return if type(versions) == "table" then versions else {}
 end
 
---!
 -- Persists the version index.
---!
 local function saveIndex(versions)
 	Settings.setJson(indexKey(), versions)
 end
 
---!
--- Creates a new version snapshot of the current chat history.
--- @param label Optional display label for the version.
--- @return The created version table { id, label, timestamp, author, messageCount }, or nil on failure.
---!
+--[=[
+	Creates a new version snapshot of the current chat history.
+	label: Optional display label for the version.
+	Returns The created version table { id, label, timestamp, author, messageCount }, or nil on failure.
+]=]
 function VersionHistory.create(label: string?): table?
 	local json = ChatState.serializeMessages()
 	if not json then
@@ -78,16 +75,16 @@ function VersionHistory.create(label: string?): table?
 	return version
 end
 
---!
--- Returns all saved versions, newest first.
---!
+--[=[
+	Returns all saved versions, newest first.
+]=]
 function VersionHistory.list(): { table }
 	return loadIndex()
 end
 
---!
--- Finds a single version by id.
---!
+--[=[
+	Finds a single version by id.
+]=]
 function VersionHistory.get(id: string): table?
 	for _, version in ipairs(loadIndex()) do
 		if version.id == id then
@@ -97,11 +94,11 @@ function VersionHistory.get(id: string): table?
 	return nil
 end
 
---!
--- Restores the chat history from a saved version.
--- Replaces the current DataModel folder contents and persists the change.
--- @return true on success
---!
+--[=[
+	Restores the chat history from a saved version.
+	Replaces the current DataModel folder contents and persists the change.
+	Returns true on success
+]=]
 function VersionHistory.restore(id: string): boolean
 	local version = VersionHistory.get(id)
 	if not version then
@@ -116,10 +113,10 @@ function VersionHistory.restore(id: string): boolean
 	return ChatState.applyHistory(json)
 end
 
---!
--- Deletes a saved version snapshot.
--- @return true if a version was found and removed
---!
+--[=[
+	Deletes a saved version snapshot.
+	Returns true if a version was found and removed
+]=]
 function VersionHistory.delete(id: string): boolean
 	local versions = loadIndex()
 	for i, version in ipairs(versions) do

@@ -1,10 +1,11 @@
---!
--- CreatePollDialog
--- The "Create a Poll" modal: a question and 2 to MAX_POLL_OPTIONS answers.
--- The first MIN_POLL_OPTIONS answers are required (no remove button); extra
--- ones can be removed. Create sends the trimmed question and non-empty
--- answers to opts.onSubmit.
---!
+--[[
+	CreatePoll
+
+	The "Create a Poll" modal: a question and 2 to MAX_POLL_OPTIONS answers.
+	The first MIN_POLL_OPTIONS answers are required (no remove button); extra
+	ones can be removed. Create sends the trimmed question and non-empty
+	answers to opts.onSubmit.
+]]
 
 local Foundation = require(script.Parent.Parent.Common.Foundation)
 local Language = require(script.Parent.Parent.Parent.Core.Language)
@@ -21,13 +22,13 @@ local function trim(text: string): string
 	return (string.gsub(text, "^%s*(.-)%s*$", "%1"))
 end
 
---!
--- kit: a ModalKit. opts: {
---   getThemeColors: () -> palette,
---   onSubmit: (question: string, options: {string}) -> (),
--- }
--- Returns { open, close, isVisible, recolor }
---!
+--[=[
+	kit: a ModalKit. opts: {
+	  getThemeColors: () -> palette,
+	  onSubmit: (question: string, options: {string}) -> (),
+	}
+	Returns { open, close, isVisible, recolor }
+]=]
 function CreatePollDialog.create(kit, opts)
 	local modal = kit.createModal({ name = "PollDialog", title = "Create a Poll", iconKey = "createPoll", zIndex = 20 })
 	Language.bind(modal.title, "Text", "poll.title")
@@ -227,9 +228,9 @@ function CreatePollDialog.create(kit, opts)
 
 	local self = {}
 
-	--!
-	-- Opens the dialog with an empty question and the required answers.
-	--!
+	--[=[
+		Opens the dialog with an empty question and the required answers.
+	]=]
 	function self.open()
 		questionBox.Text = ""
 		for _, box in ipairs(optionBoxes) do
@@ -251,10 +252,10 @@ function CreatePollDialog.create(kit, opts)
 		return modal.isVisible()
 	end
 
-	--!
-	-- Re-applies the current palette to the dialog's content (the shell is
-	-- recolored by the ModalKit).
-	--!
+	--[=[
+		Re-applies the current palette to the dialog's content (the shell is
+		recolored by the ModalKit).
+	]=]
 	function self.recolor()
 		local palette = opts.getThemeColors()
 		questionHeading.TextColor3 = palette.messageText

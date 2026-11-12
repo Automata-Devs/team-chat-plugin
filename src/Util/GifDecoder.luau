@@ -1,17 +1,18 @@
---!
--- GifDecoder
--- Decodes GIF files (GIF87a/GIF89a) in Luau. Roblox images can't be
--- animated, so the frames are decoded here and packed into a sprite sheet
--- (see GifPlayer).
---
--- GifDecoder.decode(data, maxFrames, onFrame)
---   data: the file's bytes
---   maxFrames: frames to keep; longer GIFs keep evenly spaced frames and
---     add the skipped frames' delays to the kept ones
---   onFrame(canvas, delayMs): called for each kept frame with the full
---     composited RGBA canvas (a buffer, reused between calls)
--- Returns width, height and the number of kept frames.
---!
+--[[
+	GifDecoder
+
+	Decodes GIF files (GIF87a/GIF89a) in Luau. Roblox images can't be
+	animated, so the frames are decoded here and packed into a sprite sheet
+	(see GifPlayer).
+
+	GifDecoder.decode(data, maxFrames, onFrame)
+	  data: the file's bytes
+	  maxFrames: frames to keep; longer GIFs keep evenly spaced frames and
+	    add the skipped frames' delays to the kept ones
+	  onFrame(canvas, delayMs): called for each kept frame with the full
+	    composited RGBA canvas (a buffer, reused between calls)
+	Returns width, height and the number of kept frames.
+]]
 
 local GifDecoder = {}
 

@@ -1,16 +1,17 @@
 --!nonstrict
---!
--- CardFrame
--- Builds the shared shell every embed uses, so providers only have to fill
--- in content.
---
--- Structure (only Body has a layout, so nothing else is pushed around):
---   EmbedHolder (Frame, auto height, outer spacing)
---     Card (TextButton, auto height, rounded + stroke, clickable)
---       AccentBar (Frame, inset on the left, absolutely positioned)
---       Body (Frame, auto height, padding + vertical list layout)
---         <provider content goes here>
---!
+--[[
+	CardFrame
+
+	Builds the shared shell every embed uses, so providers only have to fill
+	in content.
+
+	Structure (only Body has a layout, so nothing else is pushed around):
+	  EmbedHolder (Frame, auto height, outer spacing)
+	    Card (TextButton, auto height, rounded + stroke, clickable)
+	      AccentBar (Frame, inset on the left, absolutely positioned)
+	      Body (Frame, auto height, padding + vertical list layout)
+	        <provider content goes here>
+]]
 
 local Style = require(script.Parent.EmbedStyle)
 
@@ -19,10 +20,10 @@ local CardFrame = {}
 -- Current palette per card, so the hover highlight follows theme changes
 local themeByCard = setmetatable({}, { __mode = "k" })
 
---!
--- Creates the embed shell.
--- @return holder (root), card (clickable button), body (content parent)
---!
+--[=[
+	Creates the embed shell.
+	Returns holder (root), card (clickable button), body (content parent)
+]=]
 function CardFrame.create(theme, accentColor)
 	local holder = Instance.new("Frame")
 	holder.Name = "EmbedHolder"
@@ -105,13 +106,13 @@ function CardFrame.create(theme, accentColor)
 	return holder, card, body
 end
 
---!
--- Creates a text row for a card body. Rows wrap and grow in height instead
--- of overflowing, so long URLs or paths can never break the card.
--- @param options { Name, Text, Font, TextSize, TextColor3, LayoutOrder, Truncate, RichText }
--- Font may be an Enum.Font or a Font (e.g. Theme.FONTS.mono).
--- RichText is off unless options.RichText == true (needed for inline icons).
---!
+--[=[
+	Creates a text row for a card body. Rows wrap and grow in height instead
+	of overflowing, so long URLs or paths can never break the card.
+	options: { Name, Text, Font, TextSize, TextColor3, LayoutOrder, Truncate, RichText }
+	Font may be an Enum.Font or a Font (e.g. Theme.FONTS.mono).
+	RichText is off unless options.RichText == true (needed for inline icons).
+]=]
 function CardFrame.createTextRow(parent, options)
 	local label = Instance.new("TextLabel")
 	label.Name = options.Name
@@ -144,10 +145,10 @@ function CardFrame.createTextRow(parent, options)
 	return label
 end
 
---!
--- Re-applies theme colors to the shell. Provider-specific colors are handled
--- by the provider's own recolor function.
---!
+--[=[
+	Re-applies theme colors to the shell. Provider-specific colors are handled
+	by the provider's own recolor function.
+]=]
 function CardFrame.recolor(holder, theme)
 	local card = holder:FindFirstChild("Card")
 	if not card then

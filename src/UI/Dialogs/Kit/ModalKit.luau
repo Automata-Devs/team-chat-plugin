@@ -1,12 +1,13 @@
---!
--- ModalKit
--- Shared shell for ChatUI's modal dialogs (Create a Poll, Settings, What's
--- New): a dimmed overlay that closes when you click outside the card, a card
--- that grows with its content between a minimum and maximum height (then
--- scrolls) and is kept between a minimum and maximum width, and a title with
--- an accent icon and a close button. Dialog modules fill the card. Sizes
--- shrink below their minimums only when the panel itself is smaller.
---!
+--[[
+	ModalKit
+
+	Shared shell for ChatUI's modal dialogs (Create a Poll, Settings, What's
+	New): a dimmed overlay that closes when you click outside the card, a card
+	that grows with its content between a minimum and maximum height (then
+	scrolls) and is kept between a minimum and maximum width, and a title with
+	an accent icon and a close button. Dialog modules fill the card. Sizes
+	shrink below their minimums only when the panel itself is smaller.
+]]
 
 local Animation = require(script.Parent.Parent.Parent.Common.Animation)
 local Language = require(script.Parent.Parent.Parent.Parent.Core.Language)
@@ -26,15 +27,15 @@ local OVERLAY_TRANSPARENCY = 0.4 -- the dimmed backdrop, fully faded in
 
 local ModalKit = {}
 
---!
--- params: {
---   container: Frame,              -- full-panel layer the modals live in
---   getThemeColors: () -> palette, -- the current palette
---   isInside: (gui, point) -> boolean,
---   mousePosition: () -> Vector2,  -- in the same space as AbsolutePosition
--- }
--- Returns a kit with createModal(options) and recolor().
---!
+--[=[
+	params: {
+	  container: Frame,              -- full-panel layer the modals live in
+	  getThemeColors: () -> palette, -- the current palette
+	  isInside: (gui, point) -> boolean,
+	  mousePosition: () -> Vector2,  -- in the same space as AbsolutePosition
+	}
+	Returns a kit with createModal(options) and recolor().
+]=]
 function ModalKit.new(params)
 	local container = params.container
 	local modals = {}
@@ -81,14 +82,14 @@ function ModalKit.new(params)
 		return refit
 	end
 
-	--!
-	-- options: { name, title, iconKey, zIndex, minHeight? }
-	-- The overlay and click catcher use zIndex, the card zIndex + 1, the
-	-- title zIndex + 2 and its close button zIndex + 3. Dialog content should
-	-- use modal.contentZIndex (zIndex + 2), buttons on top of it one more.
-	-- Returns { overlay, card, title, closeButton, contentZIndex,
-	--           open(), close(), isVisible(), onClose: (() -> ())? }
-	--!
+	--[=[
+		options: { name, title, iconKey, zIndex, minHeight? }
+		The overlay and click catcher use zIndex, the card zIndex + 1, the
+		title zIndex + 2 and its close button zIndex + 3. Dialog content should
+		use modal.contentZIndex (zIndex + 2), buttons on top of it one more.
+		Returns { overlay, card, title, closeButton, contentZIndex,
+		          open(), close(), isVisible(), onClose: (() -> ())? }
+	]=]
 	function kit.createModal(options)
 		local colors = params.getThemeColors()
 		local z = options.zIndex
@@ -292,9 +293,9 @@ function ModalKit.new(params)
 		return modal
 	end
 
-	--!
-	-- Re-applies the current palette to every modal's shell.
-	--!
+	--[=[
+		Re-applies the current palette to every modal's shell.
+	]=]
 	function kit.recolor()
 		for _, modal in ipairs(modals) do
 			modal.recolor()
@@ -311,11 +312,11 @@ local TEXT_ROLES = {
 	muted = { font = FONTS.body, size = 12, color = "timestamp" },
 }
 
---!
--- Adds a wrapping text label to a dialog card. role: "heading" (a bold
--- title), "body" or "muted". Text is rich text. recolorText re-applies
--- the palette to every label made here.
---!
+--[=[
+	Adds a wrapping text label to a dialog card. role: "heading" (a bold
+	title), "body" or "muted". Text is rich text. recolorText re-applies
+	the palette to every label made here.
+]=]
 function ModalKit.addText(parent: Instance, role: string, text: string, order: number, zIndex: number, colors)
 	local style = TEXT_ROLES[role]
 	local label = Instance.new("TextLabel")
@@ -340,10 +341,10 @@ function ModalKit.addText(parent: Instance, role: string, text: string, order: n
 	return label
 end
 
---!
--- Like addText, but the text is a Core/Language key and follows language
--- changes (headings stay in capitals).
---!
+--[=[
+	Like addText, but the text is a Core/Language key and follows language
+	changes (headings stay in capitals).
+]=]
 function ModalKit.addTextKey(
 	parent: Instance,
 	role: string,
@@ -358,9 +359,9 @@ function ModalKit.addTextKey(
 	return label
 end
 
---!
--- Re-applies the palette to the labels made by addText under root.
---!
+--[=[
+	Re-applies the palette to the labels made by addText under root.
+]=]
 function ModalKit.recolorText(root: Instance, colors)
 	for _, label in ipairs(root:GetDescendants()) do
 		local role = label:GetAttribute("TextRole")

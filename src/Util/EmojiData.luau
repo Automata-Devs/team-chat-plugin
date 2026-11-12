@@ -1,10 +1,11 @@
---!
--- EmojiData
--- Emoji shortcode database (Discord/Slack style, e.g. :sob: -> 😭).
--- The list order is the default popularity order, used when nothing has been
--- used yet. Provides lookup, search (for the autocomplete menu) and
--- replaceShortcodes (for converting :name: inside a string).
---!
+--[[
+	EmojiData
+
+	Emoji shortcode database (Discord/Slack style, e.g. :sob: -> 😭).
+	The list order is the default popularity order, used when nothing has been
+	used yet. Provides lookup, search (for the autocomplete menu) and
+	replaceShortcodes (for converting :name: inside a string).
+]]
 
 local EmojiData = {}
 
@@ -305,32 +306,32 @@ for index, raw in ipairs(RAW) do
 	end
 end
 
---!
--- Returns true if a shortcode starting at the end of `prefix` is allowed there.
--- A shortcode must not directly follow a letter or digit, so things like
--- "12:30:45" or "Note:sob:" are left alone.
---!
+--[=[
+	Returns true if a shortcode starting at the end of `prefix` is allowed there.
+	A shortcode must not directly follow a letter or digit, so things like
+	"12:30:45" or "Note:sob:" are left alone.
+]=]
 function EmojiData.isValidBoundary(prefix: string): boolean
 	return prefix == "" or not prefix:find("%w$")
 end
 
---!
--- Looks up an emoji by shortcode name or alias (case-insensitive).
--- @return Entry? - nil if the name is unknown
---!
+--[=[
+	Looks up an emoji by shortcode name or alias (case-insensitive).
+	Returns Entry? - nil if the name is unknown
+]=]
 function EmojiData.get(name: string): Entry?
 	return byName[name:lower()]
 end
 
---!
--- Finds emojis for the autocomplete menu.
--- Matches on names and aliases: prefix matches rank before substring matches.
--- Within each group, entries are ordered by the supplied score (e.g. usage
--- count, higher first) and then by the default popularity order.
--- @param query string - text typed after the colon (may be empty)
--- @param getScore ((Entry) -> number)? - optional ranking score
--- @param limit number? - maximum results (default: all matches)
---!
+--[=[
+	Finds emojis for the autocomplete menu.
+	Matches on names and aliases: prefix matches rank before substring matches.
+	Within each group, entries are ordered by the supplied score (e.g. usage
+	count, higher first) and then by the default popularity order.
+	query: string - text typed after the colon (may be empty)
+	getScore: ((Entry) -> number)? - optional ranking score
+	limit: number? - maximum results (default: all matches)
+]=]
 function EmojiData.search(query: string, getScore: ((Entry) -> number)?, limit: number?): { Entry }
 	local q = query:lower()
 	local prefixMatches: { Entry } = {}
@@ -388,11 +389,11 @@ function EmojiData.search(query: string, getScore: ((Entry) -> number)?, limit: 
 	return results
 end
 
---!
--- Replaces every known :shortcode: in `text` with its emoji.
--- Unknown shortcodes and ones directly after a letter/digit are left untouched.
--- @param onReplace ((Entry) -> ())? - called once per replacement (usage tracking)
---!
+--[=[
+	Replaces every known :shortcode: in `text` with its emoji.
+	Unknown shortcodes and ones directly after a letter/digit are left untouched.
+	onReplace: ((Entry) -> ())? - called once per replacement (usage tracking)
+]=]
 function EmojiData.replaceShortcodes(text: string, onReplace: ((Entry) -> ())?): string
 	if not text:find(":", 1, true) then
 		return text

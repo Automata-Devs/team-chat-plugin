@@ -1,18 +1,19 @@
---!
--- Icons
--- Central registry for every icon in the plugin, using Roblox's official
--- Builder Icons font (the same icon set Studio and the Roblox client use).
---
--- Usage:
---   Icons.apply(button, "send")                  -- make a TextButton/TextLabel show an icon
---   Icons.apply(button, "send", true)            -- same, but the filled variant
---   label.RichText = true
---   label.Text = Icons.inline("attachFile") .. " " .. Icons.escape(fileName)
---   Icons.forFileType("Audio")                   -- icon key for a file type
---
--- To change an icon, edit its name in Icons.NAMES below; nothing else needs
--- to change. Icons are drawn as text, so their color is the label's TextColor3.
---!
+--[[
+	Icons
+
+	Central registry for every icon in the plugin, using Roblox's official
+	Builder Icons font (the same icon set Studio and the Roblox client use).
+
+	Usage:
+	  Icons.apply(button, "send")                  -- make a TextButton/TextLabel show an icon
+	  Icons.apply(button, "send", true)            -- same, but the filled variant
+	  label.RichText = true
+	  label.Text = Icons.inline("attachFile") .. " " .. Icons.escape(fileName)
+	  Icons.forFileType("Audio")                   -- icon key for a file type
+
+	To change an icon, edit its name in Icons.NAMES below; nothing else needs
+	to change. Icons are drawn as text, so their color is the label's TextColor3.
+]]
 
 local Icons = {}
 
@@ -108,9 +109,9 @@ local filledFont = Font.new(Icons.FONT_FAMILY, Enum.FontWeight.Bold)
 
 local warnedKeys = {}
 
---!
--- Returns the Builder Icons name for a key ("" and a one-time warning if unknown).
---!
+--[=[
+	Returns the Builder Icons name for a key ("" and a one-time warning if unknown).
+]=]
 function Icons.name(key: string): string
 	local name = Icons.NAMES[key]
 	if not name then
@@ -123,37 +124,37 @@ function Icons.name(key: string): string
 	return name
 end
 
---!
--- The Builder Icons font. Pass true for the filled variant.
---!
+--[=[
+	The Builder Icons font. Pass true for the filled variant.
+]=]
 function Icons.font(filled: boolean?): Font
 	return if filled then filledFont else regularFont
 end
 
---!
--- Turns a TextLabel/TextButton into an icon. The icon is drawn with the
--- object's TextColor3 and TextSize.
---!
+--[=[
+	Turns a TextLabel/TextButton into an icon. The icon is drawn with the
+	object's TextColor3 and TextSize.
+]=]
 function Icons.apply(object: TextLabel | TextButton, key: string, filled: boolean?)
 	object.RichText = false
 	object.FontFace = Icons.font(filled)
 	object.Text = Icons.name(key)
 end
 
---!
--- Returns a RichText snippet that draws the icon inline with other text.
--- The label using it must have RichText = true. Optional size is in pixels.
---!
+--[=[
+	Returns a RichText snippet that draws the icon inline with other text.
+	The label using it must have RichText = true. Optional size is in pixels.
+]=]
 function Icons.inline(key: string, filled: boolean?, size: number?): string
 	local weight = filled and ' weight="bold"' or ""
 	local sizeAttr = size and string.format(' size="%d"', size) or ""
 	return string.format('<font family="%s"%s%s>%s</font>', Icons.FONT_FAMILY, weight, sizeAttr, Icons.name(key))
 end
 
---!
--- Escapes user text (file names, URLs) so it is safe to place in a RichText
--- label next to an inline icon.
---!
+--[=[
+	Escapes user text (file names, URLs) so it is safe to place in a RichText
+	label next to an inline icon.
+]=]
 function Icons.escape(text: string): string
 	text = string.gsub(text, "&", "&amp;")
 	text = string.gsub(text, "<", "&lt;")
@@ -161,19 +162,17 @@ function Icons.escape(text: string): string
 	return text
 end
 
---!
--- Icon key for a plugin file type ("Audio", "Video", ...); unknown types get
--- the generic file icon.
---!
+--[=[
+	Icon key for a plugin file type ("Audio", "Video", ...); unknown types get
+	the generic file icon.
+]=]
 function Icons.forFileType(fileType: string?): string
 	return Icons.FILE_TYPE_KEYS[fileType or ""] or "fileDefault"
 end
 
---!
 -- Every Builder Icons name (781), from
 -- https://voxlenox.github.io/RobloxBuilderIconList/ (the font's ligatures).
 -- Use any of these in NAMES above.
---!
 Icons.ALL = {
 	"3d-cube-arrow-left",
 	"5-g-signal-fair",
