@@ -40,7 +40,7 @@ Badges.DEFINITIONS = {
 		description = "Team Chat Premium",
 		icon = "crown",
 		color = Color3.fromRGB(255, 196, 46),
-		gamePassId = 1451761014,
+		gamePassId = 2064101597,
 	},
 	supporter = {
 		name = "Supporter",

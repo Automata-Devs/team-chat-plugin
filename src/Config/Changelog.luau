@@ -47,6 +47,17 @@ return {
 		title = "Team Chat 1",
 		updates = {
 			{
+				version = "1.34.3",
+				date = "13/11/2026",
+				title = "Team Chat Premium",
+				changes = {
+					{
+						type = "changed",
+						text = "Team Chat Premium has a new game pass, with a new icon: the Team Chat logo wearing a gold crown.",
+					},
+				},
+			},
+			{
 				version = "1.34.2",
 				date = "13/11/2026",
 				title = "Easier sign-in",

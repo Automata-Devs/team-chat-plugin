@@ -3,6 +3,13 @@
 Developer-facing history of the codebase. User-facing notes ("What's New")
 are in `src/Config/Changelog.luau`. Format: [Keep a Changelog](https://keepachangelog.com).
 
+## [1.34.3] - 2026-11-13
+
+### Changed
+- Premium is the new game pass `2064101597` (Team Chat Premium, 40 Robux).
+- `assets/icons/Premium.png` (1024 px) and `Premium-512.png`: the game pass
+  icon, the logo with a gold crown, made to fit Roblox's round crop.
+
 ## [1.34.2] - 2026-11-13
 
 ### Changed
