@@ -1,0 +1,33 @@
+# Render Blueprint for the Team Chat backend (backend/, docs/backend/OPERATIONS.md).
+# On render.com: New > Blueprint, pick this repository, and set the
+# Blueprint Path to backend/render.yaml (the repo root's render.yaml is the
+# older team database in server/).
+services:
+  - type: web
+    name: teamchat-backend
+    runtime: node
+    plan: free # sleeps when idle; the plugin retries until it's awake
+    region: frankfurt # next to a Neon database in AWS eu-central-1
+    rootDir: backend
+    buildCommand: npm ci && npm run build
+    startCommand: npm start # runs the migrations, then serves
+    healthCheckPath: /health/ready
+    envVars:
+      # Neon: the direct (not -pooler) connection string, ending in ?sslmode=verify-full
+      - key: DATABASE_URL
+        sync: false
+      # Encrypts bot signing secrets: keep it, or bots need new secrets
+      - key: ENCRYPTION_KEY
+        generateValue: true
+      # Sign in with Roblox: an OAuth 2.0 app on create.roblox.com with the redirect URL
+      # https://<this service>.onrender.com/api/v1/auth/roblox/callback, scopes openid and profile
+      - key: ROBLOX_OAUTH_CLIENT_ID
+        sync: false
+      - key: ROBLOX_OAUTH_CLIENT_SECRET
+        sync: false
+      # Render's proxy sets X-Forwarded-For: rate limits and the audit log see real addresses
+      - key: TRUST_PROXY
+        value: "true"
+      # Neon's free tier allows a limited number of connections
+      - key: DATABASE_POOL_MAX
+        value: "10"

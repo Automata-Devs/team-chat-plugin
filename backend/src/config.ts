@@ -57,6 +57,8 @@ export type Config = z.infer<typeof schema>;
 export function loadConfig(env: Record<string, string | undefined> = process.env): Config {
 	// "S3_ENDPOINT=" in a .env file means "not set", not "an empty URL"
 	const given = Object.fromEntries(Object.entries(env).filter(([, value]) => value !== undefined && value.trim() !== ""));
+	// On Render the service's own address is known: the Roblox sign-in redirect needs it
+	if (!given.PUBLIC_URL && given.RENDER_EXTERNAL_URL) given.PUBLIC_URL = given.RENDER_EXTERNAL_URL;
 	const parsed = schema.safeParse(given);
 	if (!parsed.success) {
 		const problems = parsed.error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`);

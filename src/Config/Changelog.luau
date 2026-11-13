@@ -47,13 +47,17 @@ return {
 		title = "Team Chat 1",
 		updates = {
 			{
-				version = "1.32.0",
+				version = "1.32.1",
 				date = "13/11/2026",
 				title = "Team database",
 				changes = {
 					{
 						type = "added",
 						text = "Every place's chat is stored on your team's backend by itself, like a Discord server per place: its team chat, DMs and groups, with edits, deletes and reactions, plus what was written before. Nothing to set up: Team Chat asks you once per computer to sign in with Roblox, and finds or makes the place's workspace. /clear doesn't delete what's stored, and /backend restore brings the team chat back.",
+					},
+					{
+						type = "added",
+						text = "For hosts: the backend deploys to Render with backend/render.yaml, next to a free Neon database (see docs/backend/OPERATIONS.md).",
 					},
 					{
 						type = "added",

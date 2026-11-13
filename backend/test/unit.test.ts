@@ -157,5 +157,10 @@ describe("configuration", () => {
 		expect(config.PORT).toBe(8080);
 		expect(() => loadConfig({ ...base, S3_ENDPOINT: "not a url" })).toThrow(/S3_ENDPOINT/);
 		expect(() => loadConfig({ DATABASE_URL: "postgres://x" })).toThrow(/ENCRYPTION_KEY/);
+		// On Render: its own address unless PUBLIC_URL says otherwise
+		expect(loadConfig({ ...base, RENDER_EXTERNAL_URL: "https://teamchat.onrender.com" }).PUBLIC_URL).toBe("https://teamchat.onrender.com");
+		expect(loadConfig({ ...base, RENDER_EXTERNAL_URL: "https://x.onrender.com", PUBLIC_URL: "https://chat.example.com" }).PUBLIC_URL).toBe(
+			"https://chat.example.com",
+		);
 	});
 });

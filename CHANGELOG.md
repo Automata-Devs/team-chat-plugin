@@ -3,6 +3,24 @@
 Developer-facing history of the codebase. User-facing notes ("What's New")
 are in `src/Config/Changelog.luau`. Format: [Keep a Changelog](https://keepachangelog.com).
 
+## [1.32.1] - 2026-11-13
+
+### Added
+- `backend/render.yaml`: a Render Blueprint for the backend (free web service
+  in Frankfurt, `rootDir: backend`, `npm ci && npm run build`, `npm start`,
+  `/health/ready`), prompting for `DATABASE_URL` and the Roblox OAuth app and
+  generating `ENCRYPTION_KEY`. Set its Blueprint Path to `backend/render.yaml`.
+  Steps in `docs/backend/OPERATIONS.md`.
+- `loadConfig`: without `PUBLIC_URL`, Render's `RENDER_EXTERNAL_URL` is used.
+
+### Fixed
+- `backend/src/modules/bots/` was never committed: the repository's `bots/`
+  ignore rule matched it, so the backend on GitHub didn't build since 1.30.0.
+  Found by a clean build like Render's.
+
+### Changed
+- `backend/package.json` engines: `>=20 <25` (Render picks the newest match).
+
 ## [1.32.0] - 2026-11-13
 
 Every place is stored on the backend by itself, as its own workspace.

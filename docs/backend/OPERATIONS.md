@@ -2,6 +2,39 @@
 
 ## Deploy
 
+### Render with Neon (free to start)
+
+[`backend/render.yaml`](../../backend/render.yaml) is a Render Blueprint for
+the backend, next to a Neon database:
+
+1. **Neon:** in your project, copy the **direct** connection string (not the
+   one with `-pooler`) and change its ending to `?sslmode=verify-full`.
+2. **Render:** New > Blueprint, connect this GitHub repository, and set the
+   **Blueprint Path** to `backend/render.yaml`. (The `render.yaml` at the repo
+   root is the older team database in `server/`.)
+3. Render asks for the secrets:
+   - `DATABASE_URL`: the Neon string from step 1.
+   - `ROBLOX_OAUTH_CLIENT_ID` and `ROBLOX_OAUTH_CLIENT_SECRET`: leave them empty
+     for now.
+
+   `ENCRYPTION_KEY` is generated for you.
+4. When the first deploy is live, note its address, such as
+   `https://teamchat-backend.onrender.com`. `/health/ready` there should say
+   `"ok": true`. The database tables are made on start.
+5. **Roblox:** on create.roblox.com, under OAuth 2.0 Apps, create an app.
+   - Redirect URL: `https://<your address>/api/v1/auth/roblox/callback`.
+   - Scopes: `openid` and `profile`.
+
+   Put its client id and secret in the Render service's Environment, and save
+   (it redeploys).
+6. **Plugin:** set `DEFAULT_URL` in `src/Config/Backend.luau` to the address
+   and build it ([PLUGIN.md](PLUGIN.md)).
+
+`PUBLIC_URL` isn't needed on Render: the service's own address
+(`RENDER_EXTERNAL_URL`) is used. On the free plan the service sleeps after 15
+minutes without requests, and its first answer after that takes up to a
+minute; Team Chat keeps what's waiting until then.
+
 ### Docker Compose (one machine)
 
 ```bash
