@@ -512,6 +512,7 @@ function ChatWindow.create(pluginInstance: Plugin, services)
 			feed.refreshBadges(userId)
 			if userId == ctx.userId then
 				dialogs.badges.recolor()
+				dialogs.premiumChanged()
 			end
 		end,
 	}

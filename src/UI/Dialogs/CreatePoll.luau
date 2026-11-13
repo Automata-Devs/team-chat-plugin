@@ -1,7 +1,8 @@
 --[[
 	CreatePoll
 
-	The "Create a Poll" modal: a question and 2 to MAX_POLL_OPTIONS answers.
+	The "Create a Poll" modal: a question and 2 to opts.maxOptions() answers
+	(Theme.MAX_POLL_OPTIONS without it; Premium has more, Config/Premium).
 	The first MIN_POLL_OPTIONS answers are required (no remove button); extra
 	ones can be removed. Create sends the trimmed question and non-empty
 	answers to opts.onSubmit.
@@ -35,6 +36,9 @@ function CreatePollDialog.create(kit, opts)
 	local card = modal.card
 	local z = modal.contentZIndex
 	local colors = opts.getThemeColors()
+	local function maxOptions(): number
+		return if opts.maxOptions then opts.maxOptions() else MAX_POLL_OPTIONS
+	end
 
 	local function heading(name: string, text: string, order: number): TextLabel
 		local label = Instance.new("TextLabel")
@@ -165,11 +169,11 @@ function CreatePollDialog.create(kit, opts)
 			box.Parent:FindFirstChild("Remove").Visible = removable
 			box.Size = if removable then UDim2.new(1, -34, 1, 0) else UDim2.new(1, 0, 1, 0)
 		end
-		addOptionButton.Visible = #optionBoxes < MAX_POLL_OPTIONS
+		addOptionButton.Visible = #optionBoxes < maxOptions()
 	end
 
 	local function addOptionRow()
-		if #optionBoxes >= MAX_POLL_OPTIONS then
+		if #optionBoxes >= maxOptions() then
 			return
 		end
 		local palette = opts.getThemeColors()

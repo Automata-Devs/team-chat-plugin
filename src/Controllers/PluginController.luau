@@ -9,6 +9,7 @@
 local HttpService = game:GetService("HttpService")
 
 local Badges = require(script.Parent.Parent.Services.Badges)
+local Premium = require(script.Parent.Parent.Services.Premium)
 local Bots = require(script.Parent.Parent.Services.Bots)
 local Language = require(script.Parent.Parent.Core.Language)
 local Identity = require(script.Parent.Parent.Core.Identity)
@@ -121,6 +122,12 @@ function PluginController.init(pluginRef, ui, chatNetwork, commandHandler)
 		end,
 		watchPurchase = function(badgeId, onStatus)
 			Badges.watchPurchase(chatNetwork.getUserId(), badgeId, onStatus)
+		end,
+		isPremium = function()
+			return Premium.has(chatNetwork.getUserId())
+		end,
+		pollOptions = function()
+			return Premium.pollOptions(chatNetwork.getUserId())
 		end,
 	})
 	Lifetime.add(Badges.changed:Connect(ui.refreshBadges))

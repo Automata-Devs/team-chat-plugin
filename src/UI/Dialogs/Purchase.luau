@@ -3,12 +3,12 @@
 
 	Checkout for a badge (opened from Badges > Buy): the badge, its price in
 	Robux and how buying works. Plugins can't show Roblox's purchase prompt,
-	so "Continue to Roblox" opens the game pass page; the dialog then waits
-	for the purchase (handlers.watchPurchase checks ownership every few
-	seconds) and shows when it's done.
+	open a browser or copy text, so the game pass page's address is shown to
+	go to in a browser. "I bought it" then waits for the purchase
+	(handlers.watchPurchase checks ownership every few seconds) and shows
+	when it's done.
 ]]
 
-local Browser = require(script.Parent.Parent.Parent.Core.Browser)
 local Foundation = require(script.Parent.Parent.Common.Foundation)
 local Icons = require(script.Parent.Parent.Parent.Config.Icons)
 local Language = require(script.Parent.Parent.Parent.Core.Language)
@@ -26,7 +26,6 @@ local STATUS_KEYS = {
 	waiting = "checkout.waiting",
 	owned = "checkout.owned",
 	timeout = "checkout.timeout",
-	copied = "checkout.copied",
 }
 
 local function corner(gui: GuiObject, radius: number)
@@ -106,7 +105,30 @@ function PurchaseDialog.create(kit, params)
 	ModalKit.addTextKey(card, "heading", "checkout.howItWorks", 3, z, colors)
 	ModalKit.addTextKey(card, "body", "checkout.steps", 4, z, colors)
 
-	local status = ModalKit.addText(card, "body", "", 5, z, colors)
+	-- The game pass page's address, to go to in a browser (selectable text)
+	local link = Instance.new("TextBox")
+	link.Name = "Link"
+	link.Size = UDim2.new(1, 0, 0, 0)
+	link.AutomaticSize = Enum.AutomaticSize.Y
+	link.BorderSizePixel = 0
+	link.ClearTextOnFocus = false
+	link.TextEditable = false
+	link.TextWrapped = true
+	link.TextXAlignment = Enum.TextXAlignment.Left
+	link.FontFace = FONTS.mono
+	link.TextSize = 14
+	link.LayoutOrder = 5
+	link.ZIndex = z
+	link.Parent = card
+	corner(link, 8)
+	local linkPadding = Instance.new("UIPadding")
+	linkPadding.PaddingTop = UDim.new(0, 10)
+	linkPadding.PaddingBottom = UDim.new(0, 10)
+	linkPadding.PaddingLeft = UDim.new(0, 12)
+	linkPadding.PaddingRight = UDim.new(0, 12)
+	linkPadding.Parent = link
+
+	local status = ModalKit.addText(card, "body", "", 6, z, colors)
 	status.Name = "Status"
 	status.Visible = false
 
@@ -114,7 +136,7 @@ function PurchaseDialog.create(kit, params)
 	buttons.Name = "Buttons"
 	buttons.Size = UDim2.new(1, 0, 0, 36)
 	buttons.BackgroundTransparency = 1
-	buttons.LayoutOrder = 6
+	buttons.LayoutOrder = 7
 	buttons.ZIndex = z
 	buttons.Parent = card
 	local buttonsLayout = Instance.new("UIListLayout")
@@ -148,7 +170,7 @@ function PurchaseDialog.create(kit, params)
 	continueButton.RichText = true
 
 	local current = nil -- the store item being bought
-	local state = "ready" -- "ready" | "waiting" | "owned" | "timeout" | "copied"
+	local state = "ready" -- "ready" | "waiting" | "owned" | "timeout"
 
 	local function render()
 		local palette = params.getThemeColors()
@@ -171,6 +193,13 @@ function PurchaseDialog.create(kit, params)
 				else '<font size="12">' .. RichText.escape(Language.t("checkout.priceOnRoblox")) .. "</font>"
 		end
 		local done = state == "owned"
+		local handlers = params.getHandlers()
+		link.Visible = current ~= nil and handlers ~= nil and not done
+		if current and handlers then
+			link.Text = handlers.purchaseUrl(current.gamePassId, current.passName)
+		end
+		link.BackgroundColor3 = palette.dialogInput
+		link.TextColor3 = palette.dialogInputText
 		status.Visible = state ~= "ready"
 		status.Text = if state == "owned"
 			then Language.t("checkout.owned", {
@@ -201,17 +230,12 @@ function PurchaseDialog.create(kit, params)
 			return
 		end
 		local item = current
-		if not Browser.open(handlers.purchaseUrl(item.gamePassId)) then
-			state = "copied"
-			render()
-		end
+		-- Bought it on Roblox.com: check (and keep checking) until Roblox says so
 		handlers.watchPurchase(item.badge.id, function(newStatus)
 			if current ~= item then
 				return -- another badge's checkout is open now
 			end
-			if state ~= "copied" or newStatus ~= "waiting" then
-				state = newStatus
-			end
+			state = newStatus
 			if newStatus == "owned" and params.onPurchased then
 				params.onPurchased(item.badge.id)
 			end

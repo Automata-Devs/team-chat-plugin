@@ -231,7 +231,7 @@ return function(t)
 		end
 
 		-- Checkout
-		local opened, watched = nil, nil
+		local opened, openedName, watched = nil, nil, nil
 		ui.setBadgeHandlers({
 			myBadges = function()
 				return {}
@@ -239,9 +239,9 @@ return function(t)
 			getStore = function()
 				return {}
 			end,
-			purchaseUrl = function(id)
-				opened = id
-				return "https://www.roblox.com/game-pass/" .. id
+			purchaseUrl = function(id, name)
+				opened, openedName = id, name
+				return "https://www.roblox.com/game-pass/" .. id .. "/Team-Chat-Premium"
 			end,
 			refresh = function() end,
 			watchPurchase = function(badgeId, onStatus)
@@ -253,6 +253,7 @@ return function(t)
 		ui.openPurchase({
 			badge = { id = "premium", name = "Premium", description = "Team Chat Premium", icon = "crown" },
 			gamePassId = 123,
+			passName = "Team Chat Premium",
 			price = 100,
 			forSale = true,
 			owned = false,
@@ -260,20 +261,29 @@ return function(t)
 		local checkout = gui:FindFirstChild("PurchaseDialog", true) :: Frame
 		local continue = checkout:FindFirstChild("Continue", true) :: TextButton
 		local status = checkout:FindFirstChild("Status", true) :: TextLabel
-		t.check("checkout opens", checkout.Visible and continue.Visible and continue.Text == "Continue to Roblox")
+		local link = checkout:FindFirstChild("Link", true) :: TextBox
+		t.check("checkout opens", checkout.Visible and continue.Visible and continue.Text == "I bought it")
+		t.equal(
+			"it shows the game pass page's address to go to",
+			link and link.Visible and link.Text,
+			"https://www.roblox.com/game-pass/123/Team-Chat-Premium"
+		)
+		t.equal("...made from the game pass id", opened, 123)
+		t.equal("...and its name", openedName, "Team Chat Premium")
 		t.check(
 			"checkout shows the price in Robux",
 			string.find((checkout:FindFirstChild("Price", true) :: TextLabel).Text, "100", 1, true) ~= nil
 		)
-		-- "Click" Continue (the harness records the button's handler)
+		-- "Click" I bought it (the harness records the button's handler)
+		hooks.opened = nil
 		hooks.clicks[continue]()
-		t.equal("Continue opens the game pass page", hooks.opened, "https://www.roblox.com/game-pass/123")
-		t.equal("it asks for the game pass page", opened, 123)
-		t.equal("it watches for the purchase", watched, "premium")
-		t.check("shows it's waiting", status.Visible and string.find(status.Text, "Waiting", 1, true) ~= nil)
+		t.equal("nothing tries to open a browser", hooks.opened, nil)
+		t.equal("it checks for the purchase", watched, "premium")
+		t.check("shows it's checking", status.Visible and string.find(status.Text, "Checking", 1, true) ~= nil)
 		task.wait(0.4)
 		t.check("shows when the purchase is done", string.find(status.Text, "Purchase complete", 1, true) ~= nil)
-		t.check("Continue hides once bought", not continue.Visible)
+		t.check("I bought it hides once bought", not continue.Visible)
+		t.check("...and so does the address", not link.Visible)
 
 		-- Every Builder Icons name is listed in the icon config
 		t.equal("icon config lists all icons", #Icons.ALL, 781)

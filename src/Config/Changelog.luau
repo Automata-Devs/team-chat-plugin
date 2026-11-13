@@ -47,13 +47,29 @@ return {
 		title = "Team Chat 1",
 		updates = {
 			{
-				version = "1.34.3",
+				version = "1.35.0",
 				date = "13/11/2026",
 				title = "Team Chat Premium",
 				changes = {
 					{
+						type = "added",
+						text = "Team Chat Premium perks: the Midnight and Gold themes (Settings > Appearance), messages up to 4,000 characters and polls with up to 20 answers.",
+					},
+					{
+						type = "changed",
+						text = "Messages can be up to 2,000 characters without Premium. Longer ones aren't sent, and stay in the box to shorten.",
+					},
+					{
+						type = "changed",
+						text = "Buying a badge shows its page's address to open in your browser, then I bought it checks your purchase, since Studio can't open your browser for you.",
+					},
+					{
 						type = "changed",
 						text = "Team Chat Premium has a new game pass, with a new icon: the Team Chat logo wearing a gold crown.",
+					},
+					{
+						type = "removed",
+						text = "Profile cards, for now.",
 					},
 				},
 			},

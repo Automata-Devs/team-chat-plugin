@@ -104,9 +104,9 @@ doesn't run or see those servers.
 ## What else the Plugin sends, and to whom
 
 - **Roblox**, through Roblox Studio's own services: avatars, usernames, display
-  names and verified badges; which badges (game passes) you own; Roblox.com
-  pages when you choose to buy a badge; images you attach (to your own Roblox
-  account). Roblox's [Privacy and Cookie Policy](https://en.help.roblox.com/hc/articles/115004630823)
+  names and verified badges; which badges (game passes) you own, and the
+  names and prices of the ones for sale; images you attach (to your own
+  Roblox account). Roblox's [Privacy and Cookie Policy](https://en.help.roblox.com/hc/articles/115004630823)
   covers what Roblox does with information.
 - **Bots** (see below).
 

@@ -43,6 +43,7 @@ export type StoreItem = {
 	gamePassId: number,
 	forSale: boolean,
 	price: number?, -- Robux, when known
+	passName: string?, -- the game pass's name on Roblox, when known
 	owned: boolean,
 }
 
@@ -72,6 +73,7 @@ type Entry = {
 
 local entries: { [number]: Entry } = {}
 local priceCache: { [number]: number | false } = {}
+local nameCache: { [number]: string? } = {} -- game pass id -> its name on Roblox
 local watching: { [string]: boolean } = {}
 
 local function definitionBadge(id: string): Badge?
@@ -187,6 +189,7 @@ function Badges.getStore(userId: number): { StoreItem }
 			local passId = definition.gamePassId :: number
 			local forSale = passId > 0
 			local price: number? = nil
+			local passName: string? = nil
 			local owned = false
 			if forSale then
 				if priceCache[passId] == nil then
@@ -194,9 +197,11 @@ function Badges.getStore(userId: number): { StoreItem }
 						return MarketplaceService:GetProductInfo(passId, Enum.InfoType.GamePass)
 					end)
 					priceCache[passId] = if ok and type(info.PriceInRobux) == "number" then info.PriceInRobux else false
+					nameCache[passId] = if ok and type(info.Name) == "string" then info.Name else nil
 				end
 				local cached = priceCache[passId]
 				price = if cached then cached else nil
+				passName = nameCache[passId]
 				owned = userId > 0 and ownsPass(userId, passId) == true
 			end
 			table.insert(items, {
@@ -204,6 +209,7 @@ function Badges.getStore(userId: number): { StoreItem }
 				gamePassId = passId,
 				forSale = forSale,
 				price = price,
+				passName = passName,
 				owned = owned,
 			})
 		end
@@ -212,10 +218,13 @@ function Badges.getStore(userId: number): { StoreItem }
 end
 
 --[=[
-	The Roblox page where a game pass is bought.
+	The Roblox page where a game pass is bought, with its name in the address
+	like Roblox's own links (https://www.roblox.com/game-pass/<id>/<Name-Like-This>).
 ]=]
-function Badges.purchaseUrl(gamePassId: number): string
-	return "https://www.roblox.com/game-pass/" .. tostring(gamePassId)
+function Badges.purchaseUrl(gamePassId: number, passName: string?): string
+	local url = "https://www.roblox.com/game-pass/" .. tostring(gamePassId)
+	local slug = if passName then string.gsub(string.gsub(passName, "[^%w]+", "-"), "^%-*(.-)%-*$", "%1") else ""
+	return if slug ~= "" then url .. "/" .. slug else url
 end
 
 --[=[

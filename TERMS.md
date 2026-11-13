@@ -56,13 +56,19 @@ has verified.
 
 ## 4. Badges and purchases
 
-- Badges are **cosmetic only**. They don't give extra powers in the chat.
-- Paid badges (such as Premium) are **Roblox game passes**. You buy them on
-  Roblox.com, **Roblox handles the payment**, and Roblox's terms apply to the
-  purchase. The Plugin never sees your payment details.
+- Badges are **cosmetic**: they don't give extra powers in the chat, like
+  moderation.
+- **Team Chat Premium** also gives perks: the Midnight and Gold themes,
+  messages of up to 4,000 characters (2,000 without it) and polls with up to
+  20 answers (10 without it). Perks can change with updates; they work while
+  you own Premium.
+- Paid badges (such as Premium) are **Roblox game passes**. The Plugin shows
+  the game pass's address; you buy it on Roblox.com in your browser,
+  **Roblox handles the payment**, and Roblox's terms apply to the purchase.
+  The Plugin never sees your payment details.
 - Refunds, if any, follow Roblox's rules and are handled by Roblox.
-- A purchase gives you the badge in the Plugin. It doesn't give you any rights
-  to the Plugin's code.
+- A purchase gives you the badge (and, for Premium, its perks) in the Plugin.
+  It doesn't give you any rights to the Plugin's code.
 
 ## 5. Liability
 

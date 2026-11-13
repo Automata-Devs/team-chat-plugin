@@ -55,11 +55,17 @@ function Dialogs.create(ctx, hooks: Hooks)
 	})
 
 	local pollHandler: ((string, { string }) -> ())? = nil
+	local badges -- the Badges dialog (made below; Settings opens it for Premium themes)
 	local badgeHandlers = nil
 	local newMessageHandlers = nil
 
 	local pollDialog = CreatePoll.create(modalKit, {
 		getThemeColors = getPalette,
+		maxOptions = function()
+			return if badgeHandlers and badgeHandlers.pollOptions
+				then badgeHandlers.pollOptions()
+				else Theme.MAX_POLL_OPTIONS
+		end,
 		onSubmit = function(question, options)
 			if pollHandler then
 				pollHandler(question, options)
@@ -71,6 +77,19 @@ function Dialogs.create(ctx, hooks: Hooks)
 		getThemeColors = getPalette,
 		detectTheme = Theme.detect,
 		onThemeChanged = hooks.applyTheme,
+		isPremium = function()
+			return badgeHandlers ~= nil and badgeHandlers.isPremium ~= nil and badgeHandlers.isPremium()
+		end,
+		onPremiumNeeded = function()
+			hooks.notify({
+				title = Language.t("premium.themeLocked"),
+				text = Language.t("premium.themeLockedText"),
+				icon = "badges",
+			})
+			if badges then
+				badges.open()
+			end
+		end,
 		onDisplayChanged = hooks.refreshMessages,
 		onTextSizeChanged = function(pixels)
 			Messages.setTextSize(pixels)
@@ -88,7 +107,7 @@ function Dialogs.create(ctx, hooks: Hooks)
 	})
 
 	local purchase
-	local badges = Badges.create(modalKit, {
+	badges = Badges.create(modalKit, {
 		getThemeColors = getPalette,
 		getHandlers = function()
 			return badgeHandlers
@@ -191,6 +210,14 @@ function Dialogs.create(ctx, hooks: Hooks)
 
 	function self.setBadgeHandlers(handlers)
 		badgeHandlers = handlers
+		general.premiumChanged() -- a saved Premium theme applies once Premium is known
+	end
+
+	--[=[
+		My badges changed: Premium themes apply, or stop applying.
+	]=]
+	function self.premiumChanged()
+		general.premiumChanged()
 	end
 
 	-- The saved settings pick the theme, which is applied before the

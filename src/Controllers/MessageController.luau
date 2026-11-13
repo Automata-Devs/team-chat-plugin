@@ -10,6 +10,8 @@ local HttpService = game:GetService("HttpService")
 local AdminNetwork = require(script.Parent.Parent.Services.Admin)
 local EmojiData = require(script.Parent.Parent.Util.EmojiData)
 local Language = require(script.Parent.Parent.Core.Language)
+local Premium = require(script.Parent.Parent.Services.Premium)
+local PremiumConfig = require(script.Parent.Parent.Config.Premium)
 local UsageTracker = require(script.Parent.Parent.Services.Usage)
 
 local MessageController = {}
@@ -107,6 +109,22 @@ local function sendMessage(ui, chatNetwork, commandHandler)
 		local blocked = AdminNetwork.ChatRules.findBlocked(text)
 		if blocked then
 			ui.addSystemMessage(Language.t("rules.blocked", { word = blocked }))
+			return
+		end
+	end
+
+	-- Too long (Premium sends longer messages): not sent, the text stays in the box
+	if text ~= "" and text:sub(1, 1) ~= "/" then
+		local limit = Premium.messageLength(chatNetwork.getUserId())
+		local length = utf8.len(text) or #text
+		if length > limit then
+			local premiumLimit = PremiumConfig.MESSAGE_LENGTH.premium
+			ui.addSystemMessage(
+				Language.t(
+					if limit < premiumLimit then "premium.tooLongFree" else "premium.tooLong",
+					{ length = length, limit = limit, premium = premiumLimit }
+				)
+			)
 			return
 		end
 	end

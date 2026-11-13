@@ -118,6 +118,111 @@ Theme.PALETTES = {
 	},
 }
 
+-- Premium themes (Config/Premium): the Dark palette with their own surfaces and accent
+local function derive(base: { [string]: Color3 }, changes: { [string]: Color3 }): { [string]: Color3 }
+	local palette = table.clone(base)
+	for key, color in pairs(changes) do
+		palette[key] = color
+	end
+	return palette
+end
+
+local rgb = Color3.fromRGB
+
+-- Midnight: deep navy, with the Team Chat logo's blue
+Theme.PALETTES.Midnight = derive(Theme.PALETTES.Dark, {
+	scrollBack = rgb(14, 22, 48),
+	inputFrame = rgb(9, 15, 36),
+	replyBarBack = rgb(22, 32, 64),
+	inputBox = rgb(30, 42, 80),
+	sendButton = rgb(24, 140, 250),
+	sendButtonInactive = rgb(20, 62, 122),
+	timestamp = rgb(160, 176, 214),
+	messageText = rgb(240, 244, 255),
+	sendButtonText = rgb(255, 255, 255),
+	divider = rgb(32, 44, 82),
+	scrollBar = rgb(84, 100, 150),
+	textBoxText = rgb(240, 244, 255),
+	placeholder = rgb(120, 136, 180),
+	attachButton = rgb(30, 42, 80),
+	attachIcon = rgb(200, 212, 240),
+	imageBorder = rgb(40, 54, 96),
+	previewBorder = rgb(40, 54, 96),
+	loadingText = rgb(160, 176, 214),
+	menuBack = rgb(22, 32, 64),
+	menuBorder = rgb(48, 62, 108),
+	menuItemHover = rgb(34, 46, 86),
+	menuItemText = rgb(205, 215, 240),
+	pollBar = rgb(34, 46, 86),
+	pollBarVoted = rgb(24, 140, 250),
+	pollBarText = rgb(240, 244, 255),
+	emptyTitle = rgb(205, 215, 240),
+	emptySubtitle = rgb(160, 176, 214),
+	dialogBack = rgb(14, 22, 48),
+	dialogBorder = rgb(40, 54, 96),
+	dialogButton = rgb(24, 140, 250),
+	dialogButtonText = rgb(255, 255, 255),
+	dialogSecondary = rgb(26, 37, 72),
+	navBack = rgb(9, 15, 36),
+	navSelected = rgb(30, 42, 80),
+	dialogInput = rgb(9, 15, 36),
+	dialogInputText = rgb(240, 244, 255),
+	mentionText = rgb(230, 240, 255),
+	mentionBack = rgb(24, 140, 250),
+	codeBack = rgb(22, 32, 64),
+	codeBorder = rgb(48, 62, 108),
+	codeText = rgb(205, 215, 240),
+	quoteBar = rgb(84, 100, 150),
+	tint = rgb(200, 220, 255),
+})
+
+-- Gold: warm dark, with Premium's gold
+Theme.PALETTES.Gold = derive(Theme.PALETTES.Dark, {
+	scrollBack = rgb(28, 24, 18),
+	inputFrame = rgb(20, 17, 12),
+	replyBarBack = rgb(38, 32, 22),
+	inputBox = rgb(48, 41, 28),
+	sendButton = rgb(236, 176, 40),
+	sendButtonInactive = rgb(96, 72, 24),
+	timestamp = rgb(204, 190, 160),
+	messageText = rgb(252, 248, 240),
+	sendButtonText = rgb(36, 26, 6), -- dark text on gold
+	divider = rgb(52, 45, 32),
+	scrollBar = rgb(120, 104, 74),
+	textBoxText = rgb(252, 248, 240),
+	placeholder = rgb(150, 136, 108),
+	attachButton = rgb(48, 41, 28),
+	attachIcon = rgb(230, 220, 196),
+	imageBorder = rgb(60, 52, 36),
+	previewBorder = rgb(60, 52, 36),
+	loadingText = rgb(204, 190, 160),
+	menuBack = rgb(38, 32, 22),
+	menuBorder = rgb(68, 58, 40),
+	menuItemHover = rgb(54, 46, 32),
+	menuItemText = rgb(232, 222, 200),
+	pollBar = rgb(54, 46, 32),
+	pollBarVoted = rgb(176, 124, 16),
+	pollBarText = rgb(252, 248, 240),
+	emptyTitle = rgb(232, 222, 200),
+	emptySubtitle = rgb(204, 190, 160),
+	dialogBack = rgb(28, 24, 18),
+	dialogBorder = rgb(60, 52, 36),
+	dialogButton = rgb(236, 176, 40),
+	dialogButtonText = rgb(36, 26, 6),
+	dialogSecondary = rgb(44, 38, 26),
+	navBack = rgb(20, 17, 12),
+	navSelected = rgb(48, 41, 28),
+	dialogInput = rgb(20, 17, 12),
+	dialogInputText = rgb(252, 248, 240),
+	mentionText = rgb(255, 238, 200),
+	mentionBack = rgb(236, 176, 40),
+	codeBack = rgb(38, 32, 22),
+	codeBorder = rgb(68, 58, 40),
+	codeText = rgb(232, 222, 200),
+	quoteBar = rgb(150, 120, 60),
+	tint = rgb(255, 236, 200),
+})
+
 -- Shared font and layout constants.
 Theme.FONT = Enum.Font.BuilderSans
 
@@ -200,7 +305,7 @@ Theme.INPUT_HEIGHT = 49
 Theme.PREVIEW_HEIGHT = 36
 Theme.MENU_WIDTH = 160
 Theme.MENU_ITEM_HEIGHT = 34
-Theme.MAX_POLL_OPTIONS = 10
+Theme.MAX_POLL_OPTIONS = 10 -- without Premium (Config/Premium)
 
 --[=[
 	Detects the current Roblox Studio theme.

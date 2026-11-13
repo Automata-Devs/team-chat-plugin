@@ -18,6 +18,7 @@ local Icons = require(script.Parent.Parent.Parent.Parent.Config.Icons)
 local Lifetime = require(script.Parent.Parent.Parent.Parent.Core.Lifetime)
 local PluginConfig = require(script.Parent.Parent.Parent.Parent.Config.Constants)
 local Preferences = require(script.Parent.Parent.Parent.Common.Preferences)
+local PremiumConfig = require(script.Parent.Parent.Parent.Parent.Config.Premium)
 local Settings = require(script.Parent.Parent.Parent.Parent.Core.Settings)
 local Theme = require(script.Parent.Parent.Parent.Parent.Config.Theme)
 local TimeFormatter = require(script.Parent.Parent.Parent.Parent.Util.TimeFormat)
@@ -45,7 +46,7 @@ local SECTIONS = {
 				key = "theme",
 				own = true,
 				kind = "dropdown",
-				options = { "Auto", "Light", "Dark" },
+				options = { "Auto", "Light", "Dark", "Midnight", "Gold" }, -- the last two need Premium
 			},
 			{
 				key = "textSize",
@@ -134,6 +135,8 @@ local OPTION_KEYS = {
 	Auto = "option.auto",
 	Light = "option.light",
 	Dark = "option.dark",
+	Midnight = "option.midnight",
+	Gold = "option.gold",
 	["Display name"] = "option.displayName",
 	Username = "option.username",
 	["24h"] = "option.24h",
@@ -238,6 +241,17 @@ function SettingsDialog.create(kit, opts)
 		moves its control. Keys are the ones in SECTIONS.
 	]=]
 	function self.set(key: string, value: any)
+		-- Premium themes need Premium: the choice snaps back, and the Badges store opens
+		if key == "theme" and table.find(PremiumConfig.THEMES, value) and not (opts.isPremium and opts.isPremium()) then
+			local control = controls[key]
+			if control then
+				control.set(own.theme)
+			end
+			if opts.onPremiumNeeded then
+				opts.onPremiumNeeded()
+			end
+			return
+		end
 		if key == "language" then
 			Language.set(value) -- saved; everything re-labels
 		elseif own[key] ~= nil then
@@ -421,7 +435,19 @@ function SettingsDialog.create(kit, opts)
 		The palette to use: Studio's own theme for "Auto", otherwise the choice.
 	]=]
 	function self.resolveTheme(): string
-		return if own.theme == "Auto" then opts.detectTheme() else own.theme
+		local choice = own.theme
+		if table.find(PremiumConfig.THEMES, choice) and not (opts.isPremium and opts.isPremium()) then
+			choice = "Auto" -- no Premium (yet: Roblox may still be checking)
+		end
+		return if choice == "Auto" then opts.detectTheme() else choice
+	end
+
+	--[=[
+		Premium was found or lost: a chosen Premium theme applies, or Studio's
+		theme stands in for it.
+	]=]
+	function self.premiumChanged()
+		opts.onThemeChanged(self.resolveTheme())
 	end
 
 	function self.open()
@@ -493,7 +519,12 @@ function SettingsDialog.create(kit, opts)
 	]=]
 	function self.restore()
 		local savedTheme = Settings.get(OWN_KEYS.theme)
-		if savedTheme == "Auto" or savedTheme == "Light" or savedTheme == "Dark" then
+		if
+			savedTheme == "Auto"
+			or savedTheme == "Light"
+			or savedTheme == "Dark"
+			or table.find(PremiumConfig.THEMES, savedTheme)
+		then
 			own.theme = savedTheme
 		end
 		local savedClock = Settings.get(OWN_KEYS.clock)

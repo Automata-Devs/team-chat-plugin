@@ -3,6 +3,32 @@
 Developer-facing history of the codebase. User-facing notes ("What's New")
 are in `src/Config/Changelog.luau`. Format: [Keep a Changelog](https://keepachangelog.com).
 
+## [1.35.0] - 2026-11-13
+
+### Added
+- Team Chat Premium perks (`Config/Premium`, `Services/Premium`): the Midnight
+  and Gold themes (`Theme.PALETTES`, derived from Dark), messages up to 4,000
+  characters and polls with up to 20 answers. Premium is the "premium" badge
+  (bought, or given in `Config/Badges` USERS). Picking a Premium theme without
+  it snaps back and opens the Badges store; a chosen Premium theme falls back
+  to Studio's while Premium isn't known, and applies again when it is
+  (`General.premiumChanged`, on my badges changing).
+- tests/Specs/Premium.spec.luau.
+
+### Changed
+- Messages are limited to 2,000 characters without Premium
+  (`MessageController`); longer ones aren't sent and stay in the box.
+- `CreatePoll` takes its answer limit from `opts.maxOptions()` (Premium's).
+- Checkout (`Dialogs/Purchase`): shows the game pass page's address in a
+  selectable box (`Badges.purchaseUrl(id, name)`, with the pass's name like
+  Roblox's own links) instead of opening a browser or copying; "I bought it"
+  checks the purchase. Store items carry `passName`.
+- TERMS.md, PRIVACY.md and Settings > About: what Premium gives, and how
+  buying works now.
+
+### Removed
+- The profile card (uncommitted work, never released) and its wiring.
+
 ## [1.34.3] - 2026-11-13
 
 ### Changed
