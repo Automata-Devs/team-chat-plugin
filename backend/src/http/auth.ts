@@ -50,7 +50,10 @@ async function sessionActor(services: Services, token: string): Promise<Actor> {
 	await services.cache.set(sessionKey(hash), `${row.userId}:${row.sessionId}`, LOOKUP_CACHE_SECONDS);
 
 	if (await services.cache.setIfAbsent(`touch:session:${row.sessionId}`, "1", TOUCH_EVERY_SECONDS)) {
-		await services.db.update(sessions).set({ lastUsedAt: new Date() }).where(eq(sessions.id, row.sessionId));
+		// A session in use keeps going: it only ends after SESSION_TTL_DAYS without use (or signing out)
+		const now = new Date();
+		const expiresAt = new Date(now.getTime() + services.config.SESSION_TTL_DAYS * 86_400_000);
+		await services.db.update(sessions).set({ lastUsedAt: now, expiresAt }).where(eq(sessions.id, row.sessionId));
 		await services.db.update(users).set({ lastActiveAt: new Date() }).where(eq(users.id, row.userId));
 	}
 	return { kind: "user", userId: row.userId, sessionId: row.sessionId };

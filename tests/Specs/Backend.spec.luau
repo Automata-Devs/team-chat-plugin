@@ -77,10 +77,13 @@ local function fakeBackend(robloxId: number)
 		local m = request.Method
 
 		if p[1] == "auth" and p[3] == "start" then
-			return reply(
-				200,
-				{ loginId = "login-1", pollSecret = "secret-1", url = "https://roblox.test/authorize?x=1" }
-			)
+			return reply(200, {
+				loginId = "login-1",
+				pollSecret = "secret-1",
+				url = "https://roblox.test/authorize?x=1",
+				code = "ABCD-2345",
+				linkUrl = "https://chat.test/link",
+			})
 		elseif p[1] == "auth" and p[3] == "poll" then
 			server.polls += 1
 			if server.polls % 2 == 1 then
@@ -222,11 +225,17 @@ return function(t)
 
 		-- Signing in with a Roblox account that isn't Studio's is undone
 		local shown = nil
-		local signedIn, problem = Backend.signIn(function(url)
+		local shownCode, shownLink = nil, nil
+		local signedIn, problem = Backend.signIn(function(url, code, linkUrl)
 			shown = url
+			shownCode, shownLink = code, linkUrl
 		end)
 		t.check("another Roblox account is refused", not signedIn and problem == "wrongAccount")
 		t.equal("the sign-in page was shown", shown, "https://roblox.test/authorize?x=1")
+		t.equal("...with the short code to type", shownCode, "ABCD-2345")
+		t.equal("...at the short address", shownLink, "https://chat.test/link")
+		local chatText = Backend.signInText("https://roblox.test/authorize?x=1", nil, nil)
+		t.check("an older server without codes still gets the link", string.find(chatText, "Output", 1, true) ~= nil)
 		t.check("...and nothing is kept", not Backend.status().signedIn)
 
 		-- The right account: the place's workspace is made by itself, no admin needed
@@ -408,6 +417,12 @@ return function(t)
 			return Backend.status().signedIn
 		end, 10)
 		t.check("asks to sign in by itself", #notices >= 1 and string.find(notices[1], "Sign in once", 1, true) ~= nil)
+		t.check(
+			"...with a short address and code to type",
+			#notices >= 1
+				and string.find(notices[1], "https://chat.test/link", 1, true) ~= nil
+				and string.find(notices[1], "ABCD-2345", 1, true) ~= nil
+		)
 		t.check("...and is signed in once approved", signedInAgain)
 		waitFor(function()
 			return Backend.isActive()

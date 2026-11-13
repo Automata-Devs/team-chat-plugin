@@ -15,13 +15,20 @@ only (a bot gets 403). Routes marked **public** need no token.
 
 ### Sign in with Roblox (from the plugin)
 
-1. `POST /auth/roblox/start` → `{ loginId, pollSecret, url, expiresIn }`
-2. Show `url`; the person opens it in a browser and approves on roblox.com.
+1. `POST /auth/roblox/start` → `{ loginId, pollSecret, url, code, linkUrl, expiresIn }`
+2. Show `linkUrl` and `code` (like `ABCD-2345`): Studio plugins can't open a
+   browser or copy to the clipboard, so the person types them in any browser.
+   `GET /link?code=…` (outside `/api/v1`, case and dash don't matter) sends
+   the browser on to `url`, Roblox's sign-in page, once; a wrong, used or
+   expired code is 404. Showing `url` itself works too.
 3. `POST /auth/roblox/poll { loginId, pollSecret }` every 2 seconds: `202`
    while waiting, then `200 { status: "done", token, user, expiresAt }`
    (or `{ status: "failed", error }`). The result is handed out once.
 
 Calling `start` while signed in links the Roblox account to the current user instead.
+
+A session lasts `SESSION_TTL_DAYS` (30) **after it was last used**: using it
+moves its end forward, so someone using Team Chat stays signed in.
 
 ## Errors
 
@@ -104,6 +111,7 @@ participants can view, send, read, react, attach, embed and use commands.
 | `POST /auth/password` | | `{ currentPassword?, newPassword }`: signs out your other sessions |
 | `GET /auth/connections` | | Linked accounts (Roblox) |
 | `POST /auth/roblox/start`, `/poll`, `GET /callback` | public | Sign in with Roblox (above) |
+| `GET /link` (no `/api/v1`) | public | The page to type a sign-in code; `?code=` goes on to Roblox |
 | `GET /users/@me` | bot | You |
 | `PATCH /users/@me` | | `{ username?, displayName?, avatarUrl? }` |
 | `DELETE /users/@me` | | `{ password? }`: deletes your account ([retention](SCHEMA.md#retention-and-cascades)) |

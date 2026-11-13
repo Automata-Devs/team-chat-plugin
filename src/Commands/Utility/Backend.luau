@@ -108,15 +108,11 @@ return {
 		elseif action == "login" then
 			ctx.addSystemMessage(t("loginStarting", "Starting the Roblox sign-in..."))
 			task.spawn(function()
-				local ok, problem = Backend.signIn(function(url)
-					-- Plugins can't open a browser: the link goes to the Output window, where it can be copied
-					print("[Team Chat] Open this link in your browser to sign in with Roblox:\n" .. url)
-					ctx.addSystemMessage(
-						t(
-							"openLink",
-							"Copy the link from the Output window (View > Output), open it in your browser and approve. It works for 10 minutes."
-						)
-					)
+				local ok, problem = Backend.signIn(function(url, code, linkUrl)
+					-- Plugins can't open a browser or copy: a short address and code to type, and the link in Output
+					local chatText, outputText = Backend.signInText(url, code, linkUrl)
+					print(outputText)
+					ctx.addSystemMessage(chatText)
 				end)
 				if ok then
 					ctx.addSystemMessage(

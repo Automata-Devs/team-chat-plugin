@@ -47,6 +47,21 @@ return {
 		title = "Team Chat 1",
 		updates = {
 			{
+				version = "1.34.0",
+				date = "13/11/2026",
+				title = "Easier sign-in",
+				changes = {
+					{
+						type = "changed",
+						text = "Signing in with Roblox is easier: the chat shows a short address and a code to type in any browser (a phone works too), instead of a long link to copy out of the Output window.",
+					},
+					{
+						type = "changed",
+						text = "You stay signed in while you use Team Chat: only 30 days without it, or /backend logout, signs you out.",
+					},
+				},
+			},
+			{
 				version = "1.33.1",
 				date = "13/11/2026",
 				title = "End-to-end encryption",

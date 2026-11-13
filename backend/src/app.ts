@@ -13,6 +13,7 @@ import { botsModule } from "./modules/bots/routes.js";
 import { channelsModule } from "./modules/channels/routes.js";
 import { conversationsModule } from "./modules/conversations/routes.js";
 import { gatewayModule } from "./modules/gateway/routes.js";
+import { linkModule } from "./modules/auth/link.js";
 import { healthModule } from "./modules/health/routes.js";
 import { messagesModule } from "./modules/messages/routes.js";
 import { notificationsModule } from "./modules/notifications/routes.js";
@@ -117,6 +118,7 @@ export function buildApp(services: Services): FastifyInstance {
 	);
 
 	app.register(async (health) => healthModule(health, services));
+	app.register(async (link) => linkModule(link, services)); // short sign-in address, outside the API
 	app.register(
 		async (api) => {
 			for (const register of modules) register(api, services);

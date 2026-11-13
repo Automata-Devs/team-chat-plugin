@@ -3,6 +3,21 @@
 Developer-facing history of the codebase. User-facing notes ("What's New")
 are in `src/Config/Changelog.luau`. Format: [Keep a Changelog](https://keepachangelog.com).
 
+## [1.34.0] - 2026-11-13
+
+### Changed
+- Sign-in with a short code: `POST /auth/roblox/start` also returns `code`
+  (8 letters without 0/O/1/I, like `ABCD-2345`) and `linkUrl`
+  (`<PUBLIC_URL>/link`). The new page `GET /link` (auth/link.ts) takes the
+  code, in any case and with or without the dash, and redirects to Roblox's
+  sign-in page once; it's rate limited and has its own CSP. The plugin shows
+  the address and code in the chat (`Backend.signInText`), and the full link
+  in the Output window, since plugins can't open a browser or copy text.
+  Servers without codes still get the link.
+- Sessions slide: using one moves its end to `SESSION_TTL_DAYS` from now
+  (when `last_used_at` is refreshed, every 5 minutes at most), so people who
+  use Team Chat aren't asked to sign in every 30 days.
+
 ## [1.33.1] - 2026-11-13
 
 ### Fixed

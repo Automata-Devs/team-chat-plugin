@@ -184,13 +184,38 @@ function Backend.sync(): (number, string?)
 end
 
 --[=[
-	Signs me in with Roblox: `showUrl(url)` is called with the page to open in a
-	browser, then this waits (up to 10 minutes) until I've approved there. The
-	Roblox account must be the one signed in to Studio. Then joins the place's
-	workspace (or makes it) and stores what I already wrote. Returns true, or
-	false and a problem. Yields.
+	How to sign in, for the chat and the Output window. Plugins can't open a
+	browser or copy to the clipboard, so the chat shows a short address and a
+	code to type in any browser (from servers that have them); the Output
+	window also has the full Roblox link.
 ]=]
-function Backend.signIn(showUrl: (string) -> ()): (boolean, string?)
+function Backend.signInText(url: string, code: string?, linkUrl: string?): (string, string)
+	if code and linkUrl then
+		return string.format(
+			"Sign in once with Roblox: in any browser, go to %s and enter the code %s (it works for 10 minutes).",
+			linkUrl,
+			code
+		),
+			string.format(
+				"[Team Chat] Sign in with Roblox: go to %s and enter the code %s\nOr open this link: %s",
+				linkUrl,
+				code,
+				url
+			)
+	end
+	return "Sign in once with Roblox: copy the link from the Output window (View > Output) into your browser and approve.",
+		"[Team Chat] Sign in with Roblox to keep this place's chat safe on the backend:\n" .. url
+end
+
+--[=[
+	Signs me in with Roblox: `show(url, code, linkUrl)` is called with the page
+	to open in a browser (and, from servers that have them, a short code to type
+	at linkUrl instead), then this waits (up to 10 minutes) until I've approved
+	there. The Roblox account must be the one signed in to Studio. Then joins
+	the place's workspace (or makes it) and stores what I already wrote.
+	Returns true, or false and a problem. Yields.
+]=]
+function Backend.signIn(show: (url: string, code: string?, linkUrl: string?) -> ()): (boolean, string?)
 	local info = Connection.get()
 	if not info then
 		return false, "notConnected"
@@ -207,7 +232,11 @@ function Backend.signIn(showUrl: (string) -> ()): (boolean, string?)
 		if flow.problem then
 			error(flow.problem, 0)
 		end
-		showUrl(flow.data.url)
+		show(
+			flow.data.url,
+			if type(flow.data.code) == "string" then flow.data.code else nil,
+			if type(flow.data.linkUrl) == "string" then flow.data.linkUrl else nil
+		)
 
 		local deadline = os.clock() + BackendConfig.SIGN_IN_SECONDS
 		local done: any = nil
@@ -263,11 +292,10 @@ end
 local function askToSignIn()
 	askedThisSession = true
 	task.spawn(function()
-		local ok, problem = Backend.signIn(function(url)
-			print("[Team Chat] Sign in with Roblox to keep this place's chat safe on the backend:\n" .. url)
-			notice(
-				"Team Chat stores this place's chat on your team's backend. Sign in once with Roblox: copy the link from the Output window (View > Output) into your browser and approve."
-			)
+		local ok, problem = Backend.signIn(function(url, code, linkUrl)
+			local chatText, outputText = Backend.signInText(url, code, linkUrl)
+			print(outputText)
+			notice("Team Chat stores this place's chat on your team's backend. " .. chatText)
 		end)
 		if ok then
 			notice(

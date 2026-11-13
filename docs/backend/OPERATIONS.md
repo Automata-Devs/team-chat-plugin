@@ -104,7 +104,7 @@ the API sets its statement timeout when it connects.
 | `WORKER_ID` | leased from Redis, else `0` | 0-1023, unique per instance |
 | `DATABASE_POOL_MAX` | `20` | Connections per instance |
 | `DATABASE_STATEMENT_TIMEOUT_MS` | `10000` | Queries running longer are cancelled |
-| `SESSION_TTL_DAYS` | `30` | |
+| `SESSION_TTL_DAYS` | `30` | Days a sign-in lasts after it was last used |
 | `ALLOW_PASSWORD_SIGNUP` | `true` | `false`: Roblox sign-in only |
 | `ROBLOX_OAUTH_CLIENT_ID` / `_SECRET` | | From an OAuth 2.0 app on create.roblox.com with redirect URL `<PUBLIC_URL>/api/v1/auth/roblox/callback` and scopes `openid profile` |
 | `ROBLOX_OAUTH_BASE_URL` | `https://apis.roblox.com/oauth` | |

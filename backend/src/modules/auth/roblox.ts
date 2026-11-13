@@ -2,15 +2,17 @@
  * Sign in with Roblox (OAuth 2.0 + PKCE), shaped for a Studio plugin, which
  * can't receive a redirect itself:
  *
- *   1. The plugin calls POST /auth/roblox/start and gets a URL and a poll secret.
- *   2. The person opens the URL in a browser and approves on roblox.com.
+ *   1. The plugin calls POST /auth/roblox/start and gets a URL, a short code
+ *      for GET /link (see link.ts) and a poll secret.
+ *   2. The person opens the URL, or types the short address and code, in a
+ *      browser and approves on roblox.com.
  *   3. Roblox redirects to GET /auth/roblox/callback here; the code is checked
  *      with Roblox, which tells us their real Roblox user id.
  *   4. The plugin polls POST /auth/roblox/poll and receives a session token.
  *
  * So a Roblox identity is never taken from the plugin's word.
  */
-import { createHash, timingSafeEqual } from "node:crypto";
+import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { and, eq } from "drizzle-orm";
 import type { FastifyRequest } from "fastify";
 import type { Services } from "../../context.js";
@@ -21,6 +23,21 @@ import { audit, publicUser } from "../shared.js";
 import { createSession, freeUsername } from "./service.js";
 
 const FLOW_SECONDS = 600;
+// No 0/O or 1/I: easy to read off a screen and type. 32 letters, so a random byte maps without bias.
+const CODE_LETTERS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+/** A short sign-in code, ABCD-2345: 8 letters, about 10^12 possibilities. */
+function shortCode(): string {
+	const letters = [...randomBytes(8)].map((byte) => CODE_LETTERS[byte % 32]).join("");
+	return `${letters.slice(0, 4)}-${letters.slice(4)}`;
+}
+
+/** A code as typed (any case, with or without the dash or spaces) in its stored form, or null. */
+function normalizeCode(typed: string): string | null {
+	const letters = typed.toUpperCase().replace(/[^A-Z0-9]/g, "");
+	if (letters.length !== 8 || [...letters].some((c) => !CODE_LETTERS.includes(c))) return null;
+	return `${letters.slice(0, 4)}-${letters.slice(4)}`;
+}
 
 interface Flow {
 	loginId: string;
@@ -66,7 +83,26 @@ export async function startRobloxLogin(services: Services, linkUserId?: bigint) 
 		code_challenge: challenge,
 		code_challenge_method: "S256",
 	}).toString();
-	return { loginId, pollSecret, url: url.toString(), expiresIn: FLOW_SECONDS };
+	const code = shortCode();
+	await services.cache.set(`oauth:code:${code}`, url.toString(), FLOW_SECONDS);
+	return {
+		loginId,
+		pollSecret,
+		url: url.toString(),
+		code,
+		linkUrl: `${services.config.PUBLIC_URL}/link`,
+		expiresIn: FLOW_SECONDS,
+	};
+}
+
+/** The Roblox sign-in URL for a short code, once: the code is used up. Null when unknown or expired. */
+export async function takeLinkCode(services: Services, typed: string): Promise<string | null> {
+	const code = normalizeCode(typed);
+	if (!code) return null;
+	const key = `oauth:code:${code}`;
+	const url = await services.cache.get(key);
+	if (url) await services.cache.del(key);
+	return url;
 }
 
 interface RobloxProfile {

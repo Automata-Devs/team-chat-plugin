@@ -149,6 +149,41 @@ describe("sign in with Roblox", () => {
 		expect(refused.statusCode).toBe(409);
 	});
 
+	test("a short code typed at /link opens that sign-in, once", async () => {
+		const flow = await start();
+		expect(flow.code).toMatch(/^[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/);
+		expect(flow.linkUrl).toMatch(/\/link$/);
+
+		const form = await ctx.app.inject({ method: "GET", url: "/link" });
+		expect(form.statusCode).toBe(200);
+		expect(form.body).toContain('name="code"');
+		expect(form.headers["content-security-policy"]).toContain("form-action 'self'");
+
+		// Typed sloppily: lower case, no dash, spaces
+		const typed = ` ${flow.code.replace("-", "").toLowerCase()} `;
+		const go = await ctx.app.inject({ method: "GET", url: `/link?code=${encodeURIComponent(typed)}` });
+		expect(go.statusCode).toBe(302);
+		expect(go.headers.location).toBe(flow.url);
+		const again = await ctx.app.inject({ method: "GET", url: `/link?code=${flow.code}` });
+		expect(again.statusCode).toBe(404);
+		expect(again.body).toContain("isn't right");
+		expect((await ctx.app.inject({ method: "GET", url: "/link?code=<script>" })).body).not.toContain("<script>");
+	});
+
+	test("a session in use renews itself", async () => {
+		const user = await register(ctx);
+		await ctx.services.db.execute(
+			sql`update sessions set expires_at = now() + interval '1 day' where user_id = ${BigInt(user.id)}`,
+		);
+		expect((await call(ctx, "GET", "/users/@me", undefined, user.as)).status).toBe(200);
+		const [row] = (
+			await ctx.services.db.execute<{ days: number }>(
+				sql`select extract(epoch from expires_at - now()) / 86400 as days from sessions where user_id = ${BigInt(user.id)}`,
+			)
+		).rows;
+		expect(Number(row.days)).toBeGreaterThan(29);
+	});
+
 	test("Roblox refusing the code fails the sign-in", async () => {
 		ctx.respond = () => new Response("bad", { status: 400 });
 		const flow = await start();

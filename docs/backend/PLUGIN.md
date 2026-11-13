@@ -29,9 +29,13 @@ reverted or deleted place.
    and `profile`). Set its address as `DEFAULT_URL` in `src/Config/Backend.luau`
    and build the plugin.
 2. **Once per person and computer:** when Studio opens, Team Chat asks you to
-   sign in with Roblox. The link is in the **Output** window (View > Output):
-   open it in your browser and approve. Plugins can't open a browser
-   themselves, and this is how the backend knows it's really you.
+   sign in with Roblox. The chat shows a short address and a code, like
+   `https://<your backend>/link` and `ABCD-2345`: type them in any browser
+   (a phone works too) and approve on roblox.com. Plugins can't open a
+   browser or copy to the clipboard, and this is how the backend knows it's
+   really you. The full link is in the **Output** window as well. You stay
+   signed in while you use Team Chat: only 30 days without it, or
+   `/backend logout`, ends it.
 
 That's all. When anyone opens a place with Team Chat, its workspace is found,
 or made on the spot, and everyone in the place joins it automatically. No
