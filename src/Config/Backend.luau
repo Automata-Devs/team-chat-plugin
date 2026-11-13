@@ -14,7 +14,7 @@
 return {
 	-- The server every place is stored on, unless a place sets its own (/backend connect).
 	-- Set it to your backend's https address before building the plugin; empty: nothing is stored.
-	DEFAULT_URL = "",
+	DEFAULT_URL = "https://teamchat-backend-a9f5.onrender.com",
 	-- Ask people to sign in with Roblox by themselves when Studio opens (once per session)
 	AUTO_SIGN_IN = true,
 

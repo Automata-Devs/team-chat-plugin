@@ -47,7 +47,7 @@ return {
 		title = "Team Chat 1",
 		updates = {
 			{
-				version = "1.32.1",
+				version = "1.32.2",
 				date = "13/11/2026",
 				title = "Team database",
 				changes = {
@@ -58,6 +58,10 @@ return {
 					{
 						type = "added",
 						text = "For hosts: the backend deploys to Render with backend/render.yaml, next to a free Neon database (see docs/backend/OPERATIONS.md).",
+					},
+					{
+						type = "changed",
+						text = "Team Chat now stores places on the team's own backend by default, so it works as soon as you've signed in.",
 					},
 					{
 						type = "added",

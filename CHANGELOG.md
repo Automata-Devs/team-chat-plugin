@@ -3,6 +3,16 @@
 Developer-facing history of the codebase. User-facing notes ("What's New")
 are in `src/Config/Changelog.luau`. Format: [Keep a Changelog](https://keepachangelog.com).
 
+## [1.32.2] - 2026-11-13
+
+### Changed
+- `BackendConfig.DEFAULT_URL` is the team's backend on Render
+  (`https://teamchat-backend-a9f5.onrender.com`): every place is stored there
+  once people sign in.
+- `Backend.Connection`: copies of the plugin run by the specs
+  (`__TeamChatUnderTest`) ignore `DEFAULT_URL`, so tests never reach the real
+  server; a spec still points its copy at a fake one with `Backend.connect`.
+
 ## [1.32.1] - 2026-11-13
 
 ### Added

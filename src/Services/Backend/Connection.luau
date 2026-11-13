@@ -26,6 +26,10 @@ export type Info = { url: string, workspaceId: string?, channelId: string? }
 
 local Connection = {}
 
+-- The specs run copies of Team Chat (tests/Harness): those never reach the real
+-- default server, only a server a spec points them at
+local IN_TEST_COPY = script:FindFirstAncestor("__TeamChatUnderTest") ~= nil
+
 local function folder(create: boolean): Folder?
 	local root = PlaceStorage.getRoot()
 	local existing = root:FindFirstChild(BackendConfig.FOLDER_NAME)
@@ -67,7 +71,8 @@ function Connection.get(): Info?
 	if config and config:GetAttribute("Disabled") == true then
 		return nil
 	end
-	local url = (config and text(config:GetAttribute("Url"))) or text(BackendConfig.DEFAULT_URL)
+	local url = (config and text(config:GetAttribute("Url")))
+		or (if IN_TEST_COPY then nil else text(BackendConfig.DEFAULT_URL))
 	if not url or not Connection.validUrl(url) then
 		return nil
 	end
