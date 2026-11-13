@@ -3,6 +3,22 @@
 Developer-facing history of the codebase. User-facing notes ("What's New")
 are in `src/Config/Changelog.luau`. Format: [Keep a Changelog](https://keepachangelog.com).
 
+## [1.34.2] - 2026-11-13
+
+### Changed
+- PRIVACY.md rewritten for the backend (1.31 onwards): what's stored in the
+  place, on your computer and on the backend (and what the backend can and
+  can't read, with end-to-end encryption), hosting (Render and Neon,
+  Frankfurt), how long things are kept, the optional team database, deleting
+  your information, and your rights.
+- TERMS.md: a section on the backend (optional sign-in, as-is service,
+  encryption and the place's secret, fair use, suspension), and the backend
+  added to liability, changes and ending.
+- SECURITY.md: the backend is in scope, and what encryption means for people
+  who can edit a place.
+- Settings > About (`about.data2`): no longer says Team Chat sends nothing to
+  other servers; it explains the encrypted backend.
+
 ## [1.34.1] - 2026-11-13
 
 ### Changed

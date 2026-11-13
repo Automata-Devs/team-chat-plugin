@@ -1,10 +1,12 @@
 # Terms of Use
 
-_Last updated: 2 November 2026_
+_Last updated: 13 November 2026_
 
 These terms apply to the **Team Chat** plugin for Roblox Studio (the
-"Plugin"), made by D3veloperHac. By installing or using the Plugin you agree
-to them. If you don't agree, don't use the Plugin.
+"Plugin") and the **Team Chat backend** that stores each place's chat (the
+"Backend"), both made and run by D3veloperHac. By installing or using the
+Plugin, or signing in to the Backend, you agree to them. If you don't agree,
+don't use them.
 
 The same points are shown inside the Plugin under **Settings > About**.
 
@@ -32,7 +34,27 @@ has verified.
 - Moderation tools (ranks, mutes, bans, the blacklist and whitelist) are run by
   the people who own and edit each place, not by D3veloperHac.
 
-## 3. Badges and purchases
+## 3. The Team Chat backend
+
+- **Signing in is optional.** When you sign in with Roblox, the Plugin stores
+  the chat of the places you work in on the Backend, as described in
+  [PRIVACY.md](PRIVACY.md). Admins decide whether a place is stored
+  (`/backend disconnect`), and you can sign out with `/backend logout`.
+- The Backend is **free and provided "as is"**. It can be slow, unavailable,
+  or lose data, and it can change or end. The chat in the place itself is the
+  main copy: keep backups of your places.
+- **Messages are end-to-end encrypted** with a key made from the place's
+  secret, which is saved in the place. Everyone who can edit the place can
+  read its stored chat, so treat the place's secret (`TeamChatData.Backend`)
+  like the place itself.
+- **Use the Backend only through Team Chat**, for its purpose. Don't try to
+  get into places, accounts or data that aren't yours, overload or attack it,
+  scrape it, or get around its limits.
+- D3veloperHac may limit, suspend or delete accounts and stored data that
+  break these terms, the Roblox Terms of Use or the law, and may end the
+  Backend. Where possible, you'll be told in advance.
+
+## 4. Badges and purchases
 
 - Badges are **cosmetic only**. They don't give extra powers in the chat.
 - Paid badges (such as Premium) are **Roblox game passes**. You buy them on
@@ -42,27 +64,29 @@ has verified.
 - A purchase gives you the badge in the Plugin. It doesn't give you any rights
   to the Plugin's code.
 
-## 4. Liability
+## 5. Liability
 
 As far as the law allows, D3veloperHac is not liable for lost work, lost
-messages, lost places or any other damage that comes from using (or not being
-able to use) the Plugin. Nothing in these terms limits rights that the law
+messages, lost places, lost or unavailable stored chat, or any other damage
+that comes from using (or not being able to use) the Plugin or the Backend. Nothing in these terms limits rights that the law
 doesn't let anyone limit.
 
-## 5. Changes and availability
+## 6. Changes and availability
 
-- The Plugin and these terms can change with updates. **What's New** in the
+- The Plugin, the Backend and these terms can change with updates. **What's New** in the
   Plugin lists the changes; this file shows the current terms and the date
   they were last updated.
-- Features can be added, changed or removed, and the Plugin can be
-  discontinued at any time.
+- Features can be added, changed or removed, and the Plugin or the Backend
+  can be discontinued at any time.
 - If you keep using the Plugin after an update, the updated terms apply.
 
-## 6. Ending
+## 7. Ending
 
-You can stop using the Plugin at any time by uninstalling it. Messages already
-stored in a place stay in that place until someone with edit access deletes
-them.
+You can stop using the Plugin at any time by uninstalling it, and stop using
+the Backend by signing out. Messages already stored in a place stay in that
+place until someone with edit access deletes them. To delete your Backend
+account or a place's stored chat, contact D3veloperHac (see
+[PRIVACY.md](PRIVACY.md)).
 
 ## Contact
 

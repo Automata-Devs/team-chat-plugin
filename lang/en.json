@@ -169,7 +169,7 @@
 		"about.terms5": "• These terms can change with plugin updates; What's New lists the changes.",
 		"about.data": "Your data",
 		"about.data1": "Messages, DMs and polls are stored in this place (ServerStorage), so anyone who can edit the place can read them. Your settings are stored in Studio on your computer.",
-		"about.data2": "The plugin talks only to Roblox: for avatars, usernames, verified badges and game pass ownership. It sends nothing to other servers.",
+		"about.data2": "When you sign in with Roblox, this place's chat is also stored on the Team Chat backend, end-to-end encrypted: the backend can't read your messages, only who wrote them and when. Without signing in, nothing of yours is sent there. Avatars, names and badges come from Roblox. See PRIVACY.md.",
 		"about.notAffiliated": "Not affiliated with Roblox Corporation.",
 		"notify.teamChat": "Team chat",
 		"notify.poll": "Poll: {question}",

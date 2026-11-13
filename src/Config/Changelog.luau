@@ -47,7 +47,7 @@ return {
 		title = "Team Chat 1",
 		updates = {
 			{
-				version = "1.34.1",
+				version = "1.34.2",
 				date = "13/11/2026",
 				title = "Easier sign-in",
 				changes = {
@@ -62,6 +62,10 @@ return {
 					{
 						type = "changed",
 						text = "The sign-in pages in your browser have a fresh look in Team Chat's style, with a dark mode.",
+					},
+					{
+						type = "changed",
+						text = "The Privacy Policy and Terms of Use now cover the Team Chat backend: what it stores, end-to-end encryption, how long things are kept and how to delete them. Settings > About says so too.",
 					},
 				},
 			},
