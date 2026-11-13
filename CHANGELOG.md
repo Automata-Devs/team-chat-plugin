@@ -3,6 +3,14 @@
 Developer-facing history of the codebase. User-facing notes ("What's New")
 are in `src/Config/Changelog.luau`. Format: [Keep a Changelog](https://keepachangelog.com).
 
+## [1.33.1] - 2026-11-13
+
+### Fixed
+- `Backend.tick`: a refused join (for example a backend that isn't updated
+  yet, answering 400) was retried every 5 seconds with a warning each time,
+  until the rate limit answered 429. It now waits `RETRY_EVERY` (30 seconds)
+  between tries and warns once per problem.
+
 ## [1.33.0] - 2026-11-13
 
 ### Added

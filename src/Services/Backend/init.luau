@@ -69,6 +69,8 @@ local started = false
 local signingIn = false
 local askedThisSession = false
 local joinedWorkspace: string? = nil -- the workspace this session is a member of
+local joinRetryAt = 0 -- os.clock() before which a refused join isn't tried again
+local lastJoinProblem: string? = nil -- warned about once, not on every retry
 local noticeCallbacks: { (string) -> () } = {}
 
 local function notice(text: string)
@@ -297,13 +299,21 @@ function Backend.tick(scan: boolean?)
 		return
 	end
 	if joinedWorkspace == nil or joinedWorkspace ~= info.workspaceId then
-		local ok, problem = Backend.join()
-		if not ok then
-			if problem ~= "unreachable" then
-				log.warn("Couldn't open this place's workspace on the backend: %s", tostring(problem))
-			end
+		-- A refused join isn't retried every few seconds: that only hits the rate limit
+		if os.clock() < joinRetryAt then
 			return
 		end
+		local ok, problem = Backend.join()
+		if not ok then
+			joinRetryAt = os.clock() + BackendConfig.RETRY_EVERY
+			if problem ~= "unreachable" and problem ~= lastJoinProblem then
+				log.warn("Couldn't open this place's workspace on the backend: %s", tostring(problem))
+			end
+			lastJoinProblem = problem
+			return
+		end
+		joinRetryAt = 0
+		lastJoinProblem = nil
 	end
 	if scan then
 		Mirror.scan()

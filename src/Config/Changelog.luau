@@ -47,7 +47,7 @@ return {
 		title = "Team Chat 1",
 		updates = {
 			{
-				version = "1.33.0",
+				version = "1.33.1",
 				date = "13/11/2026",
 				title = "End-to-end encryption",
 				changes = {
@@ -58,6 +58,10 @@ return {
 					{
 						type = "changed",
 						text = "Messages stored readable by an earlier version are sealed again by themselves.",
+					},
+					{
+						type = "fixed",
+						text = "When the backend refused to open a place, Team Chat asked again every few seconds and filled the Output window: it now waits 30 seconds between tries and says it once.",
 					},
 				},
 			},
