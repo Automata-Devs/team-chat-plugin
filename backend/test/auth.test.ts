@@ -166,7 +166,7 @@ describe("sign in with Roblox", () => {
 		expect(go.headers.location).toBe(flow.url);
 		const again = await ctx.app.inject({ method: "GET", url: `/link?code=${flow.code}` });
 		expect(again.statusCode).toBe(404);
-		expect(again.body).toContain("isn't right");
+		expect(again.body).toContain("didn't work");
 		expect((await ctx.app.inject({ method: "GET", url: "/link?code=<script>" })).body).not.toContain("<script>");
 	});
 

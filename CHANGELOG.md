@@ -3,6 +3,17 @@
 Developer-facing history of the codebase. User-facing notes ("What's New")
 are in `src/Config/Changelog.luau`. Format: [Keep a Changelog](https://keepachangelog.com).
 
+## [1.34.1] - 2026-11-13
+
+### Changed
+- Backend: the sign-in pages (`GET /link` and Roblox's callback) share one
+  template in the logo's style (`auth/pages.ts`): the code box is the logo's
+  blue chat bubble, the result page says "You're signed in" or what went
+  wrong and how to start again, both have a dark mode and the logo as their
+  tab icon (inlined, `auth/logo.ts`). Their CSP allows only inline styles and
+  `data:` images, and blocks framing. `finishRobloxLogin` now returns
+  `"signedIn"` or `"linked"`; the page words it.
+
 ## [1.34.0] - 2026-11-13
 
 ### Changed

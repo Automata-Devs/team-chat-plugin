@@ -216,7 +216,7 @@ export async function finishRobloxLogin(services: Services, request: FastifyRequ
 		// Encrypted while it waits in the cache for the plugin to collect it
 		const done: LoginState = { status: "done", pollHash, sealed: services.secrets.encrypt(jsonText(result)) };
 		await services.cache.set(loginKey, JSON.stringify(done), FLOW_SECONDS);
-		return "linked" in result ? "Your Roblox account is linked. You can close this tab." : "You're signed in. Go back to Roblox Studio.";
+		return "linked" in result ? "linked" : "signedIn";
 	} catch (error) {
 		const message = error instanceof AppError && error.status < 500 ? error.message : "Sign-in failed";
 		const failed: LoginState = { status: "failed", pollHash, error: message };

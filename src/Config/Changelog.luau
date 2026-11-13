@@ -47,7 +47,7 @@ return {
 		title = "Team Chat 1",
 		updates = {
 			{
-				version = "1.34.0",
+				version = "1.34.1",
 				date = "13/11/2026",
 				title = "Easier sign-in",
 				changes = {
@@ -58,6 +58,10 @@ return {
 					{
 						type = "changed",
 						text = "You stay signed in while you use Team Chat: only 30 days without it, or /backend logout, signs you out.",
+					},
+					{
+						type = "changed",
+						text = "The sign-in pages in your browser have a fresh look in Team Chat's style, with a dark mode.",
 					},
 				},
 			},

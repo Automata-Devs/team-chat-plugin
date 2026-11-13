@@ -5,6 +5,7 @@ import { LIMITS } from "../../http/rateLimit.js";
 import { actorOf, type Module } from "../../http/types.js";
 import { AppError, forbidden, notFound } from "../../lib/errors.js";
 import { idParams, name, parse, username } from "../../lib/validation.js";
+import { pageCsp, resultPage } from "./pages.js";
 import { finishRobloxLogin, pollRobloxLogin, startRobloxLogin } from "./roblox.js";
 import { changePassword, connectedAccountsOf, login, register, revokeSession } from "./service.js";
 
@@ -20,10 +21,8 @@ const Callback = z.object({
 	error: z.string().max(256).optional(),
 });
 
-const page = (message: string) =>
-	`<!doctype html><meta charset="utf-8"><title>Team Chat</title><body style="font:16px system-ui;padding:40px">${message
-		.replace(/&/g, "&amp;")
-		.replace(/</g, "&lt;")}</body>`;
+const failed = (message: string) =>
+	resultPage({ ok: false, title: "Sign-in didn't work", message: `${message} Start again in Studio with /backend login.` });
 
 export const authModule: Module = (app, services) => {
 	app.post("/auth/register", { config: { auth: "none", limit: LIMITS.signup } }, async (request, reply) => {
@@ -81,15 +80,24 @@ export const authModule: Module = (app, services) => {
 
 	app.get("/auth/roblox/callback", { config: { auth: "none", limit: LIMITS.auth } }, async (request, reply) => {
 		const query = parse(Callback, request.query);
-		reply.type("text/html; charset=utf-8").header("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'");
-		if (query.error || !query.code) return reply.status(400).send(page("Sign-in was cancelled. You can close this tab."));
+		reply.type("text/html; charset=utf-8").header("Content-Security-Policy", pageCsp()).header("Cache-Control", "no-store");
+		if (query.error || !query.code) return reply.status(400).send(failed("Sign-in was cancelled on Roblox."));
 		try {
-			return reply.send(page(await finishRobloxLogin(services, request, query.code, query.state)));
+			const done = await finishRobloxLogin(services, request, query.code, query.state);
+			return reply.send(
+				done === "linked"
+					? resultPage({ ok: true, title: "Roblox account linked", message: "You can close this tab." })
+					: resultPage({
+							ok: true,
+							title: "You're signed in",
+							message: "Go back to Roblox Studio: Team Chat stores this place's chat from now on. You can close this tab.",
+						}),
+			);
 		} catch (error) {
 			const status = error instanceof AppError ? error.status : 500;
 			if (status >= 500) request.log.error({ err: error }, "Roblox sign-in failed");
 			const message = error instanceof AppError && status < 500 ? error.message : "Sign-in failed. Try again from Studio.";
-			return reply.status(status).send(page(message));
+			return reply.status(status).send(failed(message));
 		}
 	});
 
