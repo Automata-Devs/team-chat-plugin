@@ -14,11 +14,19 @@ end
 
 local function problemText(problem: string?): string
 	if problem == "notConnected" then
-		return t("notConnected", "This place isn't connected to a backend. An admin can use /backend connect <url>.")
+		return t(
+			"notConnected",
+			"This place isn't stored on a backend: none is set up in Team Chat, or the place was disconnected. An admin can use /backend connect <url>."
+		)
 	elseif problem == "signedOut" then
 		return t("signedOut", "You're not signed in to the backend. Use /backend login.")
 	elseif problem == "noWorkspace" then
-		return t("noWorkspace", "An admin needs to sign in first (/backend login) to set up this place on the backend.")
+		return t("noWorkspace", "This place's workspace isn't ready yet. It's made by itself once you're signed in.")
+	elseif problem == "alreadySigningIn" then
+		return t(
+			"alreadySigningIn",
+			"A sign-in is already waiting: open the link in the Output window (View > Output)."
+		)
 	elseif problem == "wrongAccount" then
 		return t("wrongAccount", "That Roblox account isn't the one signed in to Studio, so it was signed out again.")
 	elseif problem == "timedOut" then
@@ -92,7 +100,10 @@ return {
 				return
 			end
 			ctx.addSystemMessage(
-				t("connected", "Connected. Now sign in with /backend login: your sign-in sets the place up.")
+				t(
+					"connected",
+					"This place now uses that server. Everyone's chat here is stored there once they're signed in."
+				)
 			)
 		elseif action == "login" then
 			ctx.addSystemMessage(t("loginStarting", "Starting the Roblox sign-in..."))
@@ -106,7 +117,7 @@ return {
 							"Copy the link from the Output window (View > Output), open it in your browser and approve. It works for 10 minutes."
 						)
 					)
-				end, isAdmin)
+				end)
 				if ok then
 					ctx.addSystemMessage(
 						t(
@@ -147,7 +158,12 @@ return {
 				return
 			end
 			Backend.disconnect()
-			ctx.addSystemMessage(t("disconnected", "Disconnected. What's stored stays on the backend."))
+			ctx.addSystemMessage(
+				t(
+					"disconnected",
+					"This place isn't stored any more. What's stored stays on the backend; /backend connect turns it back on."
+				)
+			)
 		else
 			ctx.addSystemMessage(Language.t("commands.usage", { usage = USAGE }))
 		end

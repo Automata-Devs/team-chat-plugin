@@ -29,7 +29,7 @@ erDiagram
     roles ||--o{ member_roles : "given"
     workspaces ||--o{ invites : "has"
 
-    workspaces ||--o{ channels : "text and category channels"
+    workspaces ||--o{ channels : "channels, and the place's DMs and groups"
     channels ||--o{ channels : "category holds"
     channels ||--o{ channel_members : "DM/group participants, private members"
     users ||--o{ channel_members : "in"
@@ -75,7 +75,7 @@ so they outlive what they describe).
 
 | Table | Holds | Notes |
 |---|---|---|
-| `workspaces` | name, description, icon, owner, settings | Soft delete (`deleted_at`) |
+| `workspaces` | name, description, icon, owner, settings, team chat channel, and for a Roblox place its key and the SHA-256 of its secret | Soft delete (`deleted_at`); `place_key` unique: one workspace per place |
 | `roles` | name, color, position, permission bits, mentionable, `managed` | @everyone has the workspace's id; `managed` roles belong to bots |
 | `workspace_members` | (workspace, user), nickname, joined | |
 | `member_roles` | (workspace, user, role) | FK to the membership: leaving removes them |
@@ -85,7 +85,7 @@ so they outlive what they describe).
 
 | Table | Holds | Notes |
 |---|---|---|
-| `channels` | type (`text`, `category`, `dm`, `group_dm`), workspace, parent category, name, topic, icon, position, private, slowmode, group owner, `dm_key`, last message id | A check keeps `workspace_id` null exactly for DMs; `dm_key` (`"<low id>:<high id>"`) makes a pair's DM unique |
+| `channels` | type (`text`, `category`, `dm`, `group_dm`), workspace, parent category, name, topic, icon, position, private, slowmode, group owner, `dm_key`, last message id | Text channels and categories always have a workspace; DMs and groups may (a place's) or may not. `dm_key` (`"[<workspace id>:]<low id>:<high id>"`) makes a pair's DM unique per workspace. Workspace channel lists never include its conversations |
 | `channel_members` | (channel, user) | DM and group participants; members of private channels |
 | `permission_overwrites` | (channel, role or member, allow bits, deny bits) | |
 | `channel_user_settings` | one user's mute (until), notification level, archive for one channel | |

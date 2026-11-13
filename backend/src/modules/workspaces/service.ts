@@ -32,6 +32,8 @@ export function serializeWorkspace(workspace: WorkspaceRow, permissions?: bigint
 		description: workspace.description,
 		iconUrl: workspace.iconUrl,
 		ownerId: workspace.ownerId,
+		placeKey: workspace.placeKey,
+		teamChatChannelId: workspace.teamChatChannelId,
 		createdAt: workspace.createdAt,
 		...(permissions !== undefined ? { permissions: permissions.toString() } : {}),
 	};
@@ -42,6 +44,7 @@ export async function createWorkspace(
 	request: FastifyRequest,
 	actor: Actor,
 	input: { name: string; description?: string; iconUrl?: string },
+	place?: { key: string; secretHash: Buffer },
 ) {
 	const created = await services.db.transaction(async (tx) => {
 		const [{ count }] = await tx
@@ -51,16 +54,26 @@ export async function createWorkspace(
 		if (count >= MAX_WORKSPACES_OWNED) throw badRequest(`You can own at most ${MAX_WORKSPACES_OWNED} workspaces`);
 
 		const id = services.ids.next();
+		const categoryId = services.ids.next();
+		const generalId = services.ids.next();
 		const [workspace] = await tx
 			.insert(workspaces)
-			.values({ id, name: input.name, description: input.description, iconUrl: input.iconUrl, ownerId: actor.userId })
+			.values({
+				id,
+				name: input.name,
+				description: input.description,
+				iconUrl: input.iconUrl,
+				ownerId: actor.userId,
+				placeKey: place?.key,
+				placeSecretHash: place?.secretHash,
+				teamChatChannelId: generalId,
+			})
 			.returning();
 		await tx.insert(roles).values({ id, workspaceId: id, name: "@everyone", permissions: DEFAULT_EVERYONE_PERMISSIONS });
 		await tx.insert(workspaceMembers).values({ workspaceId: id, userId: actor.userId });
-		const categoryId = services.ids.next();
 		await tx.insert(channels).values([
 			{ id: categoryId, type: "category", workspaceId: id, name: "Text channels", position: 0 },
-			{ id: services.ids.next(), type: "text", workspaceId: id, parentId: categoryId, name: "general", position: 0 },
+			{ id: generalId, type: "text", workspaceId: id, parentId: categoryId, name: place ? "team-chat" : "general", position: 0 },
 		]);
 		await audit(services, tx, request, {
 			action: "workspace.create",

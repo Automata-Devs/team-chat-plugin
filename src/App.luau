@@ -69,6 +69,7 @@ function App.start(plugin: Plugin): Started
 		objectTags = ObjectTags,
 		usage = Usage,
 	})
+	Backend.onNotice(ui.addSystemMessage) -- the sign-in link and problems, for you only
 	PluginController.init(plugin, ui, ChatNetwork, CommandRegistry)
 	MessageController.init(ui, ChatNetwork, CommandRegistry)
 

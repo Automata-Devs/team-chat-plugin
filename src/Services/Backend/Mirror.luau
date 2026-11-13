@@ -316,16 +316,15 @@ function Mirror.flush(): number
 		while #list > 0 do
 			local batch, uploads, keep = {}, {}, {}
 			for _, message in ipairs(list) do
-				local thinking = message:GetAttribute("Thinking") == true
+				local answerComing = message:GetAttribute("Thinking") == true
+					and os.time() - (message:GetAttribute("Timestamp") or 0) < THINKING_WAIT
 				if message.Parent == nil or not storable(message) then
 					queued[message] = nil
-				elseif thinking and os.time() - (message:GetAttribute("Timestamp") or 0) < THINKING_WAIT then
-					table.insert(keep, message) -- wait for the bot's answer
-				elseif #batch < BackendConfig.BATCH then
+				elseif answerComing or #batch >= BackendConfig.BATCH then
+					table.insert(keep, message) -- a bot's answer is still coming, or it's for the next batch
+				else
 					table.insert(batch, message)
 					table.insert(uploads, Mirror.toUpload(message))
-				else
-					table.insert(keep, message)
 				end
 			end
 			if #batch == 0 then

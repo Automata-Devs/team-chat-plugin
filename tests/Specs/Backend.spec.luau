@@ -1,9 +1,11 @@
 --[[
 	Storing everything on the Team Chat backend (Services/Backend) against a
-	fake backend: signing in with Roblox (and refusing another account),
-	setting up the place, mirroring messages once, edits, reactions, deletes,
-	working offline, DMs that wait for a teammate, /clear keeping what's
-	stored, restoring, and the /backend command.
+	fake backend: signing in with Roblox (and refusing another account), the
+	place's own workspace made by itself (and found again with the secret this
+	computer remembers), mirroring messages once, edits, reactions, deletes,
+	working offline, DMs in the place's workspace that wait for a teammate,
+	/clear keeping what's stored, restoring, signing in without a command, and
+	the /backend command.
 ]]
 
 local HttpService = game:GetService("HttpService")
@@ -29,6 +31,8 @@ local function fakeBackend(robloxId: number)
 		accounts = {} :: { [string]: string },
 		reactions = {} :: { [string]: boolean },
 		polls = 0,
+		places = {} :: { [string]: string }, -- place key -> its secret
+		lastConversation = nil :: any,
 		lastAuth = nil :: string?,
 		nextId = 1000,
 	}
@@ -87,23 +91,24 @@ local function fakeBackend(robloxId: number)
 			return reply(200, { connections = { { provider = "roblox", providerUserId = tostring(server.robloxId) } } })
 		elseif p[1] == "auth" and p[2] == "logout" then
 			return reply(204, nil)
-		elseif p[1] == "workspaces" and m == "POST" and #p == 1 then
-			return reply(201, { workspace = { id = "w1", name = body.name } })
-		elseif p[1] == "workspaces" and p[3] == "channels" then
+		elseif p[1] == "places" and p[3] == "workspace" then
+			local created = server.places[p[2]] == nil
+			if created then
+				server.places[p[2]] = body.secret
+			elseif server.places[p[2]] ~= body.secret then
+				return reply(403, { error = { message = "That isn't this place's secret" } })
+			end
 			return reply(
 				200,
-				{ channels = { { id = "cat", type = "category" }, { id = "c1", type = "text", name = "general" } } }
+				{ workspace = { id = "w1", name = body.name }, teamChatChannelId = "c1", created = created }
 			)
-		elseif p[1] == "workspaces" and p[3] == "invites" then
-			return reply(201, { invite = { code = "invite-1" } })
-		elseif p[1] == "invites" then
-			return reply(200, { workspace = { id = "w1" } })
 		elseif p[1] == "workspaces" and p[3] == "members" and p[4] == "roblox" then
 			local account = server.accounts[p[5]]
 			return if account
 				then reply(200, { user = { id = account } })
 				else reply(404, { error = { message = "Member not found" } })
 		elseif p[1] == "conversations" and m == "POST" then
+			server.lastConversation = body
 			return reply(201, { conversation = { id = "dm-" .. table.concat(body.recipients, "-") } })
 		elseif p[1] == "channels" and p[3] == "messages" and p[4] == "batch" then
 			local list = server.channels[p[2]] or {}
@@ -184,6 +189,9 @@ return function(t)
 	local Identity = require(app.copy.Core.Identity) :: any
 	local ChatState = require(app.copy.Services.Chat.ChatState) :: any
 	local Conversations = require(app.copy.Services.Chat.Conversations) :: any
+	local BackendConfig = require(app.copy.Config.Backend) :: any
+	-- The app's own background loop would start a sign-in by itself: tested at the end
+	BackendConfig.AUTO_SIGN_IN = false
 	local ok, err = pcall(function()
 		local me = Identity.userId
 		local server = fakeBackend(me + 1) -- another Roblox account first
@@ -200,17 +208,26 @@ return function(t)
 		local shown = nil
 		local signedIn, problem = Backend.signIn(function(url)
 			shown = url
-		end, true)
+		end)
 		t.check("another Roblox account is refused", not signedIn and problem == "wrongAccount")
 		t.equal("the sign-in page was shown", shown, "https://roblox.test/authorize?x=1")
 		t.check("...and nothing is kept", not Backend.status().signedIn)
 
-		-- The right account: an admin's sign-in sets the place up
+		-- The right account: the place's workspace is made by itself, no admin needed
 		server.robloxId = me
-		signedIn, problem = Backend.signIn(function() end, true)
+		signedIn, problem = Backend.signIn(function() end)
 		t.check("signs in: " .. tostring(problem), signedIn)
 		local status = Backend.status()
 		t.check("signed in and set up", status.signedIn and status.workspace and status.username == "builder")
+		local Connection = Backend._connection
+		local placeKey = Connection.placeKey()
+		local secret = Connection.placeSecretInPlace()
+		t.check(
+			"the place has its own key: " .. placeKey,
+			string.match(placeKey, "^place:%d+$") ~= nil or string.match(placeKey, "^local:%w+$") ~= nil
+		)
+		t.check("its workspace was made with the place's secret", secret ~= nil and server.places[placeKey] == secret)
+		t.equal("...and this computer remembers it", Connection.rememberedSecret(), secret)
 		t.check("requests carry the token", server.lastAuth ~= nil and string.sub(server.lastAuth, 1, 7) == "Bearer ")
 
 		-- My messages are stored, once, with the plugin's own fields
@@ -288,6 +305,11 @@ return function(t)
 		Backend._channels.forget() -- instead of waiting 5 minutes to ask again
 		Backend.sync()
 		local dm = server.channels["dm-u2"]
+		t.equal(
+			"the DM is made in the place's workspace",
+			server.lastConversation and server.lastConversation.workspaceId,
+			"w1"
+		)
 		t.check(
 			"is stored in their DM once they have one",
 			dm ~= nil and dm[1] ~= nil and dm[1].content == "just between us"
@@ -316,6 +338,30 @@ return function(t)
 		task.wait(0.1)
 		Backend.sync()
 		t.check("my delete is stored", stored.deleted == true)
+
+		-- A reverted place lost its secret: the one this computer remembers gets back in
+		Connection.setPlaceSecret("not-the-secret-" .. string.rep("x", 40))
+		local rejoined, rejoinProblem = Backend.join()
+		t.check("rejoins with the remembered secret: " .. tostring(rejoinProblem), rejoined)
+		t.equal("...and puts it back in the place", Connection.placeSecretInPlace(), secret)
+
+		-- Signing in needs no command: the plugin asks by itself, once
+		Backend.signOut()
+		BackendConfig.AUTO_SIGN_IN = true
+		local notices = {}
+		Backend.onNotice(function(text)
+			table.insert(notices, text)
+		end)
+		Backend.tick()
+		local signedInAgain = waitFor(function()
+			return Backend.status().signedIn
+		end, 10)
+		t.check("asks to sign in by itself", #notices >= 1 and string.find(notices[1], "Sign in once", 1, true) ~= nil)
+		t.check("...and is signed in once approved", signedInAgain)
+		waitFor(function()
+			return Backend.isActive()
+		end, 5)
+		t.check("...back in the place's workspace", Backend.isActive())
 
 		-- The command
 		local said, embed = "", nil

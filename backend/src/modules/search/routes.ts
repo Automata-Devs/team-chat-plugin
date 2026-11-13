@@ -52,14 +52,18 @@ async function readableChannels(services: Services, actor: Actor, query: z.infer
 			if (channel.type === "text" && has(permissions, Permission.READ_MESSAGE_HISTORY)) ids.push(channel.id);
 		}
 	}
-	if (!query.workspaceId) {
-		const conversations = await db
-			.select({ id: channels.id })
-			.from(channels)
-			.innerJoin(channelMembers, and(eq(channelMembers.channelId, channels.id), eq(channelMembers.userId, actor.userId)))
-			.where(and(inArray(channels.type, ["dm", "group_dm"]), isNull(channels.deletedAt)));
-		ids.push(...conversations.map((c) => c.id));
-	}
+	const conversations = await db
+		.select({ id: channels.id })
+		.from(channels)
+		.innerJoin(channelMembers, and(eq(channelMembers.channelId, channels.id), eq(channelMembers.userId, actor.userId)))
+		.where(
+			and(
+				inArray(channels.type, ["dm", "group_dm"]),
+				isNull(channels.deletedAt),
+				query.workspaceId ? eq(channels.workspaceId, query.workspaceId) : undefined,
+			),
+		);
+	ids.push(...conversations.map((c) => c.id));
 	return ids.slice(0, MAX_SCOPE_CHANNELS);
 }
 

@@ -85,8 +85,9 @@ The plugin is treated as an untrusted client:
 
 ## The plugin
 
-Team Chat stores everything people write on the backend once a place is
-connected and they've signed in with Roblox: [PLUGIN.md](PLUGIN.md). Chat
+Team Chat stores every place's chat on the backend by itself, one workspace
+per place holding its team chat, DMs and groups, once people have signed in
+with Roblox: [PLUGIN.md](PLUGIN.md). Chat
 still travels through the place in Team Create; the backend is the safe,
 searchable copy, and restores the team chat. Live updates over `/gateway` and
 reading history from the backend instead of the place are the next steps.

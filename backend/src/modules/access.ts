@@ -155,10 +155,17 @@ export async function visibleWorkspaceChannels(
 	tx: Tx,
 	access: WorkspaceAccess,
 ): Promise<Array<{ channel: Channel; permissions: bigint }>> {
+	// Conversations inside a workspace (a place's DMs) are only for their members: see channelAccess
 	const all = await tx
 		.select()
 		.from(channels)
-		.where(and(eq(channels.workspaceId, access.workspace.id), isNull(channels.deletedAt)));
+		.where(
+			and(
+				eq(channels.workspaceId, access.workspace.id),
+				isNull(channels.deletedAt),
+				inArray(channels.type, ["text", "category"]),
+			),
+		);
 	const [overwrites, memberships] = await Promise.all([
 		overwritesFor(
 			tx,

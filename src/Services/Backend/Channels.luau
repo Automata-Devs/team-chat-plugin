@@ -3,9 +3,9 @@
 	Channels
 
 	Which backend channel each conversation is stored in:
-	  main             the workspace's team chat channel (TeamChatData.Backend)
-	  dm_<a>_<b>       a backend DM with the other person's account
-	  group conversations  a backend group with the members' accounts; its id
+	  main             the place's team chat channel (TeamChatData.Backend)
+	  dm_<a>_<b>       a DM with the other person's account, in the place's workspace
+	  group conversations  a group in the place's workspace with the members' accounts; its id
 	                   is saved on the group's folder (BackendChannel), so every
 	                   member's plugin uses the same one
 
@@ -138,7 +138,8 @@ function Channels.resolve(conversationId: string): (string?, string?)
 		if not account then
 			return nil, "waitingForTeammate"
 		end
-		local result = Client.request("POST", "/conversations", { recipients = { account } })
+		local result =
+			Client.request("POST", "/conversations", { recipients = { account }, workspaceId = info.workspaceId })
 		if result.problem or type(result.data) ~= "table" then
 			return nil, result.problem
 		end
@@ -165,7 +166,11 @@ function Channels.resolve(conversationId: string): (string?, string?)
 	if #accounts == 0 then
 		return nil, "waitingForTeammate"
 	end
-	local result = Client.request("POST", "/conversations", { recipients = accounts, name = "Group" })
+	local result = Client.request(
+		"POST",
+		"/conversations",
+		{ recipients = accounts, name = "Group", workspaceId = info.workspaceId }
+	)
 	if result.problem or type(result.data) ~= "table" then
 		return nil, result.problem
 	end

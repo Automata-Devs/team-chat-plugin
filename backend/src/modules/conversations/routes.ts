@@ -11,11 +11,14 @@ import {
 	updateConversation,
 } from "./service.js";
 
-const Open = z.object({ recipients: z.array(snowflake).min(1).max(9), name: name(100).optional() }).strict();
+const Open = z
+	.object({ recipients: z.array(snowflake).min(1).max(9), name: name(100).optional(), workspaceId: snowflake.optional() })
+	.strict();
 const List = z.object({
 	archived: z.enum(["true", "false"]).default("false").transform((v) => v === "true"),
 	before: snowflake.optional(),
 	limit: limit(50, 100),
+	workspaceId: snowflake.optional(),
 });
 const Update = z.object({ name: name(100).nullable().optional(), iconUrl: httpsUrl.nullable().optional() }).strict();
 const ChannelSettings = z

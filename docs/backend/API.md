@@ -154,6 +154,12 @@ timestampFormat), `privacy` (allowDirectMessages, showActivity),
 | `DELETE /invites/:code` | | Its creator or `MANAGE_WORKSPACE` |
 | `GET /workspaces/:id/audit-log?before=&action=` | | `VIEW_AUDIT_LOG` |
 
+### Places
+
+| | |
+|---|---|
+| `POST /places/:placeKey/workspace` | `{ secret, name? }` → `{ workspace, teamChatChannelId, created }`. The place's workspace: made by the first person to call it (with its `#team-chat` channel), joined by everyone after with the same secret. `placeKey` is `place:<PlaceId>` or `local:<id>`. A wrong secret is 403. Safe to call on every start, and by several people at once |
+
 ### Channels
 
 | | | |
@@ -172,8 +178,8 @@ timestampFormat), `privacy` (allowDirectMessages, showActivity),
 
 | | |
 |---|---|
-| `POST /conversations` | `{ recipients: [id], name? }`. One recipient without a name: their DM (the existing one if any). More: a new group, at most 10 people |
-| `GET /conversations?archived=&before=&limit=` | Yours, by latest activity, with `recipients`, `unreadCount` (up to 100), `readState`, `settings` |
+| `POST /conversations` | `{ recipients: [id], name?, workspaceId? }`. One recipient without a name: their DM (the existing one if any). More: a new group, at most 10 people. With `workspaceId` it belongs to that workspace (a place's DMs): everyone must be a member, and the same two people have a separate DM per workspace |
+| `GET /conversations?archived=&before=&limit=&workspaceId=` | Yours, by latest activity, with `recipients`, `unreadCount` (up to 100), `readState`, `settings` |
 | `GET /conversations/:id` | |
 | `PATCH /conversations/:id` | `{ name?, iconUrl? }` (groups) |
 | `PUT /conversations/:id/recipients/:userId` | Add someone (groups) |

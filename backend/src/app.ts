@@ -16,6 +16,7 @@ import { gatewayModule } from "./modules/gateway/routes.js";
 import { healthModule } from "./modules/health/routes.js";
 import { messagesModule } from "./modules/messages/routes.js";
 import { notificationsModule } from "./modules/notifications/routes.js";
+import { placesModule } from "./modules/places/routes.js";
 import { reactionsModule } from "./modules/reactions/routes.js";
 import { searchModule } from "./modules/search/routes.js";
 import { settingsModule } from "./modules/settings/routes.js";
@@ -29,6 +30,7 @@ const modules = [
 	usersModule,
 	settingsModule,
 	workspacesModule,
+	placesModule,
 	channelsModule,
 	conversationsModule,
 	messagesModule,

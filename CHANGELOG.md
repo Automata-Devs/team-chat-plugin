@@ -3,6 +3,37 @@
 Developer-facing history of the codebase. User-facing notes ("What's New")
 are in `src/Config/Changelog.luau`. Format: [Keep a Changelog](https://keepachangelog.com).
 
+## [1.32.0] - 2026-11-13
+
+Every place is stored on the backend by itself, as its own workspace.
+
+### Added
+- Backend: `POST /places/:placeKey/workspace` finds or makes a place's workspace
+  (`workspaces.place_key` unique, `place_secret_hash`, `team_chat_channel_id`;
+  migration `0001_places`). Whoever calls it first makes it with its
+  `#team-chat`; others join with the place's secret (403 otherwise).
+  Simultaneous first calls end in one workspace.
+- Backend: DMs and groups can belong to a workspace (`workspaceId` on
+  `POST /conversations`, a filter on `GET /conversations` and search). Their
+  members must be in it, the same pair has a separate DM per workspace, they
+  never show in the workspace's channel list, and leaving or deleting the
+  workspace takes them along.
+- Plugin: `BackendConfig.DEFAULT_URL` (the team's server, set before building)
+  and `AUTO_SIGN_IN`. On start the plugin asks to sign in with Roblox by itself
+  (once per session, the link in the chat and the Output window), then joins or
+  makes the place's workspace (`Backend.join`, `Backend.tick`). A place's key
+  (`place:<PlaceId>` or a saved `local:<id>`) and secret live in
+  `TeamChatData.Backend`; the secret is also remembered per computer, so a
+  reverted place keeps its workspace. `Backend.onNotice` shows messages in the chat.
+
+### Changed
+- Plugin: no admin step. `/backend connect` only overrides the default server
+  for a place; `/backend disconnect` marks the place `Disabled` and keeps its
+  key and secret. DMs and groups are made in the place's workspace.
+- Backend: the channels check allows a workspace on DMs and groups; workspace
+  channel lists, gateway topics and search only list text channels, and a
+  place's conversations go by membership.
+
 ## [1.31.0] - 2026-11-12
 
 Team Chat stores everything on the backend (`docs/backend/PLUGIN.md`).

@@ -1,17 +1,27 @@
 import { and, asc, desc, eq, inArray, isNotNull, isNull, lt, or, sql } from "drizzle-orm";
 import type { Actor, Services } from "../../context.js";
 import type { Tx } from "../../db/client.js";
-import { channelMembers, channels, channelUserSettings, readStates, relationships, userSettings, users } from "../../db/schema.js";
+import {
+	channelMembers,
+	channels,
+	channelUserSettings,
+	readStates,
+	relationships,
+	userSettings,
+	users,
+	workspaceMembers,
+} from "../../db/schema.js";
 import { enqueue } from "../../infra/jobs.js";
 import { badRequest, forbidden, notFound } from "../../lib/errors.js";
-import { type Channel, channelAccess, isConversation } from "../access.js";
+import { type Channel, channelAccess, isConversation, workspaceAccess } from "../access.js";
 import { insertSystemMessage } from "../messages/service.js";
 import { withDefaults } from "../settings/defaults.js";
 import { publish, usersById } from "../shared.js";
 
 export const MAX_GROUP_SIZE = 10;
 
-const dmKey = (a: bigint, b: bigint) => (a < b ? `${a}:${b}` : `${b}:${a}`);
+const dmKey = (a: bigint, b: bigint, workspaceId?: bigint) =>
+	(workspaceId ? `${workspaceId}:` : "") + (a < b ? `${a}:${b}` : `${b}:${a}`);
 
 /** Whether `from` may start a conversation with `to`: blocks and the recipient's privacy setting. */
 async function assertCanMessage(tx: Tx, from: bigint, to: bigint): Promise<void> {
@@ -90,6 +100,7 @@ export async function serializeConversations(tx: Tx, rows: Channel[], viewerId: 
 		return {
 			id: channel.id,
 			type: channel.type,
+			workspaceId: channel.workspaceId,
 			name: channel.name,
 			iconUrl: channel.iconUrl,
 			ownerId: channel.ownerId,
@@ -111,20 +122,38 @@ export async function serializeConversations(tx: Tx, rows: Channel[], viewerId: 
 	});
 }
 
-export async function openConversation(services: Services, actor: Actor, input: { recipients: bigint[]; name?: string }) {
+/**
+ * Opens a DM or starts a group. With `workspaceId` it belongs to that
+ * workspace (a place's DMs): everyone in it must be a member, and the same two
+ * people have a separate DM in every workspace.
+ */
+export async function openConversation(
+	services: Services,
+	actor: Actor,
+	input: { recipients: bigint[]; name?: string; workspaceId?: bigint },
+) {
 	const recipients = [...new Set(input.recipients)].filter((id) => id !== actor.userId);
 	if (recipients.length === 0) throw badRequest("Add at least one other person");
 	if (recipients.length + 1 > MAX_GROUP_SIZE) throw badRequest(`A group can have at most ${MAX_GROUP_SIZE} people`);
 
+	const workspaceId = input.workspaceId ?? null;
 	const opened = await services.db.transaction(async (tx) => {
+		if (workspaceId) {
+			await workspaceAccess(tx, workspaceId, actor.userId);
+			const members = await tx
+				.select({ userId: workspaceMembers.userId })
+				.from(workspaceMembers)
+				.where(and(eq(workspaceMembers.workspaceId, workspaceId), inArray(workspaceMembers.userId, recipients)));
+			if (members.length !== recipients.length) throw notFound("Member");
+		}
 		for (const id of recipients) await assertCanMessage(tx, actor.userId, id);
 
 		if (recipients.length === 1 && input.name === undefined) {
 			// One DM per pair, also when both open it at the same moment (dm_key is unique)
-			const key = dmKey(actor.userId, recipients[0]);
+			const key = dmKey(actor.userId, recipients[0], workspaceId ?? undefined);
 			const [created] = await tx
 				.insert(channels)
-				.values({ id: services.ids.next(), type: "dm", dmKey: key })
+				.values({ id: services.ids.next(), type: "dm", dmKey: key, workspaceId })
 				.onConflictDoNothing({ target: channels.dmKey })
 				.returning();
 			const [dm] = created ? [created] : await tx.select().from(channels).where(eq(channels.dmKey, key));
@@ -142,7 +171,7 @@ export async function openConversation(services: Services, actor: Actor, input: 
 
 		const [group] = await tx
 			.insert(channels)
-			.values({ id: services.ids.next(), type: "group_dm", ownerId: actor.userId, name: input.name ?? null })
+			.values({ id: services.ids.next(), type: "group_dm", ownerId: actor.userId, name: input.name ?? null, workspaceId })
 			.returning();
 		await tx.insert(channelMembers).values([actor.userId, ...recipients].map((userId) => ({ channelId: group.id, userId })));
 		return { channel: group, isNew: true };
@@ -160,7 +189,7 @@ export async function openConversation(services: Services, actor: Actor, input: 
 export async function listConversations(
 	services: Services,
 	actor: Actor,
-	query: { archived: boolean; before?: bigint; limit: number },
+	query: { archived: boolean; before?: bigint; limit: number; workspaceId?: bigint },
 ) {
 	const activity = sql`coalesce(${channels.lastMessageId}, ${channels.id})`;
 	const rows = await services.db
@@ -177,6 +206,7 @@ export async function listConversations(
 				isNull(channels.deletedAt),
 				query.archived ? isNotNull(channelUserSettings.archivedAt) : isNull(channelUserSettings.archivedAt),
 				query.before !== undefined ? lt(activity, query.before) : undefined,
+				query.workspaceId !== undefined ? eq(channels.workspaceId, query.workspaceId) : undefined,
 			),
 		)
 		.orderBy(desc(activity))

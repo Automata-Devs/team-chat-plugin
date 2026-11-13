@@ -151,6 +151,12 @@ export const workspaces = pgTable(
 			.notNull()
 			.references(() => users.id, { onDelete: "restrict" }),
 		settings: jsonb("settings").notNull().default({}),
+		/** The Roblox place this workspace is for ("place:<PlaceId>", or "local:<guid>" while unpublished). */
+		placeKey: text("place_key").unique(),
+		/** SHA-256 of the secret saved in the place: knowing it shows you can open the place. */
+		placeSecretHash: bytea("place_secret_hash"),
+		/** The channel the place's team chat is stored in. */
+		teamChatChannelId: id("team_chat_channel_id"),
 		createdAt: created(),
 		deletedAt: time("deleted_at"),
 	},
@@ -250,7 +256,7 @@ export const channels = pgTable(
 		slowmodeSeconds: integer("slowmode_seconds").notNull().default(0),
 		/** Group DMs only. */
 		ownerId: id("owner_id").references(() => users.id, { onDelete: "restrict" }),
-		/** 1:1 DMs only: "<smaller user id>:<larger user id>", so a pair has one DM. */
+		/** 1:1 DMs only: "[<workspace id>:]<smaller user id>:<larger user id>", so a pair has one DM (per place). */
 		dmKey: text("dm_key").unique(),
 		lastMessageId: id("last_message_id"),
 		settings: jsonb("settings").notNull().default({}),
@@ -260,7 +266,8 @@ export const channels = pgTable(
 	(t) => [
 		foreignKey({ columns: [t.parentId], foreignColumns: [t.id] }).onDelete("set null"),
 		index().on(t.workspaceId),
-		check("channels_workspace_matches_type", sql`(${t.type} in ('dm', 'group_dm')) = (${t.workspaceId} is null)`),
+		// Text channels and categories belong to a workspace; conversations may (a place's DMs) or may not
+		check("channels_workspace_matches_type", sql`${t.type} in ('dm', 'group_dm') or ${t.workspaceId} is not null`),
 		check("channels_slowmode_range", sql`${t.slowmodeSeconds} between 0 and 21600`),
 	],
 );
