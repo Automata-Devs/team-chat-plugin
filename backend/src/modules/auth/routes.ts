@@ -79,8 +79,11 @@ export const authModule: Module = (app, services) => {
 	});
 
 	app.get("/auth/roblox/callback", { config: { auth: "none", limit: LIMITS.auth } }, async (request, reply) => {
-		const query = parse(Callback, request.query);
 		reply.type("text/html; charset=utf-8").header("Content-Security-Policy", pageCsp()).header("Cache-Control", "no-store");
+		// A person lands here in a browser: answer with a page, never raw JSON
+		const parsed = Callback.safeParse(request.query);
+		if (!parsed.success) return reply.status(400).send(failed("This sign-in link is incomplete or was changed."));
+		const query = parsed.data;
 		if (query.error || !query.code) return reply.status(400).send(failed("Sign-in was cancelled on Roblox."));
 		try {
 			const done = await finishRobloxLogin(services, request, query.code, query.state);

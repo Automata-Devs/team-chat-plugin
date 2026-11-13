@@ -184,6 +184,16 @@ describe("sign in with Roblox", () => {
 		expect(Number(row.days)).toBeGreaterThan(29);
 	});
 
+	test("the callback always answers a browser with a page", async () => {
+		const noState = await ctx.app.inject({ method: "GET", url: "/api/v1/auth/roblox/callback?code=xyz" });
+		expect(noState.statusCode).toBe(400);
+		expect(noState.headers["content-type"]).toContain("text/html");
+		expect(noState.body).toContain("Sign-in didn't work");
+		const unknown = await ctx.app.inject({ method: "GET", url: "/api/v1/auth/roblox/callback?code=xyz&state=nope" });
+		expect(unknown.headers["content-type"]).toContain("text/html");
+		expect(unknown.body).toContain("Sign-in didn't work");
+	});
+
 	test("Roblox refusing the code fails the sign-in", async () => {
 		ctx.respond = () => new Response("bad", { status: 400 });
 		const flow = await start();

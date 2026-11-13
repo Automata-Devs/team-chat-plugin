@@ -12,7 +12,8 @@ are in `src/Config/Changelog.luau`. Format: [Keep a Changelog](https://keepachan
   wrong and how to start again, both have a dark mode and the logo as their
   tab icon (inlined, `auth/logo.ts`). Their CSP allows only inline styles and
   `data:` images, and blocks framing. `finishRobloxLogin` now returns
-  `"signedIn"` or `"linked"`; the page words it.
+  `"signedIn"` or `"linked"`; the page words it. A callback address that's
+  incomplete or changed (no valid `state`) also gets the page, not JSON.
 
 ## [1.34.0] - 2026-11-13
 
