@@ -21,12 +21,14 @@ const STYLE = `
 	--sky: #26cefc; --deep: #0058f4;
 	--ink: #14204a; --muted: #4f5b86; --paper: #f3f7ff;
 	--pale: #e4ecfc; --edge: #8496cf; --danger: #b4232f;
+	--success: #1f9d55; --alert: #e5323a;
 	--button-text: #ffffff;
 }
 @media (prefers-color-scheme: dark) {
 	:root {
 		--ink: #e8eeff; --muted: #a3b0da; --paper: #0b1430;
 		--pale: #18264f; --edge: #3d5090; --danger: #ff8f98;
+		--success: #23a55a; --alert: #f04048;
 		--button-text: #0b1430;
 	}
 }
@@ -76,18 +78,23 @@ button:hover { opacity: 0.9; }
 button:focus-visible { outline: 3px solid var(--sky); outline-offset: 3px; }
 .hint { margin-top: 16px; font-size: 15px; }
 
-/* The result: a small bubble with a check, or a pale one with a ! */
-.mark {
-	display: grid; place-items: center; width: 64px; height: 56px; border-radius: 18px; position: relative;
-	background: linear-gradient(160deg, var(--sky), var(--deep) 85%); color: #ffffff;
+/* The result: the logo with a badge, like the app icon's unread badge */
+.result { position: relative; width: 84px; }
+.result .logo { width: 84px; }
+.badge {
+	position: absolute; top: -10px; right: -12px; display: grid; place-items: center;
+	width: 38px; height: 38px; border-radius: 50%;
+	border: 4px solid var(--paper); /* the see-through ring around the badge */
+	background: var(--success); color: #ffffff;
 }
-.mark::after {
-	content: ""; position: absolute; left: 12px; bottom: -11px; width: 16px; height: 13px;
-	background: #0a63f5; clip-path: polygon(0 0, 100% 0, 0 100%);
+.badge.failed { background: var(--alert); }
+.badge svg { width: 18px; height: 18px; }
+.next { margin-top: 20px; }
+code {
+	font: 600 15px/1 ui-monospace, "Cascadia Mono", "SF Mono", Consolas, monospace;
+	padding: 3px 7px; border-radius: 7px; background: var(--pale); border: 1px solid var(--edge); color: var(--ink);
+	white-space: nowrap;
 }
-.mark.failed { background: var(--pale); border: 1.5px solid var(--edge); color: var(--danger); }
-.mark.failed::after { background: var(--edge); }
-.mark svg { width: 28px; height: 28px; }
 `;
 
 function shell(title: string, body: string): string {
@@ -109,6 +116,9 @@ ${body}
 </html>`;
 }
 
+/** Commands in plain text, shown as code: what to type in Studio stands out. */
+const withCommands = (text: string) => escape(text).replace(/\/backend login/g, "<code>/backend login</code>");
+
 const logo = `<img class="logo" src="${LOGO_DATA_URI}" width="${LOGO_WIDTH}" height="${LOGO_HEIGHT}" alt="Team Chat">`;
 
 /** GET /link: type the code Team Chat shows in Studio. */
@@ -118,7 +128,7 @@ export function linkPage(error?: string): string {
 		`${logo}
 <h1>Sign in to Team Chat</h1>
 <p>Type the code from the Team Chat window in Roblox Studio.</p>
-${error ? `<p class="error" role="alert">${escape(error)}</p>` : ""}
+${error ? `<p class="error" role="alert">${withCommands(error)}</p>` : ""}
 <form method="get" action="/link">
 <div class="bubble">
 <input class="code" name="code" aria-label="Sign-in code" placeholder="ABCD-2345" required autofocus
@@ -130,15 +140,19 @@ ${error ? `<p class="error" role="alert">${escape(error)}</p>` : ""}
 	);
 }
 
-const CHECK = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`;
-const BANG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M12 6v8"/><path d="M12 18.5v.01"/></svg>`;
+const CHECK = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`;
+const BANG = `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="10" y="3.5" width="4" height="11" rx="2"/><circle cx="12" cy="19" r="2.3"/></svg>`;
 
-/** What the browser shows once Roblox's sign-in is done (or didn't work). */
-export function resultPage(result: { ok: boolean; title: string; message: string }): string {
+/**
+ * What the browser shows once Roblox's sign-in is done (or didn't work):
+ * what happened, and for a failure what to do next.
+ */
+export function resultPage(result: { ok: boolean; title: string; message: string; next?: string }): string {
 	return shell(
 		result.title,
-		`<div class="mark${result.ok ? "" : " failed"}">${result.ok ? CHECK : BANG}</div>
+		`<div class="result">${logo}<span class="badge${result.ok ? "" : " failed"}">${result.ok ? CHECK : BANG}</span></div>
 <h1>${escape(result.title)}</h1>
-<p>${escape(result.message)}</p>`,
+<p>${withCommands(result.message)}</p>
+${result.next ? `<p class="next">${withCommands(result.next)}</p>` : ""}`,
 	);
 }

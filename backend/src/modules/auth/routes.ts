@@ -22,7 +22,7 @@ const Callback = z.object({
 });
 
 const failed = (message: string) =>
-	resultPage({ ok: false, title: "Sign-in didn't work", message: `${message} Start again in Studio with /backend login.` });
+	resultPage({ ok: false, title: "Sign-in didn't work", message, next: "Start again in Roblox Studio: type /backend login in Team Chat." });
 
 export const authModule: Module = (app, services) => {
 	app.post("/auth/register", { config: { auth: "none", limit: LIMITS.signup } }, async (request, reply) => {
