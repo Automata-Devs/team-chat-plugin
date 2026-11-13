@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import { call, createTestApp, register, send, type TestContext } from "./helpers.js";
+import { open, proofOf, seal } from "./sealing.js";
 
 let ctx: TestContext;
 beforeAll(async () => {
@@ -10,7 +11,7 @@ afterAll(() => ctx.close());
 
 const SECRET = "s".repeat(40);
 const place = (key: string, user: { as: { token?: string } }, secret = SECRET) =>
-	call(ctx, "POST", `/places/${encodeURIComponent(key)}/workspace`, { secret, name: "Obby" }, user.as);
+	call(ctx, "POST", `/places/${encodeURIComponent(key)}/workspace`, { proof: proofOf(secret), name: "Obby" }, user.as);
 
 describe("one workspace per place, made automatically", () => {
 	test("the first person makes it; the next ones join with the place's secret", async () => {
@@ -26,7 +27,7 @@ describe("one workspace per place, made automatically", () => {
 		const second = await place("place:1001", bo);
 		expect(second.body).toMatchObject({ created: false, teamChatChannelId: teamChat });
 		expect(second.body.workspace.id).toBe(first.body.workspace.id);
-		await send(ctx, bo, teamChat, "hi from Bo");
+		await send(ctx, bo, teamChat, seal(SECRET, "hi from Bo"));
 		expect((await place("place:1001", bo)).body.created).toBe(false); // every start is fine
 	});
 
@@ -36,7 +37,7 @@ describe("one workspace per place, made automatically", () => {
 		expect((await place("place:1002", eve, "x".repeat(40))).status).toBe(403);
 		expect((await call(ctx, "GET", `/channels/${made.body.teamChatChannelId}/messages`, undefined, eve.as)).status).toBe(404);
 		expect((await place("place:not-a-number", eve)).status).toBe(400);
-		expect((await place("place:1003", eve, "short")).status).toBe(400);
+		expect((await call(ctx, "POST", "/places/place:1003/workspace", { proof: "short" }, eve.as)).status).toBe(400);
 	});
 
 	test("people opening a new place at the same moment end up in one workspace", async () => {
@@ -65,12 +66,12 @@ describe("a place's DMs and groups live in its workspace", () => {
 		expect(again.body.conversation.id).toBe(inA.body.conversation.id);
 		expect(inA.body.conversation.workspaceId).toBe(a);
 
-		await send(ctx, ana, inA.body.conversation.id, "about place A");
-		await send(ctx, ana, inB.body.conversation.id, "about place B");
+		await send(ctx, ana, inA.body.conversation.id, seal(SECRET, "about place A"));
+		await send(ctx, ana, inB.body.conversation.id, seal(SECRET, "about place B"));
 		const listA = await call(ctx, "GET", `/conversations?workspaceId=${a}`, undefined, bo.as);
 		expect(listA.body.conversations.map((c: { id: string }) => c.id)).toEqual([inA.body.conversation.id]);
-		const searchA = await call(ctx, "GET", `/search/messages?q=place&workspaceId=${a}`, undefined, bo.as);
-		expect(searchA.body.messages.map((m: { content: string }) => m.content)).toEqual(["about place A"]);
+		const inDmA = await call(ctx, "GET", `/channels/${inA.body.conversation.id}/messages`, undefined, bo.as);
+		expect(inDmA.body.messages.map((m: { content: string }) => open(SECRET, m.content))).toEqual(["about place A"]);
 	});
 
 	test("only the people in a place DM see it, even other members of the place", async () => {
@@ -79,11 +80,10 @@ describe("a place's DMs and groups live in its workspace", () => {
 		await place("place:2003", bo);
 		await place("place:2003", cy);
 		const dm = (await call(ctx, "POST", "/conversations", { recipients: [bo.id], workspaceId: ws }, ana.as)).body.conversation.id;
-		await send(ctx, ana, dm, "just us");
+		await send(ctx, ana, dm, seal(SECRET, "just us"));
 		expect((await call(ctx, "GET", `/channels/${dm}/messages`, undefined, cy.as)).status).toBe(404);
 		const channels = await call(ctx, "GET", `/workspaces/${ws}/channels`, undefined, cy.as);
 		expect(channels.body.channels.map((c: { id: string }) => c.id)).not.toContain(dm);
-		expect((await call(ctx, "GET", `/search/messages?q=just&workspaceId=${ws}`, undefined, cy.as)).body.messages).toHaveLength(0);
 	});
 
 	test("people outside the place can't be added, and leaving the place leaves its DMs", async () => {
@@ -104,7 +104,7 @@ describe("a place's DMs and groups live in its workspace", () => {
 		await place("place:2005", bo);
 		const placeDm = (await call(ctx, "POST", "/conversations", { recipients: [bo.id], workspaceId: ws }, ana.as)).body.conversation.id;
 		const globalDm = (await call(ctx, "POST", "/conversations", { recipients: [bo.id] }, ana.as)).body.conversation.id;
-		await send(ctx, ana, placeDm, "in the place");
+		await send(ctx, ana, placeDm, seal(SECRET, "in the place"));
 		await send(ctx, ana, globalDm, "outside any place");
 		expect((await call(ctx, "DELETE", `/workspaces/${ws}`, undefined, ana.as)).status).toBe(204);
 		await ctx.services.jobs.drain();

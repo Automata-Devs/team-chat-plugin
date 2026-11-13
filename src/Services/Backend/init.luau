@@ -9,6 +9,9 @@
 	their own account. Chat still travels through the place in Team Create; the
 	backend keeps it safe, outlives /clear and the place, and restores it.
 
+	Everything stored is end-to-end encrypted (Seal): sealed in Studio with a
+	key made from the place's secret, which the server never gets.
+
 	Nothing needs setting up: with a server (BackendConfig.DEFAULT_URL, or the
 	place's own), the plugin asks you once per computer to sign in with Roblox,
 	then finds or makes the place's workspace by itself.
@@ -21,6 +24,7 @@
 	  Mirror      uploads my messages and changes
 	  Outbox      changes waiting for the server (survives closing Studio)
 	  Restore     brings the team chat back into the place
+	  Seal        end-to-end encryption: seals what's stored, opens what's restored
 ]]
 
 local BackendConfig = require(script.Parent.Parent.Config.Backend)
@@ -34,6 +38,7 @@ local Connection = require(script.Connection)
 local Mirror = require(script.Mirror)
 local Outbox = require(script.Outbox)
 local Restore = require(script.Restore)
+local Seal = require(script.Seal)
 local Session = require(script.Session)
 
 export type Status = {
@@ -58,6 +63,7 @@ Backend._setTransport = Client.setTransport
 Backend._mirror = Mirror
 Backend._channels = Channels
 Backend._connection = Connection
+Backend._seal = Seal
 
 local started = false
 local signingIn = false
@@ -96,8 +102,9 @@ local function placeName(): string
 end
 
 local function tryJoin(secret: string)
+	-- Only a proof of the secret: the secret makes the encryption key, so it never leaves Studio
 	return Client.request("POST", "/places/" .. Client.escape(Connection.placeKey()) .. "/workspace", {
-		secret = secret,
+		proof = Seal.proof(secret),
 		name = placeName(),
 	})
 end
@@ -147,6 +154,7 @@ function Backend.join(): (boolean, string?)
 	end
 	Connection.setWorkspace(workspaceId, result.data.teamChatChannelId)
 	Connection.rememberSecret(secret)
+	Seal.use(secret)
 	joinedWorkspace = workspaceId
 	return true, nil
 end

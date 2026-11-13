@@ -5,7 +5,8 @@
 	computer remembers), mirroring messages once, edits, reactions, deletes,
 	working offline, DMs in the place's workspace that wait for a teammate,
 	/clear keeping what's stored, restoring, signing in without a command, and
-	the /backend command.
+	the /backend command. Everything is end-to-end encrypted: the fake server
+	only ever sees sealed text, and never the place's secret.
 ]]
 
 local HttpService = game:GetService("HttpService")
@@ -31,7 +32,8 @@ local function fakeBackend(robloxId: number)
 		accounts = {} :: { [string]: string },
 		reactions = {} :: { [string]: boolean },
 		polls = 0,
-		places = {} :: { [string]: string }, -- place key -> its secret
+		places = {} :: { [string]: string }, -- place key -> the proof of its secret
+		bodies = {} :: { string }, -- every request body, to check what the server saw
 		lastConversation = nil :: any,
 		lastAuth = nil :: string?,
 		nextId = 1000,
@@ -61,6 +63,7 @@ local function fakeBackend(robloxId: number)
 			error("HttpError: ConnectFail")
 		end
 		server.lastAuth = request.Headers.Authorization
+		table.insert(server.bodies, request.Body or "")
 		local path, query = string.match(request.Url, "^https://chat%.test/api/v1([^?]*)%??(.*)$")
 		local p = {}
 		for part in string.gmatch(path or "", "[^/]+") do
@@ -94,8 +97,8 @@ local function fakeBackend(robloxId: number)
 		elseif p[1] == "places" and p[3] == "workspace" then
 			local created = server.places[p[2]] == nil
 			if created then
-				server.places[p[2]] = body.secret
-			elseif server.places[p[2]] ~= body.secret then
+				server.places[p[2]] = body.proof
+			elseif server.places[p[2]] ~= body.proof then
 				return reply(403, { error = { message = "That isn't this place's secret" } })
 			end
 			return reply(
@@ -193,9 +196,22 @@ return function(t)
 	-- The app's own background loop would start a sign-in by itself: tested at the end
 	BackendConfig.AUTO_SIGN_IN = false
 	local ok, err = pcall(function()
+		local Seal = Backend._seal
+		local function clientOf(message: any): any
+			local json = message and Seal.open(message.metadata.client.e2e)
+			return if json then HttpService:JSONDecode(json) else {}
+		end
 		local me = Identity.userId
 		local server = fakeBackend(me + 1) -- another Roblox account first
 		Backend._setTransport(server.handle)
+		local function sawAnywhere(text: string): boolean
+			for _, body in ipairs(server.bodies) do
+				if string.find(body, text, 1, true) then
+					return true
+				end
+			end
+			return false
+		end
 
 		t.check("not connected at first", not Backend.status().connected)
 		t.equal("sync says so", select(2, Backend.sync()), "notConnected")
@@ -226,8 +242,12 @@ return function(t)
 			"the place has its own key: " .. placeKey,
 			string.match(placeKey, "^place:%d+$") ~= nil or string.match(placeKey, "^local:%w+$") ~= nil
 		)
-		t.check("its workspace was made with the place's secret", secret ~= nil and server.places[placeKey] == secret)
-		t.equal("...and this computer remembers it", Connection.rememberedSecret(), secret)
+		t.check(
+			"its workspace was made with a proof of the place's secret",
+			secret ~= nil and server.places[placeKey] == Seal.proof(secret :: string)
+		)
+		t.check("...and the server never saw the secret itself", secret ~= nil and not sawAnywhere(secret :: string))
+		t.check("...and this computer remembers it", Connection.rememberedSecret() == secret) -- check: secrets stay out of results
 		t.check("requests carry the token", server.lastAuth ~= nil and string.sub(server.lastAuth, 1, 7) == "Bearer ")
 
 		-- My messages are stored, once, with the plugin's own fields
@@ -244,9 +264,17 @@ return function(t)
 		end)
 		Backend.sync()
 		local stored = server.channels.c1 and server.channels.c1[#server.channels.c1]
-		t.check("it reaches the team chat channel", stored and stored.content == "stored safely")
+		t.check("it reaches the team chat channel", stored and Seal.open(stored.content) == "stored safely")
+		t.check(
+			"...sealed: the server can't read it",
+			stored and Seal.isSealed(stored.content) and not sawAnywhere("stored safely")
+		)
 		t.equal("its nonce is the message's name", stored and stored.nonce, mine and mine.Name)
-		t.equal("its sender is in the client data", stored and stored.metadata.client.senderId, me)
+		t.equal("its sender is in the sealed client data", clientOf(stored).senderId, me)
+		t.check(
+			"...and nothing else is readable there",
+			stored and next(stored.metadata.client, next(stored.metadata.client)) == nil
+		)
 		t.equal("the backend's id is kept on it", mine and mine:GetAttribute("BackendId"), stored and stored.id)
 		local count = #server.channels.c1
 		Backend.sync()
@@ -266,7 +294,7 @@ return function(t)
 		app.chat.editMessage(mine:GetAttribute("Timestamp"), "edited text")
 		task.wait(0.1) -- Studio fires attribute changes deferred
 		Backend.sync()
-		t.equal("an edit is stored", stored.content, "edited text")
+		t.equal("an edit is stored, sealed", Seal.open(stored.content), "edited text")
 		mine:SetAttribute("Reactions", HttpService:JSONEncode({ { e = "👍", u = { me }, n = { "me" } } }))
 		task.wait(0.1)
 		Backend.sync()
@@ -284,7 +312,11 @@ return function(t)
 		t.check("waits while the backend is down", Backend.status().waiting >= 1)
 		server.down = false
 		Backend.sync()
-		t.equal("is stored when it's back", server.channels.c1[#server.channels.c1].content, "written offline")
+		t.equal(
+			"is stored when it's back",
+			Seal.open(server.channels.c1[#server.channels.c1].content),
+			"written offline"
+		)
 
 		-- A DM waits until the other person has signed in
 		local other = me + 5
@@ -312,8 +344,27 @@ return function(t)
 		)
 		t.check(
 			"is stored in their DM once they have one",
-			dm ~= nil and dm[1] ~= nil and dm[1].content == "just between us"
+			dm ~= nil and dm[1] ~= nil and Seal.open(dm[1].content) == "just between us"
 		)
+
+		-- A message an older Team Chat stored readable is sealed again
+		local legacy = { id = "legacy-1", nonce = "msg_legacy", content = "stored readable", type = "default" }
+		legacy.metadata = { client = { senderId = me, sender = "me", timestamp = 1700000000 } }
+		table.insert(server.channels.c1, legacy)
+		local old = Instance.new("Folder")
+		old.Name = "msg_legacy"
+		old:SetAttribute("SenderId", me)
+		old:SetAttribute("Content", "stored readable")
+		old:SetAttribute("Timestamp", 1700000000)
+		old:SetAttribute("BackendId", "legacy-1")
+		old.Parent = folder
+		task.wait(0.1)
+		Backend.sync()
+		t.check("an older readable message is sealed on the server", Seal.isSealed(legacy.content))
+		t.equal("...with the same text", Seal.open(legacy.content), "stored readable")
+		t.equal("...and its client data sealed too", clientOf(legacy).senderId, me)
+		t.equal("...and marked done", old:GetAttribute("BackendSealed"), true)
+		old:Destroy()
 
 		-- /clear keeps what's stored; restore brings it back
 		local name = mine.Name
@@ -343,7 +394,7 @@ return function(t)
 		Connection.setPlaceSecret("not-the-secret-" .. string.rep("x", 40))
 		local rejoined, rejoinProblem = Backend.join()
 		t.check("rejoins with the remembered secret: " .. tostring(rejoinProblem), rejoined)
-		t.equal("...and puts it back in the place", Connection.placeSecretInPlace(), secret)
+		t.check("...and puts it back in the place", Connection.placeSecretInPlace() == secret)
 
 		-- Signing in needs no command: the plugin asks by itself, once
 		Backend.signOut()

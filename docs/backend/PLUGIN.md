@@ -44,12 +44,44 @@ Studio asks once to allow Team Chat's HTTP requests to the backend's domain.
 - A published place is `place:<PlaceId>`. An unpublished one gets a random key,
   saved in the place.
 - The place keeps a **secret** in `TeamChatData.Backend`. Joining its workspace
-  needs it, so only people who can open the place can read its chat; knowing a
-  PlaceId isn't enough. Your computer remembers the secret too, so a reverted
-  place still finds its workspace.
+  needs proof of it, so only people who can open the place can get its chat;
+  knowing a PlaceId isn't enough. Your computer remembers the secret too, so a
+  reverted place still finds its workspace.
 - Your sign-in is kept on your computer, never in the place. The Roblox
   account you approve must be the one signed in to Studio; another one isn't
   used, so nobody can store messages as someone else.
+
+## End-to-end encryption
+
+Everything stored is sealed in Studio before it's sent, so the server, its
+database (Neon) and whoever runs them only ever hold unreadable text.
+
+- **The key is made from the place's secret**, so everyone who can open the
+  place has it and nobody else does. The secret itself never leaves Studio:
+  joining sends `sha256(secret)` as a proof, and the database keeps only
+  `sha256` of that. Neither can be turned back into the secret or the key.
+- **What's sealed:** each message's text, and all its client data (sender
+  name, timestamps, replies, polls, files, embeds, bot answers), with
+  ChaCha20 and an HMAC-SHA256 tag, so changed text is noticed too. The format
+  is in [MESSAGES.md](MESSAGES.md#end-to-end-encryption).
+- **What the server still sees:** who wrote a message and when (its account and
+  id), which channel or DM it's in, its size, reactions (emoji), and the
+  names of the place, its channels and its members. It needs those to keep
+  DMs private, order messages and restore them.
+- **The server refuses readable text in a place's workspace**, so an older
+  Team Chat can't store any. Older versions (1.32 and before) are told to
+  update.
+- **Messages stored before 1.33** were readable. Each person's Team Chat seals
+  their own again by itself (it edits them, which replaces the text on the
+  server), for every message still in the place. What's no longer in the place
+  stays readable until it's deleted: see
+  [OPERATIONS.md](OPERATIONS.md#messages-stored-before-end-to-end-encryption).
+- **Not available on sealed messages:** the server's search and @mention
+  notifications (it can't read the text). Team Chat doesn't use either.
+- **Anyone who can open the place can read its stored chat**, just as they can
+  read the chat in the place itself (it's saved in `TeamChatData`, DMs too).
+  Someone who loses access to the place can't join its workspace any more,
+  but anything they already copied stays with them.
 
 ## How storing works
 

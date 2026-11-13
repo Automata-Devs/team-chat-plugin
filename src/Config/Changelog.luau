@@ -47,6 +47,21 @@ return {
 		title = "Team Chat 1",
 		updates = {
 			{
+				version = "1.33.0",
+				date = "13/11/2026",
+				title = "End-to-end encryption",
+				changes = {
+					{
+						type = "added",
+						text = "Everything stored on the backend is end-to-end encrypted: messages, DMs and groups are sealed in Studio with a key only people who can open the place have. The server and its database only see unreadable text, and never get the key.",
+					},
+					{
+						type = "changed",
+						text = "Messages stored readable by an earlier version are sealed again by themselves.",
+					},
+				},
+			},
+			{
 				version = "1.32.2",
 				date = "13/11/2026",
 				title = "Team database",

@@ -3,14 +3,14 @@ import type { FastifyRequest } from "fastify";
 import type { z } from "zod";
 import type { Actor, Services } from "../../context.js";
 import { pgCode, UNIQUE_VIOLATION, type Tx } from "../../db/client.js";
-import { attachments, channelMembers, channels, messages, pins, reactions, readStates, relationships, users } from "../../db/schema.js";
+import { attachments, channelMembers, channels, messages, pins, reactions, readStates, relationships, users, workspaces } from "../../db/schema.js";
 import { enqueue } from "../../infra/jobs.js";
 import { AppError, badRequest, forbidden, notFound } from "../../lib/errors.js";
 import { Permission, has } from "../../lib/permissions.js";
 import { type ChannelAccess, isConversation, requireChannelPermission } from "../access.js";
 import { audit, publish, type PublicUser, usersById } from "../shared.js";
 import type { BatchMessages, CreateMessage, EditMessage, ListMessages } from "./shapes.js";
-import { parseMentions } from "./shapes.js";
+import { isSealed, parseMentions } from "./shapes.js";
 
 export type MessageRow = typeof messages.$inferSelect;
 type MessageType = MessageRow["type"];
@@ -76,7 +76,7 @@ export async function serializeMessages(tx: Tx, rows: MessageRow[], viewerId: bi
 			flags: m.flags,
 			replyTo: m.replyToId
 				? reply && !reply.deletedAt
-					? { id: reply.id, author: author(reply.authorId), content: reply.content.slice(0, 200), deleted: false }
+					? { id: reply.id, author: author(reply.authorId), content: isSealed(reply.content) ? reply.content : reply.content.slice(0, 200), deleted: false }
 					: { id: m.replyToId, author: null, content: null, deleted: true }
 				: null,
 			mentions: m.mentions,
@@ -151,6 +151,32 @@ async function checkSlowmode(services: Services, access: ChannelAccess, userId: 
 	}
 }
 
+/**
+ * A place's workspace (its team chat, DMs and groups) only takes end-to-end
+ * encrypted messages: sealed content and client data, nothing readable. So an
+ * old plugin, or a mistake, can't put readable text in the database.
+ */
+async function assertSealedIfPlace(
+	db: Services["db"] | Tx,
+	channel: ChannelAccess["channel"],
+	content: string | undefined,
+	clientData: Record<string, unknown> | undefined,
+): Promise<void> {
+	if (!channel.workspaceId) return;
+	const [workspace] = await db
+		.select({ placeKey: workspaces.placeKey })
+		.from(workspaces)
+		.where(eq(workspaces.id, channel.workspaceId))
+		.limit(1);
+	if (!workspace?.placeKey) return;
+	const contentSealed = content === undefined || content === "" || isSealed(content);
+	const keys = clientData === undefined ? [] : Object.keys(clientData);
+	const clientSealed = clientData === undefined || (keys.length === 1 && keys[0] === "e2e" && isSealed(clientData.e2e));
+	if (!contentSealed || !clientSealed) {
+		throw new AppError(400, "encryption_required", "Messages in a place are end-to-end encrypted: update Team Chat");
+	}
+}
+
 export async function createMessage(
 	services: Services,
 	actor: Actor,
@@ -168,6 +194,7 @@ export async function createMessage(
 	}
 
 	if (access.channel.type === "category") throw badRequest("Categories hold channels, not messages");
+	await assertSealedIfPlace(db, access.channel, input.content, input.clientData);
 	if (input.attachments.length > 0 && !has(access.permissions, Permission.ATTACH_FILES)) throw forbidden("You can't attach files here");
 	if (input.embeds.length > 0 && !has(access.permissions, Permission.EMBED_LINKS)) throw forbidden("You can't send embeds here");
 	if (input.components.length > 0 && actor.kind !== "bot") throw forbidden("Only bots can send buttons");
@@ -295,6 +322,7 @@ export async function createMessageBatch(
 	const db = services.db;
 	const access = await requireChannelPermission(db, channelId, actor.userId, Permission.SEND_MESSAGES);
 	if (access.channel.type === "category") throw badRequest("Categories hold channels, not messages");
+	for (const item of input.messages) await assertSealedIfPlace(db, access.channel, item.content, item.clientData);
 	await assertNotBlockedInDm(db, access, actor.userId);
 
 	const results = await db.transaction(async (tx) => {
@@ -462,6 +490,7 @@ export async function editMessage(
 		if (current.authorId !== actor.userId) throw forbidden("You can only edit your own messages");
 		if (!["default", "reply", "command"].includes(current.type)) throw badRequest("System messages can't be edited");
 		if (input.components && actor.kind !== "bot") throw forbidden("Only bots can send buttons");
+		await assertSealedIfPlace(tx, access.channel, input.content, input.clientData);
 		if (input.embeds?.length && !has(access.permissions, Permission.EMBED_LINKS)) throw forbidden("You can't send embeds here");
 
 		const content = input.content ?? current.content;

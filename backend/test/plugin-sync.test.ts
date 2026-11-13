@@ -67,7 +67,7 @@ describe("batch uploads", () => {
 		expect((await call(ctx, "POST", `/channels/${generalId}/messages/batch`, duplicate, member.as)).status).toBe(400);
 		const empty = { messages: [{ content: "", nonce: "e" }] };
 		expect((await call(ctx, "POST", `/channels/${generalId}/messages/batch`, empty, member.as)).status).toBe(400);
-		const tooBig = { messages: [entry("big", "x", { blob: "y".repeat(9000) })] };
+		const tooBig = { messages: [entry("big", "x", { blob: "y".repeat(17000) })] };
 		expect((await call(ctx, "POST", `/channels/${generalId}/messages/batch`, tooBig, member.as)).status).toBe(400);
 	});
 

@@ -3,6 +3,30 @@
 Developer-facing history of the codebase. User-facing notes ("What's New")
 are in `src/Config/Changelog.luau`. Format: [Keep a Changelog](https://keepachangelog.com).
 
+## [1.33.0] - 2026-11-13
+
+### Added
+- End-to-end encryption for everything stored on the backend
+  (`Services/Backend/Seal`, `Core/Crypto`): each message's text and client
+  data are sealed in Studio before they're sent (ChaCha20 with an
+  HMAC-SHA256 tag, `e2e1:` + Base64), with a key made from the place's secret.
+  Restores open them again. See docs/backend/PLUGIN.md and MESSAGES.md.
+- `Core/Crypto`: SHA-256, HMAC-SHA256, ChaCha20, Base64 and hex in plain Luau,
+  checked against the RFC test vectors (tests/Specs/Crypto.spec.luau).
+- Backend: a place's workspace only takes sealed messages
+  (`400 encryption_required`); sealed content may be up to 24,000 characters
+  and client data up to 16 KB.
+
+### Changed
+- Joining a place's workspace sends a proof of its secret (`sha256(secret)`)
+  instead of the secret, so the server never sees the key's source. Migration
+  `0002_end_to_end` turns stored secret hashes into proof hashes, so places
+  keep working; a 1.32 plugin that sends the secret gets `426`.
+- My messages stored readable by 1.31 and 1.32 are sealed again by editing
+  them (`BackendSealed` marks the ones that are done).
+- docs/backend/OPERATIONS.md: finding and wiping readable messages left from
+  before.
+
 ## [1.32.2] - 2026-11-13
 
 ### Changed

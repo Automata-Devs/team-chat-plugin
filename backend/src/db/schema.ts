@@ -376,7 +376,8 @@ export const messages = pgTable(
 		index("messages_mentions_idx").using("gin", t.mentions),
 		index("messages_search_idx").using("gin", t.search),
 		uniqueIndex("messages_author_nonce_key").on(t.authorId, t.nonce).where(sql`${t.nonce} is not null`),
-		check("messages_content_length", sql`char_length(${t.content}) <= 4000`),
+		// Sealed (end-to-end encrypted) text is longer; readable text is kept to 4000 by the API
+		check("messages_content_length", sql`char_length(${t.content}) <= 24000`),
 	],
 );
 

@@ -8,6 +8,22 @@ export const MessageFlags = {
 const CLIENT_FLAGS = MessageFlags.SUPPRESS_EMBEDS | MessageFlags.SUPPRESS_NOTIFICATIONS;
 
 export const MAX_CONTENT = 4000;
+
+/**
+ * An end-to-end encrypted part of a message: "e2e1:" and Base64 (docs/backend/MESSAGES.md).
+ * The plugin seals what it stores in a place's workspace with a key only people who can
+ * open the place have, so the server (and its database) never sees the text.
+ */
+const SEALED = /^e2e1:[A-Za-z0-9+/]+={0,2}$/;
+const MAX_SEALED = 24000;
+
+export function isSealed(value: unknown): boolean {
+	return typeof value === "string" && value.length <= MAX_SEALED && SEALED.test(value);
+}
+
+/** Plain text up to MAX_CONTENT characters, or a sealed text (which is longer than what it hides). */
+const content = () =>
+	text(MAX_SEALED).refine((value) => value.length <= MAX_CONTENT || isSealed(value), `Must be at most ${MAX_CONTENT} characters`);
 const MAX_EMBED_CHARACTERS = 6000;
 
 export const Embed = z
@@ -65,7 +81,7 @@ const embedCharacters = (embeds: EmbedInput[]) =>
  */
 export const ClientData = z
 	.record(z.unknown())
-	.refine((value) => JSON.stringify(value).length <= 8192, "clientData is at most 8 KB");
+	.refine((value) => JSON.stringify(value).length <= 16384, "clientData is at most 16 KB");
 
 const clientFlags = z
 	.number()
@@ -74,7 +90,7 @@ const clientFlags = z
 
 export const CreateMessage = z
 	.object({
-		content: text(MAX_CONTENT).default(""),
+		content: content().default(""),
 		replyTo: snowflake.optional(),
 		attachments: z.array(snowflake).max(10).default([]),
 		embeds: z.array(Embed).max(10).default([]),
@@ -92,7 +108,7 @@ export const CreateMessage = z
 
 export const EditMessage = z
 	.object({
-		content: text(MAX_CONTENT).optional(),
+		content: content().optional(),
 		embeds: z.array(Embed).max(10).optional(),
 		components: Components.optional(),
 		flags: clientFlags.optional(),
@@ -108,7 +124,7 @@ export const BatchMessages = z
 			.array(
 				z
 					.object({
-						content: text(MAX_CONTENT).default(""),
+						content: content().default(""),
 						nonce: z.string().min(1).max(64),
 						flags: clientFlags.default(0),
 						clientData: ClientData.optional(),

@@ -75,7 +75,7 @@ so they outlive what they describe).
 
 | Table | Holds | Notes |
 |---|---|---|
-| `workspaces` | name, description, icon, owner, settings, team chat channel, and for a Roblox place its key and the SHA-256 of its secret | Soft delete (`deleted_at`); `place_key` unique: one workspace per place |
+| `workspaces` | name, description, icon, owner, settings, team chat channel, and for a Roblox place its key and the SHA-256 of the proof of its secret (`sha256(sha256(secret))`) | Soft delete (`deleted_at`); `place_key` unique: one workspace per place |
 | `roles` | name, color, position, permission bits, mentionable, `managed` | @everyone has the workspace's id; `managed` roles belong to bots |
 | `workspace_members` | (workspace, user), nickname, joined | |
 | `member_roles` | (workspace, user, role) | FK to the membership: leaving removes them |

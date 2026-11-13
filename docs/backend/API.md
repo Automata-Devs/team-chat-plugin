@@ -158,7 +158,7 @@ timestampFormat), `privacy` (allowDirectMessages, showActivity),
 
 | | |
 |---|---|
-| `POST /places/:placeKey/workspace` | `{ secret, name? }` → `{ workspace, teamChatChannelId, created }`. The place's workspace: made by the first person to call it (with its `#team-chat` channel), joined by everyone after with the same secret. `placeKey` is `place:<PlaceId>` or `local:<id>`. A wrong secret is 403. Safe to call on every start, and by several people at once |
+| `POST /places/:placeKey/workspace` | `{ proof, name? }` → `{ workspace, teamChatChannelId, created }`. The place's workspace: made by the first person to call it (with its `#team-chat` channel), joined by everyone after with the same proof. `proof` is `sha256(secret)` in lowercase hex: the secret makes the place's end-to-end encryption key, so it's never sent. `placeKey` is `place:<PlaceId>` or `local:<id>`. A wrong proof is 403; a body with `secret` (Team Chat 1.32 and before) is 426. Messages in this workspace must be sealed ([MESSAGES.md](MESSAGES.md#end-to-end-encryption)). Safe to call on every start, and by several people at once |
 
 ### Channels
 
@@ -218,7 +218,7 @@ A message:
 }
 ```
 
-`clientData` (an object, at most 8 KB) is what the sending client wants to keep about a message, such as the plugin's sender name and Studio timestamp. It comes back as `metadata.client`. It's display data: the author, id and time that count are the server's.
+`clientData` (an object, at most 16 KB) is what the sending client wants to keep about a message, such as the plugin's sender name and Studio timestamp. It comes back as `metadata.client`. It's display data: the author, id and time that count are the server's.
 
 Mentions are written `<@userId>` and parsed by the server. `flags`:
 `4` hides link embeds, `4096` sends without notifying.

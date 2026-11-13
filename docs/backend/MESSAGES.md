@@ -59,6 +59,33 @@ Then the message is published to the `channel:<id>` event topic.
 The unique `(author_id, nonce)` index means the second send returns the first
 message, also when both arrive at the same moment.
 
+## End-to-end encryption
+
+In a place's workspace (one made by `POST /places/:placeKey/workspace`, see
+[PLUGIN.md](PLUGIN.md#end-to-end-encryption)) the server only accepts sealed
+messages: `content` must be empty or sealed, and `clientData` must be exactly
+`{ "e2e": "<sealed>" }`. Anything else is `400 encryption_required`. Other
+workspaces and DMs outside a place take readable text as before.
+
+A sealed value is `e2e1:` followed by standard Base64 of
+`nonce (12 bytes) || ciphertext || tag (16 bytes)`:
+
+```
+master    = HMAC-SHA256(key = place secret, "Team Chat end-to-end key v1")
+enc       = HMAC-SHA256(master, "enc")
+mac       = HMAC-SHA256(master, "mac")
+nonceKey  = HMAC-SHA256(master, "nonce")
+nonce     = first 12 bytes of HMAC-SHA256(nonceKey, 16 random bytes || text)
+ciphertext = ChaCha20(enc, nonce, counter 1, text)        (RFC 8439)
+tag       = first 16 bytes of HMAC-SHA256(mac, "e2e1" || nonce || ciphertext)
+```
+
+Openers check the tag (in constant time) before decrypting. Sealed text is
+longer than what it hides, so sealed `content` may be up to 24,000
+characters; readable text stays at 4,000. The plugin's implementation is
+`src/Services/Backend/Seal.luau`; `backend/test/sealing.ts` is the same in
+TypeScript, and the tests check that each opens what the other sealed.
+
 ## How storage scales
 
 What's built now is one PostgreSQL. Its access patterns are the ones that scale:

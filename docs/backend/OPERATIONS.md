@@ -175,3 +175,36 @@ an untested backup isn't one.
 - Give the database user only this database; no superuser.
 - Keep `ALLOW_INSECURE_BOT_URLS=false`.
 - Watch the audit log (`audit_log`): sign-in failures, token resets, deletions.
+
+## Messages stored before end-to-end encryption
+
+Team Chat 1.33 seals everything it stores. Messages stored by 1.31 and 1.32
+were readable; each person's Team Chat seals their own again once they update,
+for every message still in the place. To see what's still readable in places'
+workspaces (only counts, no text):
+
+```sql
+select w.name, count(*) as readable
+from messages m
+join channels c on c.id = m.channel_id
+join workspaces w on w.id = c.workspace_id
+where w.place_key is not null and m.deleted_at is null
+  and m.type in ('default', 'reply', 'command')
+  and m.content <> '' and m.content not like 'e2e1:%'
+group by w.name;
+```
+
+Once everyone has updated, the rest can be wiped the way a delete does it
+(a tombstone stays, so ids and replies still work):
+
+```sql
+update messages m
+set deleted_at = now(), content = '', embeds = '[]', components = '[]', metadata = '{}', mentions = '{}', mention_everyone = false
+from channels c, workspaces w
+where c.id = m.channel_id and w.id = c.workspace_id and w.place_key is not null
+  and m.deleted_at is null and m.type in ('default', 'reply', 'command')
+  and m.content <> '' and m.content not like 'e2e1:%';
+```
+
+Neon keeps old versions of its data for its restore window (history
+retention): readable text there ages out with it, or sooner if you lower it.

@@ -13,6 +13,11 @@
 
 	/clear and /purge don't delete anything stored: only deleting one of your
 	own messages does.
+
+	Text and client data are sealed (end-to-end encrypted, Seal) before they're
+	sent. My messages an older Team Chat stored readable are sealed again by
+	editing them, which replaces the readable text on the server (BackendSealed
+	marks the ones that are done).
 ]]
 
 local HttpService = game:GetService("HttpService")
@@ -24,6 +29,7 @@ local Logger = require(script.Parent.Parent.Parent.Core.Logger)
 local Channels = require(script.Parent.Channels)
 local Client = require(script.Parent.Client)
 local Outbox = require(script.Parent.Outbox)
+local Seal = require(script.Parent.Seal)
 
 local log = Logger.scope("Backend")
 
@@ -38,6 +44,7 @@ local queued: { [Instance]: boolean } = setmetatable({}, { __mode = "k" }) :: an
 local conversationOf: { [Instance]: string } = setmetatable({}, { __mode = "k" }) :: any
 local watched: { [Instance]: boolean } = setmetatable({}, { __mode = "k" }) :: any
 local myReactions: { [Instance]: { [string]: boolean } } = setmetatable({}, { __mode = "k" }) :: any
+local unsealed: { [Instance]: string } = setmetatable({}, { __mode = "k" }) :: any -- stored readable -> conversation
 
 local function isMine(message: Instance): boolean
 	local me = Identity.userId
@@ -75,7 +82,8 @@ end
 
 --[=[
 	What's uploaded for a message: its text, and the plugin's own fields as
-	client data (so a restore can rebuild it exactly).
+	client data (so a restore can rebuild it exactly), both sealed. Needs the
+	place's key (Seal.ready).
 ]=]
 function Mirror.toUpload(
 	message: Instance
@@ -122,12 +130,13 @@ function Mirror.toUpload(
 		content = "📎 " .. tostring(entry.fileName)
 	end
 	local old = (tonumber(entry.timestamp) or os.time()) < startedAt - 60
+	local text = clip(content, BackendConfig.MAX_CONTENT)
 	return {
-		content = clip(content, BackendConfig.MAX_CONTENT),
+		content = if text == "" then "" else Seal.seal(text),
 		nonce = message.Name,
 		-- Older messages stored later don't notify anyone again
 		flags = if old then BackendConfig.SUPPRESS_NOTIFICATIONS else 0,
-		clientData = data,
+		clientData = { e2e = Seal.seal(HttpService:JSONEncode(data)) },
 	}
 end
 
@@ -200,7 +209,7 @@ local function onEdited(message: Instance)
 		return
 	end
 	local channelId = Channels.resolve(conversation)
-	if not channelId then
+	if not channelId or not Seal.ready() then
 		return
 	end
 	local upload = Mirror.toUpload(message)
@@ -212,6 +221,8 @@ local function onEdited(message: Instance)
 		path = "/channels/" .. channelId .. "/messages/" .. messageId,
 		body = { content = upload.content, clientData = upload.clientData },
 	})
+	message:SetAttribute("BackendSealed", true)
+	unsealed[message] = nil
 end
 
 local function watch(conversation: string, message: Instance)
@@ -240,6 +251,14 @@ function Mirror.consider(conversation: string, message: Instance)
 		return
 	end
 	watch(conversation, message)
+	if
+		type(message:GetAttribute("BackendId")) == "string"
+		and message:GetAttribute("BackendSealed") ~= true
+		and message:GetAttribute("VisibleTo") == nil
+		and isMine(message)
+	then
+		unsealed[message] = conversation -- stored readable by an older Team Chat
+	end
 	if queued[message] or not storable(message) then
 		return
 	end
@@ -271,7 +290,24 @@ function Mirror.pendingCount(): number
 	for _, list in pairs(pending) do
 		count += #list
 	end
+	for _ in pairs(unsealed) do
+		count += 1
+	end
 	return count
+end
+
+-- Seals again my messages an older Team Chat stored readable: the edit replaces their text
+local function sealStored()
+	for message, conversation in pairs(unsealed) do
+		if message.Parent == nil or message:GetAttribute("BackendSealed") == true then
+			unsealed[message] = nil
+		elseif Channels.resolve(conversation) then
+			onEdited(message)
+			if message:GetAttribute("BackendSealed") ~= true then
+				unsealed[message] = nil -- nothing to seal (no text)
+			end
+		end
+	end
 end
 
 --[=[
@@ -305,6 +341,10 @@ end
 ]=]
 function Mirror.flush(): number
 	local stored = 0
+	if not Seal.ready() then
+		return stored -- nothing leaves Studio unsealed
+	end
+	sealStored()
 	for conversation, list in pairs(pending) do
 		local channelId, why = Channels.resolve(conversation)
 		if not channelId then
@@ -357,6 +397,7 @@ function Mirror.flush(): number
 					local id = ids[message.Name]
 					if id and message.Parent then
 						message:SetAttribute("BackendId", id)
+						message:SetAttribute("BackendSealed", true)
 						stored += 1
 						task.spawn(syncReactions, message)
 					end
@@ -382,6 +423,7 @@ end
 
 function Mirror.clear()
 	table.clear(pending)
+	table.clear(unsealed)
 end
 
 return Mirror
